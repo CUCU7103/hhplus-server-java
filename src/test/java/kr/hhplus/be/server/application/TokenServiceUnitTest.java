@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.token;
+package kr.hhplus.be.server.application;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -12,10 +12,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import kr.hhplus.be.server.domain.token.Token;
+import kr.hhplus.be.server.domain.token.TokenInfo;
+import kr.hhplus.be.server.domain.token.TokenRepository;
+import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.interfaces.token.TokenSearchInfo;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceUnitTest {
@@ -80,6 +85,58 @@ class TokenServiceUnitTest {
 		assertThat(tokenInfo.userId()).isEqualTo(userId);
 		assertThat(tokenInfo.status()).isEqualTo(TokenStatus.WAITING);
 		assertThat(tokenInfo.tokenValue()).isEqualTo(token.getTokenValue());
+	}
+
+	@Test
+	void 토큰을_찾을_수_없어_토큰_대기번호_조회_실패() {
+		long userId = 1L;
+		User user = mock(User.class);
+		given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+		assertThatThrownBy(() -> tokenService.searchToken(userId)).isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.NOT_FOUND_TOKEN.getMessage());
+
+	}
+
+	@Test
+	void 토큰_조회_성공_조건_만족시_ACTIVE_상태로_변경된다() {
+		// given
+		long userId = 1L;
+		User user = User.builder().id(userId).build();
+
+		Token token = Token.createToken(user, TokenStatus.WAITING, UUID.randomUUID().toString());
+
+		given(userRepository.findById(userId)).willReturn(Optional.of(user));
+		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
+		given(tokenRepository.countByStatus(TokenStatus.ACTIVE)).willReturn(3L); // ACTIVE 수가 3개
+		given(tokenRepository.getWaitingRank(token.getId())).willReturn(1); // 대기순위 1위
+
+		// when
+		TokenSearchInfo result = tokenService.searchToken(userId);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.status()).isEqualTo(TokenStatus.ACTIVE); // ACTIVE로 바뀌어야 함
+	}
+
+	@Test
+	void 토큰_조회_실패_상태가_WAITING이_아니면_예외_발생() {
+		// given
+		long userId = 1L;
+		User user = User.builder().id(userId).build();
+
+		// 상태가 이미 ACTIVE인 토큰
+		Token token = Token.createToken(user, TokenStatus.ACTIVE, UUID.randomUUID().toString());
+
+		given(userRepository.findById(userId)).willReturn(Optional.of(user));
+		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
+		given(tokenRepository.countByStatus(TokenStatus.ACTIVE)).willReturn(3L);
+		given(tokenRepository.getWaitingRank(token.getId())).willReturn(1);
+
+		// when & then
+		assertThatThrownBy(() -> tokenService.searchToken(userId))
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
 	}
 
 }
