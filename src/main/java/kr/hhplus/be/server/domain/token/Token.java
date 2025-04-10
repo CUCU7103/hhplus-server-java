@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kr.hhplus.be.server.domain.user.User;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -45,8 +46,23 @@ public class Token {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
+	@Builder
+	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status,
+		Integer id) {
+		this.user = user;
+		this.modifiedAt = modifiedAt;
+		this.createdAt = createdAt;
+		this.tokenValue = tokenValue;
+		this.status = status;
+		this.id = id;
+	}
+
 	public static Token createToken(User user, TokenStatus status, String tokenValue) {
-		return new Token(user, status, tokenValue);
+		return Token.builder()
+			.user(user)
+			.status(status)
+			.tokenValue(tokenValue)
+			.build();
 	}
 
 	private Token(User user, TokenStatus status, String tokenValue) {
