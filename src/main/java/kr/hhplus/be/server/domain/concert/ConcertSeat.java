@@ -22,6 +22,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
+import kr.hhplus.be.server.global.error.CustomErrorCode;
+import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -79,6 +81,12 @@ public class ConcertSeat {
 	public ConcertSeat changeStatus(ConcertSeatStatus newStatus) {
 		this.status = newStatus;
 		return this;
+	}
+
+	public void validateStatus() {
+		if (this.status != ConcertSeatStatus.AVAILABLE) {
+			throw new CustomException(CustomErrorCode.INVALID_STATUS);
+		}
 	}
 
 }

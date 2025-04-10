@@ -166,6 +166,7 @@ public class ConcertService {
 
 		// 결제 수행
 		userbalance.usePoint(request.toCommand().amount());
+		seat.validateStatus();
 		seat.changeStatus(ConcertSeatStatus.BOOKED);
 
 		ConcertPayment payment = concertRepository.save(ConcertPayment

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain;
+package kr.hhplus.be.server.domain.concert;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -52,14 +52,14 @@ class ConcertCommandUnitTest {
 
 	@ParameterizedTest
 	@ValueSource(longs = {-1L, 0L})
-	void ConcertSeatSearchCommand_에서_concertScheduleId가_0_이하이면_INVALID_BALANCED_ID_예외가_발생한다(long invalidId) {
+	void ConcertSeatSearchCommand_에서_concertScheduleId가_0_이하이면_INVALID_CONCERT_SCHEDULE_ID_예외가_발생한다(long invalidId) {
 		// arrange
 		LocalDate futureDate = LocalDate.now().plusDays(1);
 
 		// act & assert
 		assertThatThrownBy(() -> new ConcertSeatSearchCommand(invalidId, futureDate, 0, 10))
 			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.INVALID_BALANCED_ID.getMessage());
+			.hasMessageContaining(CustomErrorCode.INVALID_CONCERT_SCHEDULE_ID.getMessage());
 	}
 
 	@Test

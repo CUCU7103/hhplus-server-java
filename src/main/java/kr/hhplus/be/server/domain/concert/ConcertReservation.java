@@ -56,6 +56,10 @@ public class ConcertReservation {
 	@LastModifiedDate
 	private LocalDateTime modifiedAt;
 
+	@Column(name = "expiration_at")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+	private LocalDateTime expirationAt;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
@@ -77,6 +81,7 @@ public class ConcertReservation {
 		this.user = user;
 		this.concertSeat = concertSeat;
 		this.concertSchedule = concertSchedule;
+		this.expirationAt = LocalDateTime.now().plusMinutes(5);
 	}
 
 	public static ConcertReservation createPendingReservation(User user, ConcertSeat seat, ConcertSchedule schedule) {
