@@ -3,6 +3,9 @@ package kr.hhplus.be.server.application;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenInfo;
@@ -139,4 +143,30 @@ class TokenServiceUnitTest {
 			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
 	}
 
+	@Test
+	void 만료된_ACTIVE_토큰은_EXPIRED로_업데이트된다() {
+		long userId = 1L;
+		LocalDateTime now = LocalDateTime.now();
+		User user = User.builder().id(userId).build();
+		Token token1 = Token.createToken(user, TokenStatus.ACTIVE, "token1");
+		ReflectionTestUtils.setField(token1, "createdAt", now);
+		ReflectionTestUtils.setField(token1, "expirationAt", now.minusMinutes(5));
+
+		Token token2 = Token.createToken(user, TokenStatus.ACTIVE, "token2");
+		ReflectionTestUtils.setField(token2, "createdAt", now);
+		ReflectionTestUtils.setField(token2, "expirationAt", now.plusMinutes(11));
+
+		// ACTIVE 상태 토큰 전체 리스트에 두 토큰을 포함시킴
+		List<Token> activeTokens = Arrays.asList(token1, token2);
+
+		// 토큰 저장소의 findAllByStatus 메서드가 ACTIVE 토큰 목록을 반환하도록 목 처리
+		given(tokenRepository.findAllByStatus(TokenStatus.ACTIVE)).willReturn(activeTokens);
+
+		// when : 스케줄러 메서드 호출 (실제 환경에서는 1시간마다 호출되지만, 테스트에서는 직접 호출)
+		tokenService.expireTokensScheduler();
+
+		// then : 토큰1은 EXPIRED 상태로 변경, 토큰2는 ACTIVE 상태 유지됨
+		assertThat(token1.getStatus()).isEqualTo(TokenStatus.EXPIRED);
+		assertThat(token2.getStatus()).isEqualTo(TokenStatus.ACTIVE);
+	}
 }

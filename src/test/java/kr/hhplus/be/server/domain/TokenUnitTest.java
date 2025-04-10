@@ -2,9 +2,11 @@ package kr.hhplus.be.server.domain;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenStatus;
@@ -80,6 +82,47 @@ public class TokenUnitTest {
 		assertThatThrownBy(() -> token.checkAndActivate(waitingRank, activeTokenCount))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
+	}
+
+	/**
+	 * 토큰 상태가 ACTIVE이고 생성 후 10분이 지난 경우,
+	 * expireIfOlderThanTenMinutes() 호출 시 토큰 상태가 EXPIRED로 변경되어야 한다.
+	 */
+	@Test
+	void 토큰_ACTIVE상태에서_생성후_10분초과하면_EXPIRED로_변경됨() {
+
+		User dummyUser = User.builder().id(1L).build();
+		Token token = Token.createToken(dummyUser, TokenStatus.ACTIVE, UUID.randomUUID().toString());
+
+		// 현재 시간을 기준으로 11분 전으로 강제 설정하여 만료 조건 만족
+		LocalDateTime now = LocalDateTime.now();
+		ReflectionTestUtils.setField(token, "createdAt", now.minusMinutes(11));
+		// expireIfOlderThanTenMinutes()는 expirationAt 필드를 사용하므로, 강제로 만료되도록 이전 시각 설정
+		ReflectionTestUtils.setField(token, "expirationAt", now.minusMinutes(1));
+
+		token.expireIfOlderThanTenMinutes();
+
+		assertThat(token.getStatus()).isEqualTo(TokenStatus.EXPIRED);
+	}
+
+	/**
+	 * 토큰 상태가 ACTIVE이지만 생성 후 10분이 지나지 않은 경우,
+	 * expireIfOlderThanTenMinutes() 호출 시 상태가 그대로 ACTIVE로 유지되어야 한다.
+	 */
+	@Test
+	void 토큰_ACTIVE상태에서_생성후_10분미만이면_상태유지됨() {
+
+		User dummyUser = User.builder().id(1L).build();
+		Token token = Token.createToken(dummyUser, TokenStatus.ACTIVE, UUID.randomUUID().toString());
+
+		// 현재 시간을 기준으로 5분 전으로 설정하여 만료 조건 미달
+		LocalDateTime now = LocalDateTime.now();
+		ReflectionTestUtils.setField(token, "createdAt", now.minusMinutes(5));
+		ReflectionTestUtils.setField(token, "expirationAt", now.plusMinutes(5));
+
+		token.expireIfOlderThanTenMinutes();
+
+		assertThat(token.getStatus()).isEqualTo(TokenStatus.ACTIVE);
 	}
 
 }

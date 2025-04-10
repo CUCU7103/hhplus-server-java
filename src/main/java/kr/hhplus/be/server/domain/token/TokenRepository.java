@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.token;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,6 @@ public interface TokenRepository {
 	int getWaitingRank(long id);
 
 	long countByStatus(TokenStatus tokenStatus);
+
+	List<Token> findAllByStatus(TokenStatus tokenStatus);
 }

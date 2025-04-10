@@ -56,13 +56,14 @@ public class Token {
 
 	@Builder
 	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status,
-		long id) {
+		long id, LocalDateTime expirationAt) {
 		this.user = user;
 		this.modifiedAt = modifiedAt;
 		this.createdAt = createdAt;
 		this.tokenValue = tokenValue;
 		this.status = status;
 		this.id = id;
+		this.expirationAt = createdAt.plusMinutes(10);
 	}
 
 	public static Token createToken(User user, TokenStatus status, String tokenValue) {
@@ -70,6 +71,7 @@ public class Token {
 			.user(user)
 			.status(status)
 			.tokenValue(tokenValue)
+			.createdAt(LocalDateTime.now())
 			.build();
 	}
 
@@ -85,12 +87,8 @@ public class Token {
 	}
 
 	/**
-	 * 토큰이 WAITING 상태에서 외부에서 전달받은 waitingRank, activeTokenCount, maxActive 정보를 활용하여
+	 * 토큰이 WAITING 상태에서 외부에서 전달받은 waitingRank, activeTokenCount
 	 * 조건을 만족할 경우 ACTIVE 상태로 전환하는 메서드
-	 *
-	 * @param waitingRank      대기 순위
-	 * @param activeTokenCount 현재 ACTIVE 상태 토큰 수
-	 * @param maxActive        최대 허용 ACTIVE 토큰 수
 	 */
 
 	final long MAX_ACTIVE = 1000;
@@ -106,4 +104,12 @@ public class Token {
 		// 그렇지 않으면 상태를 변경하지 않습니다.
 	}
 
+	public void expireIfOlderThanTenMinutes() {
+		// 토큰 상태가 ACTIVE이면서, 생성시간 기준 10분이 지난 경우 만료 처리
+		if (TokenStatus.ACTIVE.equals(this.status) &&
+			this.expirationAt.isBefore(LocalDateTime.now())) {
+			updateStatus(TokenStatus.EXPIRED);
+		}
+	}
 }
+
