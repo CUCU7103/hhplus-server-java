@@ -90,7 +90,7 @@ public class ConcertReservation {
 			.concertSeat(seat)
 			.concertSchedule(schedule)
 			.user(user)
-			.concertReservationStatus(ConcertReservationStatus.PENDING)
+			.concertReservationStatus(ConcertReservationStatus.HELD)
 			.build();
 	}
 

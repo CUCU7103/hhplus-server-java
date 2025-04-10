@@ -32,7 +32,7 @@ import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
 
 @ExtendWith(MockitoExtension.class)
-public class ConcertPaymentUnitTest {
+public class ConcertServicePaymentUnitTest {
 
 	@Mock
 	private ConcertRepository concertRepository;

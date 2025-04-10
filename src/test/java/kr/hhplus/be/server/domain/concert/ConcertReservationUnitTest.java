@@ -39,7 +39,7 @@ class ConcertReservationUnitTest {
 		assertThat(reservation.getConcertSeat()).isEqualTo(seat);
 		assertThat(reservation.getConcertSchedule()).isEqualTo(schedule);
 		assertThat(reservation.getPrice()).isEqualTo(new BigDecimal("50000"));
-		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.PENDING);
+		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.AVAILABLE);
 	}
 
 	@Test

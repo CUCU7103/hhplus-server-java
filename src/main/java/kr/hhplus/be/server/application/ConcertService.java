@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import kr.hhplus.be.server.domain.concert.info.ConcertReservationInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertSeatInfo;
 import kr.hhplus.be.server.domain.concert.model.ConcertRepository;
+import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.token.Token;
@@ -166,6 +168,7 @@ public class ConcertService {
 
 		// 결제 수행
 		userbalance.usePoint(request.toCommand().amount());
+		reservation.validateStatus();
 		seat.validateStatus();
 		seat.changeStatus(ConcertSeatStatus.BOOKED);
 

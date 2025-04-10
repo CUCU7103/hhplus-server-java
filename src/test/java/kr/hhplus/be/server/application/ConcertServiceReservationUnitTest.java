@@ -28,15 +28,13 @@ import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertReservationRequest;
 
 @ExtendWith(MockitoExtension.class)
-public class ConcertReservationUnitTest {
+public class ConcertServiceReservationUnitTest {
 
 	@Mock
 	private ConcertRepository concertRepository;
 
 	@Mock
 	private UserRepository userRepository;
-
-	@Mock
 
 	@InjectMocks
 	private ConcertService concertService;
@@ -104,7 +102,7 @@ public class ConcertReservationUnitTest {
 		ConcertReservation reservation = ConcertReservation.builder()
 			.id(reservationId)
 			.price(price)
-			.concertReservationStatus(ConcertReservationStatus.PENDING)
+			.concertReservationStatus(ConcertReservationStatus.AVAILABLE)
 			.user(user)
 			.concertSeat(concertSeat)
 			.build();
@@ -126,7 +124,7 @@ public class ConcertReservationUnitTest {
 		// assert
 		assertThat(result).isNotNull();
 		assertThat(result.price()).isEqualTo(price);
-		assertThat(result.status()).isEqualTo(ConcertReservationStatus.PENDING);
+		assertThat(result.status()).isEqualTo(ConcertReservationStatus.AVAILABLE);
 		assertThat(result.userId()).isEqualTo(reservation.getUser().getId());
 		assertThat(result.seatId()).isEqualTo(reservation.getConcertSeat().getId());
 		assertThat(result.reservationId()).isEqualTo(reservation.getId());
