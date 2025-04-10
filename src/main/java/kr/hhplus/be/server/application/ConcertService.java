@@ -9,19 +9,29 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.hhplus.be.server.domain.balance.Balance;
 import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
+import kr.hhplus.be.server.domain.concert.ConcertPayment;
+import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.ConcertSeat;
+import kr.hhplus.be.server.domain.concert.info.ConcertPaymentInfo;
+import kr.hhplus.be.server.domain.concert.info.ConcertReservationInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertSeatInfo;
 import kr.hhplus.be.server.domain.concert.model.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
+import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
+import kr.hhplus.be.server.domain.token.TokenStatus;
+import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertDateSearchRequest;
+import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
+import kr.hhplus.be.server.interfaces.concert.request.ConcertReservationRequest;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertSeatSearchRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -99,4 +109,71 @@ public class ConcertService {
 
 	}
 
+	/**
+	 * 토큰 검증은 별도의 인터셉터에서 사용
+	 * 유효한 콘서트 스케줄(날짜인지 확인)
+	 * 유효한 스케줄인 경우
+	 * 좌석의 상태가 예약가능한지 확인
+	 * 유효하지 않은 스케줄일 경우
+	 * 예외를 발생시킨다.
+	 */
+	@Transactional
+	public ConcertReservationInfo reservationSeat(long seatId, ConcertReservationRequest request) {
+
+		// 유효한 스케줄인지 확인
+		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
+				request.toCommand().concertScheduleDate())
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
+		// 좌석 조회
+		ConcertSeat seat = concertRepository
+			.getConcertSeatWhere(seatId, request.toCommand().concertScheduleId(),
+				request.toCommand().concertScheduleDate(),
+				ConcertSeatStatus.AVAILABLE)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.INVALID_RESERVATION_CONCERT_SEAT));
+
+		User user = userRepository.findById(request.userId())
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
+
+		seat.changeStatus(ConcertSeatStatus.HELD); // 좌석상태 임시예약으로 변경
+
+		// 예약정보 생성
+		ConcertReservation reservation = concertRepository.save(
+			ConcertReservation.createPendingReservation(user, seat, concertSchedule));
+
+		return ConcertReservationInfo.from(reservation);
+	}
+
+	/**
+	 *  사용자의 잔여 포인트를 조회한다.
+	 *  잔여 포인트 조회 후 결제 여부를 판단한다.
+	 *  결제 금액이 부족한 경우 예외처리
+	 *  결제 금액이 충분한 경우
+	 *  포인트 차감 후 저장
+	 *  좌석 상태를 변경
+	 *  좌석의 결제 정보를 저장
+	 *  토큰의 상태를 만료 처리한다.
+	 */
+	@Transactional
+	public ConcertPaymentInfo paymentSeat(long reservationId, ConcertPaymentRequest request) {
+		Balance userbalance = balanceRepository.findById(request.toCommand().userId()).orElseThrow(
+			() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
+		ConcertSeat seat = concertRepository.getByConcertSeatId(request.toCommand().seatId())
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT_SEAT));
+		ConcertReservation reservation = concertRepository.getByConcertReservationId(reservationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_RESERVATION));
+		User user = userRepository.findById(request.userId())
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
+
+		// 결제 수행
+		userbalance.usePoint(request.toCommand().amount());
+		seat.changeStatus(ConcertSeatStatus.BOOKED);
+
+		ConcertPayment payment = concertRepository.save(ConcertPayment
+			.createPayment(reservation, user, request.toCommand().amount()));
+
+		Token token = tokenRepository.getToken(request.toCommand().userId());
+		token.updateStatus(TokenStatus.EXPIRED);
+
+		return ConcertPaymentInfo.from(payment);
+	}
 }

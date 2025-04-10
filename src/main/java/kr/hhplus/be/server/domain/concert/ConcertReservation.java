@@ -20,7 +20,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
+import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.global.error.CustomErrorCode;
+import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -74,6 +77,36 @@ public class ConcertReservation {
 		this.user = user;
 		this.concertSeat = concertSeat;
 		this.concertSchedule = concertSchedule;
+	}
+
+	public static ConcertReservation createPendingReservation(User user, ConcertSeat seat, ConcertSchedule schedule) {
+		return ConcertReservation.builder()
+			.price(seat.getPrice())
+			.concertSeat(seat)
+			.concertSchedule(schedule)
+			.user(user)
+			.concertReservationStatus(ConcertReservationStatus.PENDING)
+			.build();
+	}
+
+	public void validate(User user, ConcertSeat seat, ConcertSchedule schedule) {
+		if (user == null) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_USER);
+		}
+		if (seat == null) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_CONCERT_SEAT);
+		}
+		if (schedule == null) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE);
+		}
+		// 좌석 상태 검증
+		if (seat.getStatus() != ConcertSeatStatus.HELD) {
+			throw new CustomException(CustomErrorCode.INVALID_STATUS);
+		}
+		// 가격 검증
+		if (seat.getPrice() == null || seat.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+			throw new CustomException(CustomErrorCode.INVALID_POINT);
+		}
 	}
 
 }

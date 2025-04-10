@@ -81,7 +81,7 @@ public class ConcertController implements ConcertApi {
 			.paymentId(dto.paymentId())
 			.reservationId(reservationId)
 			.userId(dto.userId())
-			.price(dto.amount())
+			.amount(dto.amount())
 			.build();
 
 		ConcertPaymentResponse response = new ConcertPaymentResponse("결제 성공", mockInfo);

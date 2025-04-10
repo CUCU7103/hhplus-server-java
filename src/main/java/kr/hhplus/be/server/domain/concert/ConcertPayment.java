@@ -20,6 +20,7 @@ import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,10 +33,10 @@ public class ConcertPayment {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@Column(name = "price", nullable = false)
-	private BigDecimal price;
+	@Column(name = "amount", nullable = false)
+	private BigDecimal amount;
 
-	@Column(name = "created_at", nullable = false)
+	@Column(name = "created_at", nullable = false, updatable = false)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	@CreatedDate
 	private LocalDateTime createdAt;
@@ -53,16 +54,27 @@ public class ConcertPayment {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
+	@Builder
+	public ConcertPayment(long id, BigDecimal amount, LocalDateTime createdAt, LocalDateTime modifiedAt,
+		ConcertReservation reservation, User user) {
+		this.id = id;
+		this.amount = amount;
+		this.createdAt = createdAt;
+		this.modifiedAt = modifiedAt;
+		this.reservation = reservation;
+		this.user = user;
+	}
+
 	// 정적 팩토리 메서드 - 새로운 결제 생성
 	public static ConcertPayment createPayment(ConcertReservation reservation, User user, BigDecimal price) {
 		return new ConcertPayment(reservation, user, price);
 	}
 
-	private ConcertPayment(ConcertReservation reservation, User user, BigDecimal price) {
-		validatePaymentData(reservation, user, price);
+	private ConcertPayment(ConcertReservation reservation, User user, BigDecimal amount) {
+		validatePaymentData(reservation, user, amount);
 		this.reservation = reservation;
 		this.user = user;
-		this.price = price;
+		this.amount = amount;
 	}
 
 	// 유효성 검증 메서드

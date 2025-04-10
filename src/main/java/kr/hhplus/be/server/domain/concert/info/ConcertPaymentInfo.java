@@ -1,25 +1,30 @@
 package kr.hhplus.be.server.domain.concert.info;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import kr.hhplus.be.server.domain.concert.ConcertPayment;
 import lombok.Builder;
 
-public record ConcertPaymentInfo(long paymentId, long userId, long reservationId, BigDecimal price) {
+public record ConcertPaymentInfo(long paymentId, long userId, long reservationId, BigDecimal amount,
+								 LocalDateTime createdAt) {
 	@Builder
-	public ConcertPaymentInfo(long paymentId, long userId, long reservationId, BigDecimal price) {
+	public ConcertPaymentInfo(long paymentId, long userId, long reservationId, BigDecimal amount,
+		LocalDateTime createdAt) {
 		this.paymentId = paymentId;
-		this.userId = userId;
+		this.amount = amount;
 		this.reservationId = reservationId;
-		this.price = price;
+		this.userId = userId;
+		this.createdAt = createdAt;
 	}
 
 	public static ConcertPaymentInfo from(ConcertPayment payment) {
 		return ConcertPaymentInfo.builder()
 			.paymentId(payment.getId())
-			.price(payment.getPrice())
+			.amount(payment.getAmount())
 			.reservationId(payment.getReservation().getId())
 			.userId(payment.getUser().getId())
+			.createdAt(payment.getCreatedAt())
 			.build();
 	}
 }
