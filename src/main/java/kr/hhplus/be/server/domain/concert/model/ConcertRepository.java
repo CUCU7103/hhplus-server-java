@@ -42,4 +42,6 @@ public interface ConcertRepository {
 	ConcertReservation save(ConcertReservation reservation);
 
 	ConcertPayment save(ConcertPayment payment);
+
+	List<ConcertReservation> getConcertReservationStatus(ConcertReservationStatus status);
 }

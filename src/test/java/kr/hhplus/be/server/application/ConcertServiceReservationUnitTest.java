@@ -6,6 +6,9 @@ import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -132,6 +135,27 @@ public class ConcertServiceReservationUnitTest {
 		verify(concertSeat).changeStatus(ConcertSeatStatus.HELD);
 		// save 메서드가 호출되었는지 검증
 		verify(concertRepository).save(any(ConcertReservation.class));
+	}
+
+	@Test
+	void held_상태인_예약은_취소된다() {
+		// arrange
+		// HELD 상태인 예약 객체를 목 처리합니다.
+		ConcertReservation reservation1 = mock(ConcertReservation.class);
+		ConcertReservation reservation2 = mock(ConcertReservation.class);
+		List<ConcertReservation> heldReservations = Arrays.asList(reservation1, reservation2);
+
+		// repository 스터빙: HELD 상태의 예약 리스트 반환
+		given(concertRepository.getConcertReservationStatus(ConcertReservationStatus.HELD))
+			.willReturn(heldReservations);
+
+		// act
+		concertService.concertReservationCancel();
+
+		// assert
+		// 각 예약에 대해 cancel() 메서드가 호출되었음을 검증합니다.
+		verify(reservation1, times(1)).cancel(any(LocalDateTime.class));
+		verify(reservation2, times(1)).cancel(any(LocalDateTime.class));
 	}
 
 }
