@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.controller.token;
+package kr.hhplus.be.server.interfaces.token;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import kr.hhplus.be.server.config.swagger.TokenApi;
+import kr.hhplus.be.server.domain.token.TokenStatus;
+import kr.hhplus.be.server.global.config.swagger.TokenApi;
 
 @RestController
 @RequestMapping("/api/v1/token")

@@ -1,9 +1,8 @@
-package kr.hhplus.be.server.config.swagger;
+package kr.hhplus.be.server.global.config.swagger;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,31 +11,31 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.hhplus.be.server.controller.reservation.ReservationResponse;
+import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
+import kr.hhplus.be.server.interfaces.concert.response.ConcertPaymentResponse;
 
-@Tag(name = "Reservation API", description = "좌석 예약 API")
-public interface ReservationApi {
+@Tag(name = "Payment API", description = "좌석 결제 API")
+public interface PaymentApi {
 
-	@Operation(summary = "[MOCK] 좌석 예약 API", description = "좌석 예약을 진행합니다.")
+	@Operation(summary = "[MOCK] 좌석 결제 API", description = "좌석 결제를 진행합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(
 			responseCode = "200",
-			description = "좌석 예약 성공",
+			description = "좌석 결제 성공",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ReservationResponse.class),
+				schema = @Schema(implementation = ConcertPaymentResponse.class),
 				examples = @ExampleObject(
 					name = "successResponse",
 					summary = "성공 응답 예시",
 					value = """
 						{
-						  "message": "좌석 예약 성공",
+						  "message": "좌석 결제 성공",
 						  "info": {
+						    "paymentId": 1,
 						    "reservationId": 1,
-						    "price": "50000",
-						    "status": "CONFIRMED",
 						    "userId": 1,
-						    "seatId": 1
+						    "price": 50000
 						  }
 						}
 						"""
@@ -45,7 +44,7 @@ public interface ReservationApi {
 		),
 		@ApiResponse(
 			responseCode = "400",
-			description = "좌석 예약 실패",
+			description = "좌석 결제 실패",
 			content = @Content(
 				mediaType = "application/json",
 				examples = @ExampleObject(
@@ -53,7 +52,7 @@ public interface ReservationApi {
 					summary = "400 에러 응답 예시",
 					value = """
 						{
-						  "message": "좌석 예약 실패",
+						  "message": "좌석 결제 실패",
 						  "info": null
 						}
 						"""
@@ -61,8 +60,7 @@ public interface ReservationApi {
 			)
 		)
 	})
-	@PostMapping("/{seatId}")
-	ResponseEntity<ReservationResponse> reserveSeat(@PathVariable(name = "seatId") long seatId,
-		@RequestParam(name = "userId") long userId);
+	@PostMapping("/transaction")
+	ResponseEntity<ConcertPaymentResponse> seatPayment(@RequestBody ConcertPaymentRequest dto);
 
 }

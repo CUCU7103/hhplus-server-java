@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.controller.token;
+package kr.hhplus.be.server.domain.token;
 
 public enum TokenStatus {
 

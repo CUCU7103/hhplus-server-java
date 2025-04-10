@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config.swagger;
+package kr.hhplus.be.server.global.config.swagger;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.hhplus.be.server.controller.token.TokenResponse;
+import kr.hhplus.be.server.interfaces.token.TokenResponse;
 
 @Tag(name = "Token API", description = "유저 토큰 관련 API")
 public interface TokenApi {
@@ -35,7 +35,7 @@ public interface TokenApi {
 						    "tokenValue": "78f771f7-d5ff-407a-a75c-ef2bd1a56b66",
 						    "status": "WAITING",
 						    "createdAt": "2025-04-01",
-						    "userId": 1
+						    "balanceId": 1
 						  }
 						}
 						"""
@@ -65,7 +65,7 @@ public interface TokenApi {
 						    "status": "ACTIVE",
 						    "createdAt": "2025-04-01T14:30:00",
 						    "updatedAt": "2025-04-01T14:32:00",
-						    "userId": 1
+						    "balanceId": 1
 						  }
 						}
 						"""

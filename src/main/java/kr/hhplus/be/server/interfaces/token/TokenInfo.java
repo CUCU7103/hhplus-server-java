@@ -1,7 +1,8 @@
-package kr.hhplus.be.server.controller.token;
+package kr.hhplus.be.server.interfaces.token;
 
 import java.time.LocalDateTime;
 
+import kr.hhplus.be.server.domain.token.TokenStatus;
 import lombok.Builder;
 
 public record TokenInfo(String tokenValue, TokenStatus status, LocalDateTime createdAt, long userId) {

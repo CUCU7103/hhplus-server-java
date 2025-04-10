@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config.jpa;
+package kr.hhplus.be.server.global.config.jpa;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +12,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EnableJpaRepositories
 public class JpaConfig {
 
-    @Bean
-    public PlatformTransactionManager transactionManager() {
-        return new JpaTransactionManager();
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		return new JpaTransactionManager();
+	}
 }
