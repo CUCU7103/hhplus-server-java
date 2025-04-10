@@ -114,6 +114,19 @@ public class ConcertReservation {
 		}
 	}
 
+	public void validateStatus() {
+		if (this.concertReservationStatus == ConcertReservationStatus.HELD) {
+			throw new CustomException(CustomErrorCode.INVALID_STATUS);
+		}
+	}
+
+	public void cancel(LocalDateTime dateTime) {
+		if (this.expirationAt.isBefore(dateTime)) {
+			// HELD -> avaliable
+			this.concertReservationStatus = ConcertReservationStatus.AVAILABLE;
+			this.concertSeat = concertSeat.changeStatus(ConcertSeatStatus.AVAILABLE);
+		}
+	}
 }
 
 

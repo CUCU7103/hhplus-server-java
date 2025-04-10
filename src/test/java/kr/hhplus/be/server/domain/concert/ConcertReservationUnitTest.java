@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,6 +101,46 @@ class ConcertReservationUnitTest {
 		)
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_POINT.getMessage());
+	}
+
+	@Test
+	void 예약상태가_HELD면_validateStatus_호출시_예외발생() {
+		// given
+		ConcertReservation reservation = ConcertReservation.builder()
+			.concertReservationStatus(ConcertReservationStatus.HELD)
+			.user(user)
+			.concertSeat(seat)
+			.concertSchedule(schedule)
+			.build();
+
+		// act, assert
+		assertThatThrownBy(() ->
+			reservation.validateStatus()
+		)
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
+	}
+
+	@Test
+	void 만료시간이_지났을때_cancel_호출시_상태변경() {
+		// given
+		LocalDateTime future = LocalDateTime.now().plusMinutes(10);
+
+		given(seat.changeStatus(ConcertSeatStatus.AVAILABLE)).willReturn(seat);
+
+		ConcertReservation reservation = ConcertReservation.builder()
+			.concertReservationStatus(ConcertReservationStatus.HELD)
+			.user(user)
+			.concertSeat(seat)
+			.concertSchedule(schedule)
+			.build();
+
+		// when
+		reservation.cancel(future);
+
+		// then
+		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.AVAILABLE);
+		verify(seat).changeStatus(ConcertSeatStatus.AVAILABLE);
 	}
 
 }
