@@ -125,4 +125,57 @@ public class TokenUnitTest {
 		assertThat(token.getStatus()).isEqualTo(TokenStatus.ACTIVE);
 	}
 
+	/**
+	 * checkTokenStatus 메서드 테스트:
+	 * 토큰이 EXPIRED 상태일 때 TOKEN_EXPIRED 예외가 발생하는지 확인
+	 */
+	@Test
+	void checkTokenStatus_토큰이_만료된_경우_TOKEN_EXPIRED_예외발생() {
+		// given
+		User dummyUser = User.builder()
+			.id(1L)
+			.build();
+		Token token = Token.createToken(dummyUser, TokenStatus.EXPIRED, UUID.randomUUID().toString());
+
+		// when & then
+		assertThatThrownBy(() -> token.checkTokenStatus())
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("customErrorCode", CustomErrorCode.TOKEN_EXPIRED);
+	}
+
+	/**
+	 * checkTokenStatus 메서드 테스트:
+	 * 토큰이 ACTIVE가 아닌 상태(WAITING)일 때 INVALID_STATUS 예외가 발생하는지 확인
+	 */
+	@Test
+	void checkTokenStatus_토큰이_ACTIVE가_아닌_경우_INVALID_STATUS_예외발생() {
+		// given
+		User dummyUser = User.builder()
+			.id(1L)
+			.build();
+		Token token = Token.createToken(dummyUser, TokenStatus.WAITING, UUID.randomUUID().toString());
+
+		// when & then
+		assertThatThrownBy(() -> token.checkTokenStatus())
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("customErrorCode", CustomErrorCode.INVALID_STATUS);
+	}
+
+	/**
+	 * checkTokenStatus 메서드 테스트:
+	 * 토큰이 ACTIVE 상태일 때 예외가 발생하지 않는지 확인
+	 */
+	@Test
+	void checkTokenStatus_토큰이_ACTIVE인_경우_예외발생하지_않음() {
+		// given
+		User dummyUser = User.builder()
+			.id(1L)
+			.build();
+		Token token = Token.createToken(dummyUser, TokenStatus.ACTIVE, UUID.randomUUID().toString());
+
+		// when & then
+		assertThatCode(() -> token.checkTokenStatus())
+			.doesNotThrowAnyException();
+	}
+
 }
