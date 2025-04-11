@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.interfaces.token.TokenResponse;
+import kr.hhplus.be.server.interfaces.token.TokenSearchResponse;
 
 @Tag(name = "Token API", description = "유저 토큰 관련 API")
 public interface TokenApi {
@@ -91,6 +92,6 @@ public interface TokenApi {
 		)
 	})
 	@GetMapping("/{userId}")
-	ResponseEntity<TokenResponse> searchToken(@PathVariable("userId") long userId);
+	ResponseEntity<TokenSearchResponse> searchToken(@PathVariable(name = "userId") long userId);
 
 }
