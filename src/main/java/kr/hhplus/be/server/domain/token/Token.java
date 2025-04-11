@@ -111,5 +111,14 @@ public class Token {
 			updateStatus(TokenStatus.EXPIRED);
 		}
 	}
+
+	public void checkTokenStatus() {
+		if (TokenStatus.EXPIRED.equals(this.status)) {
+			throw new CustomException(CustomErrorCode.TOKEN_EXPIRED);
+		}
+		if (!TokenStatus.ACTIVE.equals(this.status)) {
+			throw new CustomException(CustomErrorCode.INVALID_STATUS);
+		}
+	}
 }
 

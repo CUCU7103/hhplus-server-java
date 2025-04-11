@@ -47,7 +47,7 @@ public class TokenService {
 
 		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-
+		// 스케줄러 검증 보완
 		token.expireIfOlderThanTenMinutes();
 		// 현재 ACTIVE 토큰 수 조회
 		long activeTokenCount = tokenRepository.countByStatus(TokenStatus.ACTIVE);
@@ -70,6 +70,12 @@ public class TokenService {
 				token.updateStatus(TokenStatus.EXPIRED);
 			}
 		}
+	}
+
+	public void validateTokenByUserId(long userId) {
+		Token token = tokenRepository.findByUserId(userId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
+		token.checkTokenStatus();
 	}
 
 }
