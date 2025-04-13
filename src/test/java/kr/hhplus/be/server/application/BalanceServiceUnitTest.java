@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -14,9 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import kr.hhplus.be.server.domain.balance.Balance;
 import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
-import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
+import kr.hhplus.be.server.domain.balance.model.PointVO;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;

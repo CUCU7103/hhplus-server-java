@@ -8,20 +8,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.balance.Balance;
 import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryCommand;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceRepository;
+import kr.hhplus.be.server.domain.balance.model.BalanceHistoryInfo;
 import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
-import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
-import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.balance.model.ChargeBalanceCommand;
+import kr.hhplus.be.server.domain.balance.model.PointVO;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.balance.BalanceChargeRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
+
 	private final BalanceRepository balanceRepository;
 	private final BalanceHistoryRepository balanceHistoryRepository;
 	private final UserRepository userRepository;

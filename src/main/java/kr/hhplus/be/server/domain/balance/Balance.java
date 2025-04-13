@@ -7,18 +7,14 @@ import org.springframework.data.annotation.CreatedDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import kr.hhplus.be.server.domain.user.User;
-import kr.hhplus.be.server.global.error.CustomErrorCode;
-import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.domain.balance.model.PointVO;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

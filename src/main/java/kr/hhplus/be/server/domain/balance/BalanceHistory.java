@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.balance;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -8,7 +7,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -20,8 +22,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryCommand;
+import kr.hhplus.be.server.domain.balance.model.BalanceHistoryInfo;
 import kr.hhplus.be.server.domain.balance.model.BalanceType;
+import kr.hhplus.be.server.domain.balance.model.PointVO;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

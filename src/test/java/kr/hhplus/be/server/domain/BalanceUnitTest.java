@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
 import kr.hhplus.be.server.domain.balance.Balance;
-import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.balance.model.PointVO;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 
