@@ -15,6 +15,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import kr.hhplus.be.server.domain.balance.model.PointVO;
+import kr.hhplus.be.server.global.error.CustomErrorCode;
+import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,7 +48,6 @@ public class Balance {
 
 	@Builder(toBuilder = true)
 	public Balance(long id, PointVO pointVO, LocalDateTime createdAt, long userId) {
-		this.id = id;
 		this.pointVO = pointVO;
 		this.createdAt = createdAt;
 		this.userId = userId;
@@ -57,13 +58,12 @@ public class Balance {
 		this.pointVO = pointVO;
 		this.createdAt = createdAt;
 		this.userId = userId;
+		validateField();
 	}
 
 	public static Balance of(PointVO pointVO, LocalDateTime createdAt, long userId) {
 		return new Balance(pointVO, createdAt, userId);
 	}
-
-	private static final BigDecimal MAX_POINT = BigDecimal.valueOf(100_000L);
 
 	// 포인트 충전 로직
 	public Balance chargePoint(BigDecimal chargeAmount) {
@@ -75,6 +75,18 @@ public class Balance {
 	public Balance usePoint(BigDecimal useAmount) {
 		this.pointVO = this.pointVO.subtract(useAmount);
 		return this;
+	}
+
+	public void validateField() {
+		if (this.pointVO == null) {
+			throw new CustomException(CustomErrorCode.INVALID_POINT);
+		}
+		if (this.createdAt == null) {
+			this.createdAt = LocalDateTime.now();
+		}
+		if (this.userId == 0) {
+			throw new CustomException(CustomErrorCode.INVALID_USER_ID);
+		}
 	}
 
 }
