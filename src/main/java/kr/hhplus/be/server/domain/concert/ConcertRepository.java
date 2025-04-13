@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.concert.model;
+package kr.hhplus.be.server.domain.concert;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -8,11 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import kr.hhplus.be.server.domain.concert.Concert;
-import kr.hhplus.be.server.domain.concert.ConcertPayment;
-import kr.hhplus.be.server.domain.concert.ConcertReservation;
-import kr.hhplus.be.server.domain.concert.ConcertSchedule;
-import kr.hhplus.be.server.domain.concert.ConcertSeat;
+import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
+import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
+import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 
 @Repository
 public interface ConcertRepository {
