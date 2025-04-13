@@ -29,62 +29,52 @@ public class Balance {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@Column(name = "point")
-	private BigDecimal point;
+	@Embedded
+	private PointVO pointVO; // VO로 변경
 
 	@Column(name = "created_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "user_id")
-	private User user;
+	/**
+	 *  반드시 잔액이 User 객체를 들고 있어야 하는가?
+	 *  굳이 그럴 필요가 없다고 보여짐
+	 * */
+	@Column(name = "user_id")
+	private long userId;
 
 	@Builder(toBuilder = true)
-	public Balance(long id, BigDecimal point, LocalDateTime createdAt, User user) {
+	public Balance(long id, PointVO pointVO, LocalDateTime createdAt, long userId) {
 		this.id = id;
-		this.point = point;
+		this.pointVO = pointVO;
 		this.createdAt = createdAt;
-		this.user = user;
+		this.userId = userId;
 	}
 
 	@Builder
-	public Balance(BigDecimal point, LocalDateTime createdAt, User user) {
-		this.point = point;
+	public Balance(PointVO pointVO, LocalDateTime createdAt, long userId) {
+		this.pointVO = pointVO;
 		this.createdAt = createdAt;
-		this.user = user;
+		this.userId = userId;
 	}
 
-	public static Balance of(BigDecimal point, LocalDateTime createdAt, User user) {
-		return new Balance(point, createdAt, user);
+	public static Balance of(PointVO pointVO, LocalDateTime createdAt, long userId) {
+		return new Balance(pointVO, createdAt, userId);
 	}
 
-	final BigDecimal MAX_POINT = BigDecimal.valueOf(100_000L);
+	private static final BigDecimal MAX_POINT = BigDecimal.valueOf(100_000L);
 
-	public Balance chargePoint(BigDecimal chargePoint) {
-		BigDecimal newPoint = this.point.add(chargePoint);
-		chargeValidatePoint(newPoint);
-		this.point = newPoint;
+	// 포인트 충전 로직
+	public Balance chargePoint(BigDecimal chargeAmount) {
+		this.pointVO = this.pointVO.add(chargeAmount);
 		return this;
 	}
 
-	public void chargeValidatePoint(BigDecimal point) {
-		if (point.compareTo(MAX_POINT) > 0) {
-			throw new CustomException(CustomErrorCode.OVER_CHARGED_POINT);
-		}
-	}
-
-	public Balance usePoint(BigDecimal usePoint) {
-		BigDecimal newPoint = this.point.subtract(usePoint);
-		useValidatePoint(newPoint);
-		this.point = newPoint;
+	// 포인트 사용 로직
+	public Balance usePoint(BigDecimal useAmount) {
+		this.pointVO = this.pointVO.subtract(useAmount);
 		return this;
 	}
 
-	public void useValidatePoint(BigDecimal usePoint) {
-		if (usePoint.compareTo(BigDecimal.ZERO) < 0) {
-			throw new CustomException(CustomErrorCode.OVER_USED_POINT);
-		}
-	}
 }

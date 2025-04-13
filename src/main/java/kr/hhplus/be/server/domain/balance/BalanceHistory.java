@@ -41,11 +41,17 @@ public class BalanceHistory {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "previous_point", nullable = false)
-	private BigDecimal previousPoint;
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name = "amount", column = @Column(name = "previous_point"))
+	})
+	private PointVO previousPoint;
 
-	@Column(name = "delta_point", nullable = false)
-	private BigDecimal deltaPoint;
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name = "amount", column = @Column(name = "delta_point"))
+	})
+	private PointVO deltaPoint;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "type")
@@ -61,18 +67,19 @@ public class BalanceHistory {
 	private Balance balance;
 
 	@Builder
-	public BalanceHistory(BigDecimal previousPoint, BigDecimal deltaPoint, BalanceType type, Balance balance) {
+	public BalanceHistory(PointVO previousPoint, PointVO deltaPoint, BalanceType type, Balance balance) {
 		this.previousPoint = previousPoint;
 		this.deltaPoint = deltaPoint;
 		this.type = type;
 		this.balance = balance;
 	}
 
-	public static BalanceHistory createdHistory(BalanceHistoryCommand command) {
+	public static BalanceHistory createdHistory(BalanceHistoryInfo info) {
 		return BalanceHistory.builder()
-			.previousPoint(command.balance().getPoint())
-			.deltaPoint(command.deltaPoint())
+			.previousPoint(info.previousPoint())
+			.deltaPoint(info.deltaPoint())
 			.type(BalanceType.EARN)
+			.balance(info.balance())
 			.build();
 	}
 }

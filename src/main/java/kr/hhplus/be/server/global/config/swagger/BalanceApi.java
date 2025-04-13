@@ -35,7 +35,7 @@ public interface BalanceApi {
 						  "message": "유저 포인트 조회 성공",
 						  "info": {
 						    "balanceId": 1,
-						    "point": 50000
+						    "deltaPoint": 50000
 						  }
 						}
 						"""
@@ -79,7 +79,7 @@ public interface BalanceApi {
 						  "message": "유저 포인트 충전 성공",
 						  "info": {
 						    "balanceId": 1,
-						    "point": 51000
+						    "deltaPoint": 51000
 						  }
 						}
 						"""

@@ -30,38 +30,30 @@ public class BalanceService {
 	// 유저의 포인트 조회 메서드
 	@Transactional(readOnly = true)
 	public BalanceInfo getPoint(long userId) {
-
-		User user = userRepository.findById(userId)
+		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
 		Balance balance = balanceRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
 
-		return BalanceInfo.builder()
-			.balanceId(userId)
-			.point(balance.getPoint())
-			.userId(user.getId())
-			.build();
+		return BalanceInfo.of(balance.getId(), balance.getPointVO(), userId);
 	}
 
 	// 유저의 포인트 충전 메서드
 	@Transactional
-	public BalanceInfo chargePoint(long userId, BalanceChargeRequest request) {
-		User user = userRepository.findById(userId)
+	public BalanceInfo chargePoint(long userId, ChargeBalanceCommand command) {
+		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
-		Balance balance = balanceRepository.findByIdAndUserId(request.toCommand().balanceId(), userId)
-			.orElseGet(() -> Balance.of(BigDecimal.ZERO, LocalDateTime.now(), user));
+		Balance balance = balanceRepository.findByIdAndUserId(command.balanceId(), userId)
+			.orElseGet(() -> Balance.of(PointVO.of(BigDecimal.ZERO), LocalDateTime.now(), userId));
 
-		Balance delta = balance.chargePoint(request.toCommand().chargePoint());
+		Balance delta = balance.chargePoint(command.chargePoint());
 		balanceHistoryRepository.save(BalanceHistory
-			.createdHistory(new BalanceHistoryCommand(balance, delta.getPoint())));
+			.createdHistory(new BalanceHistoryInfo(balance.getPointVO(), delta.getPointVO(), balance)));
 
-		return BalanceInfo.builder()
-			.balanceId(userId)
-			.point(balance.getPoint())
-			.userId(delta.getId())
-			.build();
+		return BalanceInfo.of(balance.getId(), delta.getPointVO(), userId);
+
 	}
 
 }
