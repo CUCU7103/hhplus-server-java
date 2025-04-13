@@ -50,7 +50,7 @@ public class ConcertController implements ConcertApi {
 		@PathVariable(name = "concertScheduleId") long concertScheduleId,
 		@RequestBody ConcertSeatSearchRequest request) {
 		return ResponseEntity.ok()
-			.body(ConcertSeatSearchResponse.of(concertService.searchSeat(concertScheduleId, request)));
+			.body(ConcertSeatSearchResponse.of(concertService.searchSeat(concertScheduleId, request.toCommand())));
 	}
 
 	/**

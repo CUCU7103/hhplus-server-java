@@ -18,6 +18,7 @@ import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.command.ConcertDateSearchCommand;
+import kr.hhplus.be.server.domain.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.domain.concert.info.ConcertPaymentInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertReservationInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertScheduleInfo;
@@ -34,7 +35,6 @@ import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertReservationRequest;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertSeatSearchRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -89,19 +89,19 @@ public class ConcertService {
 	 */
 
 	@Transactional(readOnly = true)
-	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchRequest request) {
+	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchCommand command) {
 
 		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
-				request.toCommand().concertDate())
+		concertRepository.getConcertSchedule(command.concertScheduleId(),
+				command.concertDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 
-		Pageable pageable = PageRequest.of(request.page(), request.size(), Sort.by("section"));
+		Pageable pageable = PageRequest.of(command.page(), command.size(), Sort.by("section"));
 
 		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
-			request.concertScheduleId(),
+			command.concertScheduleId(),
 			ConcertSeatStatus.AVAILABLE, pageable);
 
 		return seats.stream()

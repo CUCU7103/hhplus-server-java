@@ -156,7 +156,7 @@ class ConcertSearchUnitTest {
 			request.toCommand().concertDate())).willReturn(Optional.empty());
 
 		// act & assert
-		assertThatThrownBy(() -> concertService.searchSeat(concertId, request))
+		assertThatThrownBy(() -> concertService.searchSeat(concertId, request.toCommand()))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_SCHEDULE.getMessage());
 	}
@@ -201,7 +201,7 @@ class ConcertSearchUnitTest {
 		).willReturn(seatPage);
 
 		// when - 실제 서비스 메서드 호출
-		List<ConcertSeatInfo> concertSeatInfos = concertService.searchSeat(concertScheduleId, request);
+		List<ConcertSeatInfo> concertSeatInfos = concertService.searchSeat(concertScheduleId, request.toCommand());
 
 		// then - 결과 검증
 		assertThat(concertSeatInfos).isNotNull();
