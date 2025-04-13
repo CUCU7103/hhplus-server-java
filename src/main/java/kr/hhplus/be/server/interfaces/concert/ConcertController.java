@@ -37,9 +37,8 @@ public class ConcertController implements ConcertApi {
 	public ResponseEntity<ConcertDateSearchResponse> searchDate(
 		@Positive @PathVariable(name = "concertId") long concertId,
 		@RequestBody ConcertDateSearchRequest request) {
-
 		return ResponseEntity.ok()
-			.body(ConcertDateSearchResponse.of(concertService.searchDate(concertId, request)));
+			.body(ConcertDateSearchResponse.of(concertService.searchDate(concertId, request.toCommand())));
 	}
 
 	/**
@@ -50,7 +49,6 @@ public class ConcertController implements ConcertApi {
 	public ResponseEntity<ConcertSeatSearchResponse> searchSeat(
 		@PathVariable(name = "concertScheduleId") long concertScheduleId,
 		@RequestBody ConcertSeatSearchRequest request) {
-
 		return ResponseEntity.ok()
 			.body(ConcertSeatSearchResponse.of(concertService.searchSeat(concertScheduleId, request)));
 	}
@@ -61,7 +59,6 @@ public class ConcertController implements ConcertApi {
 	@PostMapping("/{seatId}/seats")
 	public ResponseEntity<ConcertReservationResponse> reserveSeat(@PathVariable(name = "seatId") long seatId,
 		@RequestBody ConcertReservationRequest request) {
-
 		return ResponseEntity.ok()
 			.body(ConcertReservationResponse.of("좌석 예약에 성공하였습니다", concertService.reservationSeat(seatId, request)));
 

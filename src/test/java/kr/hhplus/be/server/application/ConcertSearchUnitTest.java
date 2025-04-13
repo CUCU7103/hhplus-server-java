@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +21,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import kr.hhplus.be.server.domain.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.concert.Concert;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.ConcertSchedule;
@@ -29,7 +29,6 @@ import kr.hhplus.be.server.domain.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertSeatInfo;
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
-import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertDateSearchRequest;
@@ -40,12 +39,6 @@ class ConcertSearchUnitTest {
 
 	@Mock
 	private ConcertRepository concertRepository;
-
-	@Mock
-	private BalanceRepository balanceRepository;
-
-	@Mock
-	private UserRepository userRepository;
 
 	@InjectMocks
 	private ConcertService concertService;
@@ -63,7 +56,7 @@ class ConcertSearchUnitTest {
 		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.empty());
 
 		// act & assert
-		assertThatThrownBy(() -> concertService.searchDate(concertId, request))
+		assertThatThrownBy(() -> concertService.searchDate(concertId, request.toCommand()))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT.getMessage());
 	}
@@ -95,7 +88,7 @@ class ConcertSearchUnitTest {
 			.willReturn(Collections.emptyList());
 
 		// act
-		List<ConcertScheduleInfo> result = concertService.searchDate(concertId, request);
+		List<ConcertScheduleInfo> result = concertService.searchDate(concertId, request.toCommand());
 
 		// assert
 		// 결과가 빈 리스트인지 확인
@@ -112,35 +105,26 @@ class ConcertSearchUnitTest {
 		LocalDate date1 = LocalDate.of(2025, 6, 2);
 		LocalDate date2 = LocalDate.of(2025, 6, 5);
 		LocalDate date3 = LocalDate.of(2025, 6, 3);
-		Concert concert = Concert.builder()
-			.concertId(concertId)
-			.artistName("윤하")
-			.concertTitle("윤하 콘서트")
-			.build();
+		Concert concert = mock(Concert.class);
 		List<LocalDate> dateTimes = Arrays.asList(date1, date2, date3);
 		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate);
 		List<ConcertSchedule> schedules = new ArrayList<>();
 
 		for (int i = 0; i < concertScheduleIds.size(); i++) {
-			ConcertSchedule concertSchedule = ConcertSchedule.builder()
-				.id(concertScheduleIds.get(i))
-				.concertDate(dateTimes.get(i))
-				.venue("성균관대학교")
-				.build();
-			schedules.add(concertSchedule);
+			schedules.add(
+				ConcertSchedule.of(concertScheduleIds.get(i), "성균관대", dateTimes.get(i), ConcertScheduleStatus.AVAILABLE,
+					LocalDateTime.now()));
 		}
 
 		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
-		given(
-			concertRepository.getConcertScheduleList(concertId,
-				request.toCommand().startDate(),
-				request.toCommand().endDate(), ConcertScheduleStatus.AVAILABLE)).willReturn(schedules);
+		given(concertRepository.getConcertScheduleList(concertId,
+			request.toCommand().startDate(),
+			request.toCommand().endDate(), ConcertScheduleStatus.AVAILABLE)).willReturn(schedules);
 		// act
-		List<ConcertScheduleInfo> result = concertService.searchDate(concertId, request);
+		List<ConcertScheduleInfo> result = concertService.searchDate(concertId, request.toCommand());
 		// assert
 		assertThat(result).isNotNull();
 		assertThat(result.size()).isEqualTo(3);
-		assertThat(result.get(0).id()).isEqualTo(1L);
 		assertThat(result.get(0).concertDate()).isEqualTo(date1);
 		assertThat(result.get(1).id()).isEqualTo(2L);
 		assertThat(result.get(1).concertDate()).isEqualTo(date2);

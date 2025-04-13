@@ -17,6 +17,7 @@ import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.ConcertSeat;
+import kr.hhplus.be.server.domain.concert.command.ConcertDateSearchCommand;
 import kr.hhplus.be.server.domain.concert.info.ConcertPaymentInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertReservationInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertScheduleInfo;
@@ -31,7 +32,6 @@ import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertDateSearchRequest;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertReservationRequest;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertSeatSearchRequest;
@@ -65,14 +65,13 @@ public class ConcertService {
 	 * 	-> 컨트롤러 부분에서 처리해야함. ->전달받은 날짜값이 현재일 이전인지 확인 필요
 	 */
 	@Transactional(readOnly = true)
-	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchRequest request) {
+	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
 
 		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(
-			concertId,
-			request.toCommand().startDate(), request.toCommand().endDate(), ConcertScheduleStatus.AVAILABLE);
+		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(concertId,
+			command.startDate(), command.endDate(), ConcertScheduleStatus.AVAILABLE);
 
 		return concertSchedules.stream().map(ConcertScheduleInfo::from).toList();
 	}

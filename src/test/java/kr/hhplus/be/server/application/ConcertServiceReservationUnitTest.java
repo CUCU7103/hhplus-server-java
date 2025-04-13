@@ -53,7 +53,6 @@ public class ConcertServiceReservationUnitTest {
 		// 실제 Concert 엔티티 준비
 
 		ConcertSchedule concertSchedule = ConcertSchedule.builder()
-			.id(concertScheduleId)
 			.concertDate(concertDate)
 			.venue("성균관대학교")
 			.build();
