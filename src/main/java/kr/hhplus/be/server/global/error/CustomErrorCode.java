@@ -30,7 +30,8 @@ public enum CustomErrorCode {
 	NOT_FOUND_CONCERT_SEAT(HttpStatus.NOT_FOUND, "404", "좌석 정보를 찾을 수 없습니다"),
 	INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "400", "유효하지 않은 결제 금액입니다"),
 	INVALID_STATUS(HttpStatus.INTERNAL_SERVER_ERROR, "500", "유효한 상태가 아닙니다"),
-	EMPTY_FIELD(HttpStatus.INTERNAL_SERVER_ERROR, " 500", "객체 생성시 누락된 필드가 있습니다");
+	EMPTY_FIELD(HttpStatus.INTERNAL_SERVER_ERROR, " 500", "객체 생성시 누락된 필드가 있습니다"),
+	NOT_HELD_RESERVATION(HttpStatus.INTERNAL_SERVER_ERROR, "500", "임시 예약된 상태가 아닙니다");
 
 	private final HttpStatus httpStatus;
 	private final String code;

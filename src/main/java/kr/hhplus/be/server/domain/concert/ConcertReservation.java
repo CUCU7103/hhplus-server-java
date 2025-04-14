@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.concert;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -8,7 +7,10 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,6 +21,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.user.User;
@@ -39,8 +42,11 @@ public class ConcertReservation {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false)
-	private BigDecimal price;
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name = "amount", column = @Column(name = "price"))
+	})
+	private MoneyVO price;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "reservation_status", nullable = false)
@@ -73,7 +79,7 @@ public class ConcertReservation {
 	private ConcertSchedule concertSchedule;
 
 	@Builder
-	public ConcertReservation(long id, BigDecimal price, ConcertReservationStatus concertReservationStatus,
+	public ConcertReservation(long id, MoneyVO price, ConcertReservationStatus concertReservationStatus,
 		User user, ConcertSeat concertSeat, ConcertSchedule concertSchedule) {
 		this.id = id;
 		this.price = price;
@@ -81,36 +87,33 @@ public class ConcertReservation {
 		this.user = user;
 		this.concertSeat = concertSeat;
 		this.concertSchedule = concertSchedule;
+		this.createdAt = LocalDateTime.now();
 		this.expirationAt = LocalDateTime.now().plusMinutes(5);
 	}
 
-	public static ConcertReservation createPendingReservation(User user, ConcertSeat seat, ConcertSchedule schedule) {
+	public static ConcertReservation createPendingReservation(User user, ConcertSeat seat, ConcertSchedule schedule,
+		ConcertReservationStatus status) {
+		// 예약 전 검증 진행
+		validateBeforeCreatedReservation(seat, status);
+
+		seat.changeStatus(ConcertSeatStatus.HELD);
+
 		return ConcertReservation.builder()
 			.price(seat.getPrice())
 			.concertSeat(seat)
 			.concertSchedule(schedule)
 			.user(user)
-			.concertReservationStatus(ConcertReservationStatus.HELD)
+			.concertReservationStatus(status)
 			.build();
 	}
 
-	public void validate(User user, ConcertSeat seat, ConcertSchedule schedule) {
-		if (user == null) {
-			throw new CustomException(CustomErrorCode.NOT_FOUND_USER);
-		}
-		if (seat == null) {
-			throw new CustomException(CustomErrorCode.NOT_FOUND_CONCERT_SEAT);
-		}
-		if (schedule == null) {
-			throw new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE);
-		}
+	public static void validateBeforeCreatedReservation(ConcertSeat seat, ConcertReservationStatus status) {
 		// 좌석 상태 검증
-		if (seat.getStatus() != ConcertSeatStatus.HELD) {
+		if (seat.getStatus() != ConcertSeatStatus.AVAILABLE) {
 			throw new CustomException(CustomErrorCode.INVALID_STATUS);
 		}
-		// 가격 검증
-		if (seat.getPrice() == null || seat.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-			throw new CustomException(CustomErrorCode.INVALID_POINT);
+		if (status != ConcertReservationStatus.HELD) {
+			throw new CustomException(CustomErrorCode.INVALID_STATUS);
 		}
 	}
 
@@ -120,11 +123,27 @@ public class ConcertReservation {
 		}
 	}
 
-	public void cancel(LocalDateTime dateTime) {
+	public void confirm() {
+		isReservationConfirmed();
+		// 관련 객체들의 상태도 함께 변경
+		this.concertSeat.changeStatus(ConcertSeatStatus.BOOKED);
+		this.concertReservationStatus = ConcertReservationStatus.BOOKED;
+
+	}
+
+	public void isReservationConfirmed() {
+		if (this.concertReservationStatus != ConcertReservationStatus.HELD) {
+			throw new CustomException(CustomErrorCode.NOT_HELD_RESERVATION);
+		}
+	}
+
+	// 제한시간 초과로 인한 취소 메서드
+	public void cancelDueToTimeout(LocalDateTime dateTime) {
+		isReservationConfirmed();
 		if (this.expirationAt.isBefore(dateTime)) {
 			// HELD -> avaliable
+			concertSeat.changeStatus(ConcertSeatStatus.AVAILABLE);
 			this.concertReservationStatus = ConcertReservationStatus.AVAILABLE;
-			this.concertSeat = concertSeat.changeStatus(ConcertSeatStatus.AVAILABLE);
 		}
 	}
 }
