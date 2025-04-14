@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.concert;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -9,7 +8,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -21,6 +23,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
@@ -51,8 +54,11 @@ public class ConcertSeat {
 	@Column(name = "status", nullable = false)
 	private ConcertSeatStatus status;
 
-	@Column(name = "price")
-	private BigDecimal price;
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name = "amount", column = @Column(name = "price"))
+	})
+	private MoneyVO price;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -69,18 +75,31 @@ public class ConcertSeat {
 	private ConcertSchedule concertSchedule;
 
 	@Builder
-	public ConcertSeat(ConcertSchedule concertSchedule, LocalDateTime createdAt, ConcertSeatStatus status,
-		Integer seatNumber, String section, Long id) {
+	public ConcertSeat(ConcertSchedule concertSchedule, ConcertSeatStatus status,
+		Integer seatNumber, String section, Long id, MoneyVO price) {
 		this.id = id;
 		this.section = section;
 		this.seatNumber = seatNumber;
 		this.status = status;
 		this.concertSchedule = concertSchedule;
+		this.price = price;
+		this.createdAt = LocalDateTime.now();
 	}
 
-	public ConcertSeat changeStatus(ConcertSeatStatus newStatus) {
+	public static ConcertSeat of(ConcertSchedule concertSchedule, ConcertSeatStatus status,
+		Integer seatNumber, String section, Long id, MoneyVO price) {
+		return ConcertSeat.builder()
+			.concertSchedule(concertSchedule)
+			.status(status)
+			.seatNumber(seatNumber)
+			.section(section)
+			.id(id)
+			.price(price)
+			.build();
+	}
+
+	public void changeStatus(ConcertSeatStatus newStatus) {
 		this.status = newStatus;
-		return this;
 	}
 
 	public void validateStatus() {

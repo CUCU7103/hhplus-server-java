@@ -17,13 +17,10 @@ public class ConcertSeatUnitTest {
 			.seatNumber(1)
 			.status(ConcertSeatStatus.AVAILABLE)
 			.build();
-
 		// when
-		ConcertSeat updatedSeat = concertSeat.changeStatus(ConcertSeatStatus.HELD);
-
+		concertSeat.changeStatus(ConcertSeatStatus.HELD);
 		// then
-		assertThat(updatedSeat).isEqualTo(concertSeat); // 동일 객체 참조 확인
-		assertThat(updatedSeat.getStatus()).isEqualTo(ConcertSeatStatus.HELD);
+		assertThat(concertSeat.getStatus()).isEqualTo(ConcertSeatStatus.HELD);
 	}
 
 }
