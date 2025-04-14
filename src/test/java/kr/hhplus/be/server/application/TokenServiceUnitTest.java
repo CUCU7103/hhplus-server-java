@@ -16,14 +16,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.domain.token.Token;
-import kr.hhplus.be.server.domain.token.TokenInfo;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.token.TokenSearchInfo;
+import kr.hhplus.be.server.interfaces.token.TokenActiveInfo;
+import kr.hhplus.be.server.interfaces.token.TokenInfo;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceUnitTest {
@@ -102,20 +102,17 @@ class TokenServiceUnitTest {
 	}
 
 	@Test
-	void 토큰_조회_성공_조건_만족시_ACTIVE_상태로_변경된다() {
+	void 토큰_활성화에_성공한다() {
 		// given
-		long userId = 1L;
-		User user = User.builder().id(userId).build();
-
+		User user = mock(User.class);
 		Token token = Token.createToken(user);
 
-		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
+		given(tokenRepository.findToken(token.getId())).willReturn(Optional.of(token));
 		given(tokenRepository.countByStatus(TokenStatus.ACTIVE)).willReturn(3L); // ACTIVE 수가 3개
 		given(tokenRepository.getWaitingRank(token.getId())).willReturn(1); // 대기순위 1위
 
 		// when
-		TokenSearchInfo result = tokenService.searchToken(userId);
+		TokenActiveInfo result = tokenService.activateToken(token.getId());
 
 		// then
 		assertThat(result).isNotNull();
@@ -123,7 +120,7 @@ class TokenServiceUnitTest {
 	}
 
 	@Test
-	void 토큰_조회_실패_상태가_WAITING이_아니면_예외_발생() {
+	void 사용자에_해당하는_토큰_정보가_없어_조회에_실패() {
 		// given
 		long userId = 1L;
 		User user = User.builder().id(userId).build();
@@ -132,28 +129,24 @@ class TokenServiceUnitTest {
 		Token token = Token.createToken(user);
 
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
-		given(tokenRepository.countByStatus(TokenStatus.ACTIVE)).willReturn(3L);
-		given(tokenRepository.getWaitingRank(token.getId())).willReturn(1);
-
 		// when & then
 		assertThatThrownBy(() -> tokenService.searchToken(userId))
 			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
+			.hasMessageContaining(CustomErrorCode.NOT_FOUND_TOKEN.getMessage());
 	}
 
 	@Test
-	void 만료된_ACTIVE_토큰은_EXPIRED로_업데이트된다() {
+	void 유효시간이_지난_토큰은_EXPIRED로_업데이트된다() {
 		long userId = 1L;
 		LocalDateTime now = LocalDateTime.now();
 		User user = User.builder().id(userId).build();
 		Token token1 = Token.createToken(user);
-		ReflectionTestUtils.setField(token1, "createdAt", now);
-		ReflectionTestUtils.setField(token1, "expirationAt", now.minusMinutes(5));
+		ReflectionTestUtils.setField(token1, "expirationAt", now.plusMinutes(14));
 
+		// 유효시간이 지났지만 만료되지 않은 토큰이 존재시
 		Token token2 = Token.createToken(user);
-		ReflectionTestUtils.setField(token2, "createdAt", now);
-		ReflectionTestUtils.setField(token2, "expirationAt", now.plusMinutes(11));
+		ReflectionTestUtils.setField(token2, "expirationAt", now.plusMinutes(12));
+		ReflectionTestUtils.setField(token2, "status", TokenStatus.WAITING);
 
 		// ACTIVE 상태 토큰 전체 리스트에 두 토큰을 포함시킴
 		List<Token> activeTokens = Arrays.asList(token1, token2);
@@ -166,6 +159,6 @@ class TokenServiceUnitTest {
 
 		// then : 토큰1은 EXPIRED 상태로 변경, 토큰2는 ACTIVE 상태 유지됨
 		assertThat(token1.getStatus()).isEqualTo(TokenStatus.EXPIRED);
-		assertThat(token2.getStatus()).isEqualTo(TokenStatus.ACTIVE);
+		assertThat(token2.getStatus()).isEqualTo(TokenStatus.EXPIRED);
 	}
 }

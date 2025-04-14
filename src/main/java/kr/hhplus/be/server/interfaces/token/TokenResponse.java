@@ -1,7 +1,5 @@
 package kr.hhplus.be.server.interfaces.token;
 
-import kr.hhplus.be.server.domain.token.TokenInfo;
-
 public record TokenResponse(String message, TokenInfo tokenInfo) {
 
 	public TokenResponse(String message, TokenInfo tokenInfo) {
