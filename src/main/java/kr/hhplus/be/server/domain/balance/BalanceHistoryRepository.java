@@ -1,8 +1,6 @@
-package kr.hhplus.be.server.domain.balance.model;
+package kr.hhplus.be.server.domain.balance;
 
 import org.springframework.stereotype.Repository;
-
-import kr.hhplus.be.server.domain.balance.BalanceHistory;
 
 @Repository
 public interface BalanceHistoryRepository {

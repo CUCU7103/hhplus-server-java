@@ -19,6 +19,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
+import kr.hhplus.be.server.global.error.CustomErrorCode;
+import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -66,6 +68,27 @@ public class ConcertSchedule {
 		this.concertDate = concertDate;
 		this.status = status;
 		this.createdAt = (createdAt != null) ? createdAt : LocalDateTime.now();
+		validateField();
+	}
+
+	public static ConcertSchedule of(long id, String venue, LocalDate concertDate, ConcertScheduleStatus status,
+		LocalDateTime createdAt) {
+		return ConcertSchedule.builder()
+			.id(id)
+			.venue(venue)
+			.concertDate(concertDate)
+			.createdAt(createdAt)
+			.status(status)
+			.build();
+	}
+
+	private void validateField() {
+		if (this.venue.isEmpty() || this.concertDate == null || this.status == null || this.id == null) {
+			throw new CustomException(CustomErrorCode.EMPTY_FIELD);
+		}
+		if (this.id <= 0) {
+			throw new CustomException(CustomErrorCode.INVALID_CONCERT_SCHEDULE_ID);
+		}
 	}
 
 }

@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import kr.hhplus.be.server.application.BalanceService;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
 import kr.hhplus.be.server.interfaces.balance.BalanceChargeRequest;
 import kr.hhplus.be.server.interfaces.balance.BalanceController;
@@ -45,10 +46,11 @@ class BalanceControllerUnitTest {
 		// arrange : 테스트에 사용할 데이터 및 모의 행위 설정
 		long userId = 1L;
 		long balanceId = 1L;
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		BalanceInfo result = BalanceInfo.builder()
 			.balanceId(userId)
-			.point(BigDecimal.valueOf(1000))
+			.moneyVO(moneyVO)
 			.userId(balanceId)
 			.build();
 		//stub
@@ -71,19 +73,19 @@ class BalanceControllerUnitTest {
 		long userId = 1L;
 		long balanceId = 1L;
 		long chargePointId = 1000L;
-
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(50000));
 		// 요청 바디로 사용할 DTO
 		BalanceChargeRequest request = new BalanceChargeRequest(balanceId, chargePointId);
 
 		// 서비스가 리턴할 가짜 응답값(스텁)
 		BalanceInfo result = BalanceInfo.builder()
 			.balanceId(balanceId)              // balance 엔티티 ID
-			.point(BigDecimal.valueOf(50000))  // 잔액(예: 5만 포인트)
+			.moneyVO(moneyVO)  // 잔액(예: 5만 포인트)
 			.userId(userId)                    // userId
 			.build();
 
 		// Service mock 세팅
-		given(balanceService.chargePoint(userId, request)).willReturn(result);
+		given(balanceService.chargePoint(userId, request.toCommand())).willReturn(result);
 
 		// act & assert
 		mockMvc.perform(
@@ -98,7 +100,7 @@ class BalanceControllerUnitTest {
 			.andExpect(jsonPath("$.info.userId").value(userId));
 
 		// 추가로 Service 호출이 한번만 일어났는지 검증하고 싶다면:
-		verify(balanceService, times(1)).chargePoint(userId, request);
+		verify(balanceService, times(1)).chargePoint(userId, request.toCommand());
 		verifyNoMoreInteractions(balanceService);
 	}
 }

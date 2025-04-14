@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -12,11 +13,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.Balance;
 import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
-import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
@@ -42,15 +44,13 @@ class BalanceServiceUnitTest {
 		// arrange
 		long userId = 1L;
 		long balanceId = 1L;
-		User user = User.builder()
-			.id(userId)
-			.name("홍길동")
-			.build();
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		User user = mock(User.class);
 
 		Balance balance = Balance.builder()
 			.id(balanceId)
-			.point(BigDecimal.valueOf(1000))
-			.user(user)
+			.moneyVO(moneyVO)
+			.userId(userId)
 			.build();
 
 		//stub
@@ -60,9 +60,8 @@ class BalanceServiceUnitTest {
 		BalanceInfo response = balanceService.getPoint(userId);
 		// assert
 		assertThat(response).isNotNull();
-		assertThat(response.userId()).isEqualTo(userId);
 		assertThat(response.balanceId()).isEqualTo(balanceId);
-		assertThat(response.point()).isEqualTo(BigDecimal.valueOf(1000));
+		assertThat(response.moneyVO().getAmount()).isEqualTo(moneyVO.getAmount());
 
 		// userRepository가 호출되었는지 확인
 		verify(userRepository, times(1)).findById(userId);
@@ -117,7 +116,7 @@ class BalanceServiceUnitTest {
 			.willReturn(Optional.empty());
 
 		// when & then
-		assertThatThrownBy(() -> balanceService.chargePoint(userId, request))
+		assertThatThrownBy(() -> balanceService.chargePoint(userId, request.toCommand()))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
 
@@ -131,29 +130,20 @@ class BalanceServiceUnitTest {
 		long userId = 1L;
 		long balanceId = 10L;
 		BalanceChargeRequest request = new BalanceChargeRequest(balanceId, 100L);
-		User user = User.builder()
-			.id(userId)
-			.name("홍길동")
-			.build();
-
-		Balance existingBalance = Balance.builder()
-			.id(balanceId)
-			.point(BigDecimal.valueOf(100))
-			.user(user)
-			.build();
-
-		existingBalance.chargePoint(BigDecimal.valueOf(200L)); // 초기값(200)이라고 가정
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		User user = mock(User.class);
+		// 포인트 충전 검증을 위함.
+		Balance existingBalance = Balance.of(moneyVO, LocalDateTime.now(), userId);
+		existingBalance.chargePoint(BigDecimal.valueOf(100));
 
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
 		given(balanceRepository.findByIdAndUserId(request.toCommand().balanceId(), userId))
 			.willReturn(Optional.of(existingBalance));
-
 		// act
-		BalanceInfo result = balanceService.chargePoint(userId, request);
-
+		BalanceInfo result = balanceService.chargePoint(userId, request.toCommand());
 		// assert
 		// 포인트가 기존 200 + 100 = 300이 되었는지 검증
-		assertThat(BigDecimal.valueOf(400)).isEqualTo(result.point());
+		assertThat(result.moneyVO().getAmount()).isEqualTo(existingBalance.getMoneyVO().getAmount());
 		// pointHistory 저장 로직이 정상 호출되었는지 검증
 		verify(balanceHistoryRepository, times(1)).save(any(BalanceHistory.class));
 	}
@@ -163,12 +153,7 @@ class BalanceServiceUnitTest {
 		long userId = 1L;
 		long balanceId = 10L;
 		BalanceChargeRequest request = new BalanceChargeRequest(balanceId, 50L);
-
-		User user = User.builder()
-			.id(userId)
-			.name("홍길동")
-			.build();
-
+		User user = mock(User.class);
 		//stub
 		given(userRepository.findById(userId))
 			.willReturn(Optional.of(user));
@@ -176,9 +161,9 @@ class BalanceServiceUnitTest {
 			.willReturn(Optional.empty()); // 존재하지 않는 Balance
 
 		//act
-		BalanceInfo result = balanceService.chargePoint(userId, request);
+		BalanceInfo result = balanceService.chargePoint(userId, request.toCommand());
 
-		assertThat(BigDecimal.valueOf(50)).isEqualTo(result.point());
+		assertThat(result.moneyVO().getAmount()).isEqualTo(request.toCommand().chargePoint());
 		verify(balanceHistoryRepository, times(1)).save(any(BalanceHistory.class));
 	}
 

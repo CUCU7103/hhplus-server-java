@@ -6,22 +6,23 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.Balance;
 import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryCommand;
-import kr.hhplus.be.server.domain.balance.model.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.balance.BalanceRepository;
+import kr.hhplus.be.server.domain.balance.model.BalanceHistoryInfo;
 import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
-import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
-import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.balance.model.ChargeBalanceCommand;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.balance.BalanceChargeRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
+
 	private final BalanceRepository balanceRepository;
 	private final BalanceHistoryRepository balanceHistoryRepository;
 	private final UserRepository userRepository;
@@ -29,38 +30,30 @@ public class BalanceService {
 	// 유저의 포인트 조회 메서드
 	@Transactional(readOnly = true)
 	public BalanceInfo getPoint(long userId) {
-
-		User user = userRepository.findById(userId)
+		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
 		Balance balance = balanceRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
 
-		return BalanceInfo.builder()
-			.balanceId(userId)
-			.point(balance.getPoint())
-			.userId(user.getId())
-			.build();
+		return BalanceInfo.of(balance.getId(), balance.getMoneyVO(), userId);
 	}
 
 	// 유저의 포인트 충전 메서드
 	@Transactional
-	public BalanceInfo chargePoint(long userId, BalanceChargeRequest request) {
-		User user = userRepository.findById(userId)
+	public BalanceInfo chargePoint(long userId, ChargeBalanceCommand command) {
+		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
-		Balance balance = balanceRepository.findByIdAndUserId(request.toCommand().balanceId(), userId)
-			.orElseGet(() -> Balance.of(BigDecimal.ZERO, LocalDateTime.now(), user));
+		Balance balance = balanceRepository.findByIdAndUserId(command.balanceId(), userId)
+			.orElseGet(() -> Balance.of(MoneyVO.of(BigDecimal.ZERO), LocalDateTime.now(), userId));
 
-		Balance delta = balance.chargePoint(request.toCommand().chargePoint());
+		Balance delta = balance.chargePoint(command.chargePoint());
 		balanceHistoryRepository.save(BalanceHistory
-			.createdHistory(new BalanceHistoryCommand(balance, delta.getPoint())));
+			.createdHistory(new BalanceHistoryInfo(balance.getMoneyVO(), delta.getMoneyVO(), balance)));
 
-		return BalanceInfo.builder()
-			.balanceId(userId)
-			.point(balance.getPoint())
-			.userId(delta.getId())
-			.build();
+		return BalanceInfo.of(balance.getId(), delta.getMoneyVO(), userId);
+
 	}
 
 }

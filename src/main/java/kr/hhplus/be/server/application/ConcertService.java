@@ -11,16 +11,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.balance.Balance;
-import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
+import kr.hhplus.be.server.domain.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.concert.ConcertPayment;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.ConcertSeat;
+import kr.hhplus.be.server.domain.concert.command.ConcertDateSearchCommand;
+import kr.hhplus.be.server.domain.concert.command.ConcertReservationCommand;
+import kr.hhplus.be.server.domain.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.domain.concert.info.ConcertPaymentInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertReservationInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertSeatInfo;
-import kr.hhplus.be.server.domain.concert.model.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
@@ -31,10 +34,7 @@ import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertDateSearchRequest;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertReservationRequest;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertSeatSearchRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -65,14 +65,13 @@ public class ConcertService {
 	 * 	-> 컨트롤러 부분에서 처리해야함. ->전달받은 날짜값이 현재일 이전인지 확인 필요
 	 */
 	@Transactional(readOnly = true)
-	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchRequest request) {
+	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
 
 		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(
-			concertId,
-			request.toCommand().startDate(), request.toCommand().endDate(), ConcertScheduleStatus.AVAILABLE);
+		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(concertId,
+			command.startDate(), command.endDate(), ConcertScheduleStatus.AVAILABLE);
 
 		return concertSchedules.stream().map(ConcertScheduleInfo::from).toList();
 	}
@@ -90,19 +89,19 @@ public class ConcertService {
 	 */
 
 	@Transactional(readOnly = true)
-	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchRequest request) {
+	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchCommand command) {
 
 		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
-				request.toCommand().concertDate())
+		concertRepository.getConcertSchedule(command.concertScheduleId(),
+				command.concertDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 
-		Pageable pageable = PageRequest.of(request.page(), request.size(), Sort.by("section"));
+		Pageable pageable = PageRequest.of(command.page(), command.size(), Sort.by("section"));
 
 		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
-			request.concertScheduleId(),
+			command.concertScheduleId(),
 			ConcertSeatStatus.AVAILABLE, pageable);
 
 		return seats.stream()
@@ -120,27 +119,25 @@ public class ConcertService {
 	 * 예외를 발생시킨다.
 	 */
 	@Transactional
-	public ConcertReservationInfo reservationSeat(long seatId, ConcertReservationRequest request) {
+	public ConcertReservationInfo reservationSeat(long seatId, ConcertReservationCommand command) {
 
 		// 유효한 스케줄인지 확인
-		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
-				request.toCommand().concertScheduleDate())
+		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(command.concertScheduleId(),
+				command.concertScheduleDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 		// 좌석 조회
 		ConcertSeat seat = concertRepository
-			.getConcertSeatWhere(seatId, request.toCommand().concertScheduleId(),
-				request.toCommand().concertScheduleDate(),
+			.getConcertSeatWhere(seatId, command.concertScheduleId(),
+				command.concertScheduleDate(),
 				ConcertSeatStatus.AVAILABLE)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.INVALID_RESERVATION_CONCERT_SEAT));
 
-		User user = userRepository.findById(request.userId())
+		User user = userRepository.findById(command.userId())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
-		seat.changeStatus(ConcertSeatStatus.HELD); // 좌석상태 임시예약으로 변경
-
-		// 예약정보 생성
+		// 예약 정보 생성
 		ConcertReservation reservation = concertRepository.save(
-			ConcertReservation.createPendingReservation(user, seat, concertSchedule));
+			ConcertReservation.createPendingReservation(user, seat, concertSchedule, ConcertReservationStatus.HELD));
 
 		return ConcertReservationInfo.from(reservation);
 	}
@@ -193,7 +190,7 @@ public class ConcertService {
 		List<ConcertReservation> reservations = concertRepository
 			.getConcertReservationStatus(ConcertReservationStatus.HELD);
 		for (ConcertReservation reservation : reservations) {
-			reservation.cancel(LocalDateTime.now());
+			reservation.cancelDueToTimeout(LocalDateTime.now());
 		}
 	}
 }

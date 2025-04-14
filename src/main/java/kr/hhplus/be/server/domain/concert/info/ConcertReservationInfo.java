@@ -1,15 +1,14 @@
 package kr.hhplus.be.server.domain.concert.info;
 
-import java.math.BigDecimal;
-
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
 import lombok.Builder;
 
-public record ConcertReservationInfo(long reservationId, BigDecimal price, ConcertReservationStatus status, long userId,
+public record ConcertReservationInfo(long reservationId, MoneyVO price, ConcertReservationStatus status, long userId,
 									 long seatId) {
 	@Builder
-	public ConcertReservationInfo(long reservationId, BigDecimal price, ConcertReservationStatus status, long userId,
+	public ConcertReservationInfo(long reservationId, MoneyVO price, ConcertReservationStatus status, long userId,
 		long seatId) {
 		this.reservationId = reservationId;
 		this.price = price;

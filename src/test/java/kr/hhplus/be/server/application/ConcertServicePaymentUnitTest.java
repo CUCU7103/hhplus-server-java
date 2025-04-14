@@ -14,13 +14,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.Balance;
-import kr.hhplus.be.server.domain.balance.model.BalanceRepository;
+import kr.hhplus.be.server.domain.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.concert.ConcertPayment;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.info.ConcertPaymentInfo;
-import kr.hhplus.be.server.domain.concert.model.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
@@ -74,16 +75,12 @@ public class ConcertServicePaymentUnitTest {
 		long balanceId = 1L;
 		long userId = 1L;
 		long reservationId = 1L;
-
-		User user = User.builder()
-			.id(userId)
-			.name("홍길동")
-			.build();
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		Balance balance = Balance.builder()
 			.id(balanceId)
-			.point(BigDecimal.valueOf(1000))
-			.user(user)
+			.moneyVO(moneyVO)
+			.userId(userId)
 			.build();
 
 		ConcertPaymentRequest request = new ConcertPaymentRequest(paymentId, userId, reservationId,

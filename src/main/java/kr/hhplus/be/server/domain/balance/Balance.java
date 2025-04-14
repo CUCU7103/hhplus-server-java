@@ -7,16 +7,14 @@ import org.springframework.data.annotation.CreatedDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
@@ -33,62 +31,62 @@ public class Balance {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@Column(name = "point")
-	private BigDecimal point;
+	@Embedded
+	private MoneyVO moneyVO; // VO로 변경
 
 	@Column(name = "created_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "user_id")
-	private User user;
+	/**
+	 *  반드시 잔액이 User 객체를 들고 있어야 하는가?
+	 *  굳이 그럴 필요가 없다고 보여짐
+	 * */
+	@Column(name = "user_id")
+	private long userId;
 
 	@Builder(toBuilder = true)
-	public Balance(long id, BigDecimal point, LocalDateTime createdAt, User user) {
-		this.id = id;
-		this.point = point;
+	public Balance(long id, MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+		this.moneyVO = moneyVO;
 		this.createdAt = createdAt;
-		this.user = user;
+		this.userId = userId;
 	}
 
 	@Builder
-	public Balance(BigDecimal point, LocalDateTime createdAt, User user) {
-		this.point = point;
+	public Balance(MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+		this.moneyVO = moneyVO;
 		this.createdAt = createdAt;
-		this.user = user;
+		this.userId = userId;
+		validateField();
 	}
 
-	public static Balance of(BigDecimal point, LocalDateTime createdAt, User user) {
-		return new Balance(point, createdAt, user);
+	public static Balance of(MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+		return new Balance(moneyVO, createdAt, userId);
 	}
 
-	final BigDecimal MAX_POINT = BigDecimal.valueOf(100_000L);
-
-	public Balance chargePoint(BigDecimal chargePoint) {
-		BigDecimal newPoint = this.point.add(chargePoint);
-		chargeValidatePoint(newPoint);
-		this.point = newPoint;
+	// 포인트 충전 로직
+	public Balance chargePoint(BigDecimal chargeAmount) {
+		this.moneyVO = this.moneyVO.add(chargeAmount);
 		return this;
 	}
 
-	public void chargeValidatePoint(BigDecimal point) {
-		if (point.compareTo(MAX_POINT) > 0) {
-			throw new CustomException(CustomErrorCode.OVER_CHARGED_POINT);
-		}
-	}
-
-	public Balance usePoint(BigDecimal usePoint) {
-		BigDecimal newPoint = this.point.subtract(usePoint);
-		useValidatePoint(newPoint);
-		this.point = newPoint;
+	// 포인트 사용 로직
+	public Balance usePoint(BigDecimal useAmount) {
+		this.moneyVO = this.moneyVO.subtract(useAmount);
 		return this;
 	}
 
-	public void useValidatePoint(BigDecimal usePoint) {
-		if (usePoint.compareTo(BigDecimal.ZERO) < 0) {
-			throw new CustomException(CustomErrorCode.OVER_USED_POINT);
+	public void validateField() {
+		if (this.moneyVO == null) {
+			throw new CustomException(CustomErrorCode.INVALID_POINT);
+		}
+		if (this.createdAt == null) {
+			this.createdAt = LocalDateTime.now();
+		}
+		if (this.userId == 0) {
+			throw new CustomException(CustomErrorCode.INVALID_USER_ID);
 		}
 	}
+
 }

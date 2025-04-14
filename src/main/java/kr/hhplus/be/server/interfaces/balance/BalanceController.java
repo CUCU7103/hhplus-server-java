@@ -39,7 +39,8 @@ public class BalanceController implements BalanceApi {
 	public ResponseEntity<BalanceResponse> charge(@Positive @PathVariable("userId") long userId,
 		@Valid @RequestBody BalanceChargeRequest request) {
 		// 실제 서비스 호출 없이, 고정 응답을 반환합니다
-		return ResponseEntity.ok().body(BalanceResponse.of("포인트 충전 성공", balanceService.chargePoint(userId, request)));
+		return ResponseEntity.ok()
+			.body(BalanceResponse.of("포인트 충전 성공", balanceService.chargePoint(userId, request.toCommand())));
 	}
 
 }
