@@ -29,7 +29,6 @@ import kr.hhplus.be.server.domain.concert.model.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
@@ -173,7 +172,7 @@ public class ConcertService {
 			.createPayment(reservation, user, request.toCommand().amount()));
 
 		Token token = tokenRepository.getToken(request.toCommand().userId());
-		token.updateStatus(TokenStatus.EXPIRED);
+		token.expiredToken();
 
 		return ConcertPaymentInfo.from(payment);
 	}

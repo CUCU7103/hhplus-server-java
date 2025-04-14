@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,7 +74,7 @@ class TokenServiceUnitTest {
 			.id(userId)
 			.build();
 
-		Token token = Token.createToken(user, TokenStatus.WAITING, UUID.randomUUID().toString());
+		Token token = Token.createToken(user);
 
 		// 사용자가 존재하는 경우
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
@@ -108,7 +107,7 @@ class TokenServiceUnitTest {
 		long userId = 1L;
 		User user = User.builder().id(userId).build();
 
-		Token token = Token.createToken(user, TokenStatus.WAITING, UUID.randomUUID().toString());
+		Token token = Token.createToken(user);
 
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
@@ -130,7 +129,7 @@ class TokenServiceUnitTest {
 		User user = User.builder().id(userId).build();
 
 		// 상태가 이미 ACTIVE인 토큰
-		Token token = Token.createToken(user, TokenStatus.ACTIVE, UUID.randomUUID().toString());
+		Token token = Token.createToken(user);
 
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
@@ -148,11 +147,11 @@ class TokenServiceUnitTest {
 		long userId = 1L;
 		LocalDateTime now = LocalDateTime.now();
 		User user = User.builder().id(userId).build();
-		Token token1 = Token.createToken(user, TokenStatus.ACTIVE, "token1");
+		Token token1 = Token.createToken(user);
 		ReflectionTestUtils.setField(token1, "createdAt", now);
 		ReflectionTestUtils.setField(token1, "expirationAt", now.minusMinutes(5));
 
-		Token token2 = Token.createToken(user, TokenStatus.ACTIVE, "token2");
+		Token token2 = Token.createToken(user);
 		ReflectionTestUtils.setField(token2, "createdAt", now);
 		ReflectionTestUtils.setField(token2, "expirationAt", now.plusMinutes(11));
 

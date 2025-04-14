@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,35 +27,53 @@ public class TokenService {
 
 	@Transactional
 	public TokenInfo issueToken(long userId) {
-
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-
-		Token issueToken = tokenRepository.findByUserId(userId).orElseGet(() -> {
-			return Token.createToken(user, TokenStatus.WAITING, UUID.randomUUID().toString());
-		});
-
+		Token issueToken = tokenRepository.findByUserId(userId)
+			.orElseGet(() -> Token.createToken(user));
 		return TokenInfo.from(issueToken);
 
 	}
 
+	/*	@Transactional(readOnly = true)
+		public TokenSearchInfo searchToken(long userId) {
+			userRepository.findById(userId)
+				.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
+			Token token = tokenRepository.findByUserId(userId)
+				.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
+			// 스케줄러 검증 보완
+			token.expireTokenIfTimedOut();
+			// 현재 ACTIVE 토큰 수 조회
+			long activeTokenCount = tokenRepository.countByStatus(TokenStatus.ACTIVE);
+			// 대기 순위를 조회 후 도메인 메서드에 외부 정보 함께 전달
+			int waitingRank = tokenRepository.getWaitingRank(token.getId());
+			token.activateToken(waitingRank, activeTokenCount);
+			return TokenSearchInfo.from(token);
+
+		}*/
 	@Transactional(readOnly = true)
 	public TokenSearchInfo searchToken(long userId) {
+		// 사용자 존재 여부 확인
 		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-
+		// 토큰 조회
 		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		// 스케줄러 검증 보완
-		token.expireIfOlderThanTenMinutes();
+		return TokenSearchInfo.from(token);
+	}
+
+	@Transactional
+	public TokenSearchInfo activateToken(long tokenId) {
+		Token token = tokenRepository.findToken(tokenId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
+		// 만료 검증: 스케줄러 보완용 만료 체크 로직
+		token.expireTokenIfTimedOut();
 		// 현재 ACTIVE 토큰 수 조회
 		long activeTokenCount = tokenRepository.countByStatus(TokenStatus.ACTIVE);
-		// 대기 순위를 조회 후 도메인 메서드에 외부 정보 함께 전달
+		// 대기 순위 조회 후 토큰 활성화 처리
 		int waitingRank = tokenRepository.getWaitingRank(token.getId());
-		token.checkAndActivate(waitingRank, activeTokenCount);
-
+		token.activateToken(waitingRank, activeTokenCount);
 		return TokenSearchInfo.from(token);
-
 	}
 
 	@Scheduled(fixedRate = 60 * 60 * 1000) // 1시간마다 실행
@@ -67,7 +84,7 @@ public class TokenService {
 		for (Token token : activeTokens) {
 			// 생성시간 기준 10분이 지난 경우 EXPIRED로 전환
 			if (token.getExpirationAt().isBefore(now)) {
-				token.updateStatus(TokenStatus.EXPIRED);
+				token.expiredToken();
 			}
 		}
 	}
@@ -75,7 +92,7 @@ public class TokenService {
 	public void validateTokenByUserId(long userId) {
 		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		token.checkTokenStatus();
+		token.validateTokenStatus();
 	}
 
 }
