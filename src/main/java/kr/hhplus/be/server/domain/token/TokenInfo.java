@@ -1,8 +1,7 @@
-package kr.hhplus.be.server.interfaces.token;
+package kr.hhplus.be.server.domain.token;
 
 import java.time.LocalDateTime;
 
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import lombok.Builder;
 
 public record TokenInfo(String tokenValue, TokenStatus status, LocalDateTime createdAt, long userId) {
@@ -13,4 +12,14 @@ public record TokenInfo(String tokenValue, TokenStatus status, LocalDateTime cre
 		this.createdAt = createdAt;
 		this.userId = userId;
 	}
+
+	public static TokenInfo from(Token token) {
+		return TokenInfo.builder()
+			.tokenValue(token.getTokenValue())
+			.status(token.getStatus())
+			.createdAt(token.getCreatedAt())
+			.userId(token.getUser().getId())
+			.build();
+	}
+
 }
