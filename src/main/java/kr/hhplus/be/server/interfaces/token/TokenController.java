@@ -38,4 +38,11 @@ public class TokenController implements TokenApi {
 			.body(TokenSearchResponse.from("대기열 조회 성공", tokenService.searchToken(userId)));
 	}
 
+	// 토큰 활성화 엔드포인트 (POST)
+	@PostMapping("/{tokenId}/activate")
+	public ResponseEntity<TokenSearchResponse> activateToken(@PathVariable(name = "tokenId") long tokenId) {
+		return ResponseEntity.ok()
+			.body(TokenSearchResponse.from("토큰 활성화 성공", tokenService.activateToken(tokenId)));
+	}
+
 }

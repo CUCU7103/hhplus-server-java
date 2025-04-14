@@ -31,7 +31,7 @@ public enum CustomErrorCode {
 
 	OVER_CHARGED_POINT(HttpStatus.BAD_REQUEST, "400", "최대 충전 포인트를 초과함"),
 	OVER_USED_POINT(HttpStatus.BAD_REQUEST, "400", "보유금액을 초과하여 사용함"),
-	TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "404", "토큰이 만료 되었습니다");
+	TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "404", "이미 만료되어진 토큰입니다");
 
 	private final HttpStatus httpStatus;
 	private final String code;

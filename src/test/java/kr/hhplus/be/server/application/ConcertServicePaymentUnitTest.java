@@ -24,7 +24,6 @@ import kr.hhplus.be.server.domain.concert.model.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
@@ -198,7 +197,7 @@ public class ConcertServicePaymentUnitTest {
 		verify(balance).usePoint(amount);
 		verify(concertSeat).changeStatus(ConcertSeatStatus.BOOKED);
 		verify(concertRepository).save(any(ConcertPayment.class));
-		verify(token).updateStatus(TokenStatus.EXPIRED);
+		verify(token).expiredToken();
 
 		// ConcertPaymentInfo.from 메서드를 통해 반환된 결과 검증
 		assertThat(result).isNotNull();

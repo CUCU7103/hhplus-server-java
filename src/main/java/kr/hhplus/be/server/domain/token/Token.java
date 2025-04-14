@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.token;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -56,7 +57,7 @@ public class Token {
 
 	@Builder
 	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status,
-		long id, LocalDateTime expirationAt) {
+		long id) {
 		this.user = user;
 		this.modifiedAt = modifiedAt;
 		this.createdAt = createdAt;
@@ -66,24 +67,21 @@ public class Token {
 		this.expirationAt = createdAt.plusMinutes(10);
 	}
 
-	public static Token createToken(User user, TokenStatus status, String tokenValue) {
+	public static Token createToken(User user) {
 		return Token.builder()
 			.user(user)
-			.status(status)
-			.tokenValue(tokenValue)
+			.status(TokenStatus.WAITING)
+			.tokenValue(UUID.randomUUID().toString())
 			.createdAt(LocalDateTime.now())
 			.build();
 	}
 
-	private Token(User user, TokenStatus status, String tokenValue) {
-		this.user = user;
-		this.status = status;
-		this.tokenValue = tokenValue;
-	}
-
-	public Token updateStatus(TokenStatus status) {
-		this.status = status;
-		return this;
+	// 토큰 만료기능
+	public void expiredToken() {
+		if (this.status == TokenStatus.EXPIRED) {
+			throw new CustomException(CustomErrorCode.TOKEN_EXPIRED);
+		}
+		this.status = TokenStatus.EXPIRED;
 	}
 
 	/**
@@ -91,32 +89,32 @@ public class Token {
 	 * 조건을 만족할 경우 ACTIVE 상태로 전환하는 메서드
 	 */
 
-	final long MAX_ACTIVE = 1000;
+	private static final long MAX_ACTIVE = 1000;
 
-	public void checkAndActivate(int waitingRank, long activeTokenCount) {
+	public void activateToken(int waitingRank, long activeTokenCount) {
 		if (!TokenStatus.WAITING.equals(this.getStatus())) {
 			throw new CustomException(CustomErrorCode.INVALID_STATUS);
 		}
 		// 대기순위가 1이고, 현재 활성화 토큰 수가 maxActive 미만이면 ACTIVE 상태로 전환
 		if (waitingRank == 1 && activeTokenCount < MAX_ACTIVE) {
-			updateStatus(TokenStatus.ACTIVE);
+			this.status = TokenStatus.ACTIVE;
 		}
 		// 그렇지 않으면 상태를 변경하지 않습니다.
 	}
 
-	public void expireIfOlderThanTenMinutes() {
+	public void expireTokenIfTimedOut() {
 		// 토큰 상태가 ACTIVE이면서, 생성시간 기준 10분이 지난 경우 만료 처리
 		if (TokenStatus.ACTIVE.equals(this.status) &&
-			this.expirationAt.isBefore(LocalDateTime.now())) {
-			updateStatus(TokenStatus.EXPIRED);
+			this.expirationAt.isAfter(createdAt.plusMinutes(10))) {
+			expiredToken();
 		}
 	}
 
-	public void checkTokenStatus() {
+	public void validateTokenStatus() {
 		if (TokenStatus.EXPIRED.equals(this.status)) {
 			throw new CustomException(CustomErrorCode.TOKEN_EXPIRED);
 		}
-		if (!TokenStatus.ACTIVE.equals(this.status)) {
+		if (TokenStatus.WAITING.equals(this.status)) {
 			throw new CustomException(CustomErrorCode.INVALID_STATUS);
 		}
 	}
