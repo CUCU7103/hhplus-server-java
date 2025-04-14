@@ -19,8 +19,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import kr.hhplus.be.server.application.BalanceService;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
-import kr.hhplus.be.server.domain.balance.model.PointVO;
 import kr.hhplus.be.server.interfaces.balance.BalanceChargeRequest;
 import kr.hhplus.be.server.interfaces.balance.BalanceController;
 
@@ -46,11 +46,11 @@ class BalanceControllerUnitTest {
 		// arrange : 테스트에 사용할 데이터 및 모의 행위 설정
 		long userId = 1L;
 		long balanceId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		BalanceInfo result = BalanceInfo.builder()
 			.balanceId(userId)
-			.pointVO(pointVO)
+			.moneyVO(moneyVO)
 			.userId(balanceId)
 			.build();
 		//stub
@@ -73,14 +73,14 @@ class BalanceControllerUnitTest {
 		long userId = 1L;
 		long balanceId = 1L;
 		long chargePointId = 1000L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(50000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(50000));
 		// 요청 바디로 사용할 DTO
 		BalanceChargeRequest request = new BalanceChargeRequest(balanceId, chargePointId);
 
 		// 서비스가 리턴할 가짜 응답값(스텁)
 		BalanceInfo result = BalanceInfo.builder()
 			.balanceId(balanceId)              // balance 엔티티 ID
-			.pointVO(pointVO)  // 잔액(예: 5만 포인트)
+			.moneyVO(moneyVO)  // 잔액(예: 5만 포인트)
 			.userId(userId)                    // userId
 			.build();
 

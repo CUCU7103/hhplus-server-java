@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.concert.model.ConcertReservationStatus;
 import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.user.User;
@@ -29,83 +31,28 @@ class ConcertReservationUnitTest {
 	}
 
 	@Test
-	void 예약_생성_성공() {
-		given(seat.getPrice()).willReturn(BigDecimal.valueOf(50000));
+	void 정상적으로_예약이_성공하면_HELD_상태로_생성되어진다() {
+		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
+			1L, price);
+
 		// act
-		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, seat, schedule);
+		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, concertSeat, schedule,
+			ConcertReservationStatus.HELD);
 
 		// assert
 		assertThat(reservation).isNotNull();
 		assertThat(reservation.getUser()).isEqualTo(user);
-		assertThat(reservation.getConcertSeat()).isEqualTo(seat);
+		assertThat(reservation.getConcertSeat()).isEqualTo(concertSeat);
 		assertThat(reservation.getConcertSchedule()).isEqualTo(schedule);
-		assertThat(reservation.getPrice()).isEqualTo(new BigDecimal("50000"));
-		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.AVAILABLE);
+		assertThat(reservation.getPrice().getAmount()).isEqualTo(BigDecimal.valueOf(10000));
+		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.HELD);
 	}
 
 	@Test
-	void 사용자가_null일때_예외발생() {
+	void 예약상태가_HELD면_validateBeforeCreatedReservation_호출시_예외발생() {
 		// given
-		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, seat, schedule);
 
-		// act, assert
-		assertThatThrownBy(() ->
-			reservation.validate(null, seat, schedule)
-		)
-			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
-	}
-
-	@Test
-	void 좌석이_null일때_예외발생() {
-		// given
-		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, seat, schedule);
-
-		// act, assert
-		assertThatThrownBy(() ->
-			reservation.validate(user, null, schedule)
-		)
-			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT_SEAT.getMessage());
-	}
-
-	@Test
-	void 좌석상태가_HELD가_아닐때_예외발생() {
-		// given
-		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, seat, schedule);
-
-		ConcertSeat availableSeat = mock(ConcertSeat.class);
-		given(availableSeat.getStatus()).willReturn(ConcertSeatStatus.AVAILABLE);
-		given(availableSeat.getPrice()).willReturn(new BigDecimal("50000"));
-
-		// act, assert
-		assertThatThrownBy(() ->
-			reservation.validate(user, availableSeat, schedule)
-		)
-			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
-	}
-
-	@Test
-	void 좌석가격이_유효하지_않을때_예외발생() {
-		// given
-		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, seat, schedule);
-
-		ConcertSeat invalidPriceSeat = mock(ConcertSeat.class);
-		given(invalidPriceSeat.getStatus()).willReturn(ConcertSeatStatus.HELD);
-		given(invalidPriceSeat.getPrice()).willReturn(BigDecimal.ZERO);
-
-		// act, assert
-		assertThatThrownBy(() ->
-			reservation.validate(user, invalidPriceSeat, schedule)
-		)
-			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.INVALID_POINT.getMessage());
-	}
-
-	@Test
-	void 예약상태가_HELD면_validateStatus_호출시_예외발생() {
-		// given
 		ConcertReservation reservation = ConcertReservation.builder()
 			.concertReservationStatus(ConcertReservationStatus.HELD)
 			.user(user)
@@ -114,33 +61,56 @@ class ConcertReservationUnitTest {
 			.build();
 
 		// act, assert
-		assertThatThrownBy(() ->
-			reservation.validateStatus()
+		assertThatThrownBy(reservation::validateStatus
 		)
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_STATUS.getMessage());
 	}
 
 	@Test
-	void 만료시간이_지났을때_cancel_호출시_상태변경() {
+	void 배정된_예약_시간이_지났을때_cancel_DueToTimeout_호출시_상태변경() {
 		// given
-		LocalDateTime future = LocalDateTime.now().plusMinutes(10);
+		LocalDateTime future = LocalDateTime.now().plusMinutes(20);
+		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
+			1L, price);
 
-		given(seat.changeStatus(ConcertSeatStatus.AVAILABLE)).willReturn(seat);
-
-		ConcertReservation reservation = ConcertReservation.builder()
-			.concertReservationStatus(ConcertReservationStatus.HELD)
-			.user(user)
-			.concertSeat(seat)
-			.concertSchedule(schedule)
-			.build();
-
+		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, concertSeat, schedule,
+			ConcertReservationStatus.HELD);
 		// when
-		reservation.cancel(future);
+		reservation.cancelDueToTimeout(future);
 
 		// then
 		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.AVAILABLE);
-		verify(seat).changeStatus(ConcertSeatStatus.AVAILABLE);
+		assertThat(reservation.getConcertSeat().getStatus()).isEqualTo(ConcertSeatStatus.AVAILABLE);
+	}
+
+	@Test
+	void 예약_확정시_좌석과_예약의_상태_변경에_성공한다() {
+		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
+			1L, price);
+		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, concertSeat, schedule,
+			ConcertReservationStatus.HELD);
+
+		reservation.confirm();
+		assertThat(reservation.getConcertReservationStatus()).isEqualTo(ConcertReservationStatus.BOOKED);
+		assertThat(reservation.getConcertSeat().getStatus()).isEqualTo(ConcertSeatStatus.BOOKED);
+	}
+
+	@Test
+	void 예약_확정시_예약_상태가_HELD가_아니라면_예약에_실패한다() {
+		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
+			1L, price);
+		ConcertReservation reservation = ConcertReservation.createPendingReservation(user, concertSeat, schedule,
+			ConcertReservationStatus.HELD);
+		ReflectionTestUtils.setField(reservation, "concertReservationStatus", ConcertReservationStatus.AVAILABLE);
+
+		assertThatThrownBy(reservation::confirm
+		)
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.NOT_HELD_RESERVATION.getMessage());
 	}
 
 }

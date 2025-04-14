@@ -14,9 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.Balance;
 import kr.hhplus.be.server.domain.balance.BalanceRepository;
-import kr.hhplus.be.server.domain.balance.model.PointVO;
 import kr.hhplus.be.server.domain.concert.ConcertPayment;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.ConcertReservation;
@@ -75,11 +75,11 @@ public class ConcertServicePaymentUnitTest {
 		long balanceId = 1L;
 		long userId = 1L;
 		long reservationId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		Balance balance = Balance.builder()
 			.id(balanceId)
-			.pointVO(pointVO)
+			.moneyVO(moneyVO)
 			.userId(userId)
 			.build();
 
