@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Test;
 
-import kr.hhplus.be.server.domain.balance.model.PointVO;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 
@@ -21,7 +21,7 @@ class BalanceUnitTest {
 		BigDecimal chargePoint = BigDecimal.valueOf(100000);
 		Balance balance = Balance.builder()
 			.id(balanceId)
-			.pointVO(PointVO.of(BigDecimal.valueOf(100000)))
+			.moneyVO(MoneyVO.of(BigDecimal.valueOf(100000)))
 			.build();
 
 		// act & assert
@@ -37,38 +37,38 @@ class BalanceUnitTest {
 		BigDecimal chargePoint = BigDecimal.valueOf(9000);
 		Balance balance = Balance.builder()
 			.id(balanceId)
-			.pointVO(PointVO.of(BigDecimal.valueOf(1000)))
+			.moneyVO(MoneyVO.of(BigDecimal.valueOf(1000)))
 			.build();
 		//act
 		Balance result = balance.chargePoint(chargePoint);
 
 		// assert
 		assertThat(result).isNotNull();
-		assertThat(result.getPointVO().getAmount()).isEqualTo(BigDecimal.valueOf(10000));
+		assertThat(result.getMoneyVO().getAmount()).isEqualTo(BigDecimal.valueOf(10000));
 	}
 
 	@Test
 	void 새로운_밸런스를_객체를_생성하며_유저와_연결한다() {
 		// given
 		long userId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(100000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(100000));
 
 		//act
-		Balance createBalance = Balance.of(pointVO, LocalDateTime.now(), userId);
+		Balance createBalance = Balance.of(moneyVO, LocalDateTime.now(), userId);
 
 		// assert
 		assertThat(createBalance.getCreatedAt()).isNotNull();
-		assertThat(createBalance.getPointVO().getAmount()).isEqualTo(pointVO.getAmount());
+		assertThat(createBalance.getMoneyVO().getAmount()).isEqualTo(moneyVO.getAmount());
 	}
 
 	@Test
 	void 보유한_포인트_이상_사용시_예외처리() {
 		// arrange
 		long balanceId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(10000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(10000));
 		BigDecimal usePoint = BigDecimal.valueOf(100000);
 
-		Balance balance = Balance.of(pointVO, LocalDateTime.now(), balanceId);
+		Balance balance = Balance.of(moneyVO, LocalDateTime.now(), balanceId);
 
 		// assert
 		assertThatThrownBy(() -> balance.usePoint(usePoint)).isInstanceOf(
@@ -80,25 +80,25 @@ class BalanceUnitTest {
 	void 결제금액이_보유한_포인트_이하라면_사용가능() {
 		// arrange
 		long balanceId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(10000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(10000));
 		BigDecimal usePoint = BigDecimal.valueOf(5000);
 
-		Balance balance = Balance.of(pointVO, LocalDateTime.now(), balanceId);
+		Balance balance = Balance.of(moneyVO, LocalDateTime.now(), balanceId);
 
 		Balance result = balance.usePoint(usePoint);
 		// assert
 		assertThat(result).isNotNull();
-		assertThat(result.getPointVO().getAmount()).isEqualTo(BigDecimal.valueOf(5000));
+		assertThat(result.getMoneyVO().getAmount()).isEqualTo(BigDecimal.valueOf(5000));
 	}
 
 	@Test
 	void pointVO가_null일때_예외발생() {
 		// arrange
 		long userId = 1L;
-		PointVO pointVO = null;
+		MoneyVO moneyVO = null;
 
 		// act & assert
-		assertThatThrownBy(() -> Balance.of(pointVO, LocalDateTime.now(), userId))
+		assertThatThrownBy(() -> Balance.of(moneyVO, LocalDateTime.now(), userId))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_POINT.getMessage());
 	}
@@ -107,10 +107,10 @@ class BalanceUnitTest {
 	void createdAt이_null이면_현재시간으로_설정된다() {
 		// arrange
 		long userId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		// act
-		Balance balance = Balance.of(pointVO, LocalDateTime.now(), userId);
+		Balance balance = Balance.of(moneyVO, LocalDateTime.now(), userId);
 
 		// assert
 		assertThat(balance.getCreatedAt()).isNotNull();
@@ -120,10 +120,10 @@ class BalanceUnitTest {
 	@Test
 	void userId가_0이면_예외발생() {
 		// arrange
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		// act & assert
-		assertThatThrownBy(() -> Balance.of(pointVO, LocalDateTime.now(), 0))
+		assertThatThrownBy(() -> Balance.of(moneyVO, LocalDateTime.now(), 0))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_USER_ID.getMessage());
 	}
@@ -132,15 +132,15 @@ class BalanceUnitTest {
 	void 모든_필드가_유효하면_객체_생성_성공() {
 		// arrange
 		long userId = 1L;
-		PointVO pointVO = PointVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 		LocalDateTime createdAt = LocalDateTime.now();
 
 		// act
-		Balance balance = Balance.of(pointVO, LocalDateTime.now(), userId);
+		Balance balance = Balance.of(moneyVO, LocalDateTime.now(), userId);
 
 		// assert
 		assertThat(balance).isNotNull();
-		assertThat(balance.getPointVO()).isEqualTo(pointVO);
+		assertThat(balance.getMoneyVO()).isEqualTo(moneyVO);
 		assertThat(balance.getCreatedAt()).isEqualTo(createdAt);
 		assertThat(balance.getUserId()).isEqualTo(userId);
 	}

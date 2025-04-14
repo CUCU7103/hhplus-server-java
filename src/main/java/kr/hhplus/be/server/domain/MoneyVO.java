@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.balance.model;
+package kr.hhplus.be.server.domain;
 
 import java.math.BigDecimal;
 
@@ -13,19 +13,19 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PointVO {
+public class MoneyVO {
 	private static final BigDecimal MAX_POINT = BigDecimal.valueOf(100_000L);
 
 	@Column(name = "point") // 엔티티에 매핑될 DB 컬럼명
 	private BigDecimal amount;
 
-	private PointVO(BigDecimal amount) {
+	private MoneyVO(BigDecimal amount) {
 		validate(amount);
 		this.amount = amount;
 	}
 
-	public static PointVO of(BigDecimal amount) {
-		return new PointVO(amount);
+	public static MoneyVO of(BigDecimal amount) {
+		return new MoneyVO(amount);
 	}
 
 	private void validate(BigDecimal value) {
@@ -38,14 +38,14 @@ public class PointVO {
 		}
 	}
 
-	public PointVO add(BigDecimal other) {
+	public MoneyVO add(BigDecimal other) {
 		BigDecimal newValue = this.amount.add(other);
-		return new PointVO(newValue);
+		return new MoneyVO(newValue);
 	}
 
-	public PointVO subtract(BigDecimal other) {
+	public MoneyVO subtract(BigDecimal other) {
 		BigDecimal newValue = this.amount.subtract(other);
-		return new PointVO(newValue);
+		return new MoneyVO(newValue);
 	}
 
 }

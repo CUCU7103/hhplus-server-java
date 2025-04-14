@@ -22,9 +22,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.domain.balance.model.BalanceHistoryInfo;
 import kr.hhplus.be.server.domain.balance.model.BalanceType;
-import kr.hhplus.be.server.domain.balance.model.PointVO;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,13 +45,13 @@ public class BalanceHistory {
 	@AttributeOverrides({
 		@AttributeOverride(name = "amount", column = @Column(name = "previous_point"))
 	})
-	private PointVO previousPoint;
+	private MoneyVO previousPoint;
 
 	@Embedded
 	@AttributeOverrides({
 		@AttributeOverride(name = "amount", column = @Column(name = "delta_point"))
 	})
-	private PointVO deltaPoint;
+	private MoneyVO deltaPoint;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "type")
@@ -67,7 +67,7 @@ public class BalanceHistory {
 	private Balance balance;
 
 	@Builder
-	public BalanceHistory(PointVO previousPoint, PointVO deltaPoint, BalanceType type, Balance balance) {
+	public BalanceHistory(MoneyVO previousPoint, MoneyVO deltaPoint, BalanceType type, Balance balance) {
 		this.previousPoint = previousPoint;
 		this.deltaPoint = deltaPoint;
 		this.type = type;

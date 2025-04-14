@@ -14,7 +14,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import kr.hhplus.be.server.domain.balance.model.PointVO;
+import kr.hhplus.be.server.domain.MoneyVO;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import lombok.AccessLevel;
@@ -32,7 +32,7 @@ public class Balance {
 	private long id;
 
 	@Embedded
-	private PointVO pointVO; // VO로 변경
+	private MoneyVO moneyVO; // VO로 변경
 
 	@Column(name = "created_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -47,38 +47,38 @@ public class Balance {
 	private long userId;
 
 	@Builder(toBuilder = true)
-	public Balance(long id, PointVO pointVO, LocalDateTime createdAt, long userId) {
-		this.pointVO = pointVO;
+	public Balance(long id, MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+		this.moneyVO = moneyVO;
 		this.createdAt = createdAt;
 		this.userId = userId;
 	}
 
 	@Builder
-	public Balance(PointVO pointVO, LocalDateTime createdAt, long userId) {
-		this.pointVO = pointVO;
+	public Balance(MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+		this.moneyVO = moneyVO;
 		this.createdAt = createdAt;
 		this.userId = userId;
 		validateField();
 	}
 
-	public static Balance of(PointVO pointVO, LocalDateTime createdAt, long userId) {
-		return new Balance(pointVO, createdAt, userId);
+	public static Balance of(MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+		return new Balance(moneyVO, createdAt, userId);
 	}
 
 	// 포인트 충전 로직
 	public Balance chargePoint(BigDecimal chargeAmount) {
-		this.pointVO = this.pointVO.add(chargeAmount);
+		this.moneyVO = this.moneyVO.add(chargeAmount);
 		return this;
 	}
 
 	// 포인트 사용 로직
 	public Balance usePoint(BigDecimal useAmount) {
-		this.pointVO = this.pointVO.subtract(useAmount);
+		this.moneyVO = this.moneyVO.subtract(useAmount);
 		return this;
 	}
 
 	public void validateField() {
-		if (this.pointVO == null) {
+		if (this.moneyVO == null) {
 			throw new CustomException(CustomErrorCode.INVALID_POINT);
 		}
 		if (this.createdAt == null) {
