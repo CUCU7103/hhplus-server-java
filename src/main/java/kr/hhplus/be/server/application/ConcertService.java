@@ -18,6 +18,7 @@ import kr.hhplus.be.server.domain.concert.ConcertReservation;
 import kr.hhplus.be.server.domain.concert.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.command.ConcertDateSearchCommand;
+import kr.hhplus.be.server.domain.concert.command.ConcertReservationCommand;
 import kr.hhplus.be.server.domain.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.domain.concert.info.ConcertPaymentInfo;
 import kr.hhplus.be.server.domain.concert.info.ConcertReservationInfo;
@@ -34,7 +35,6 @@ import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertReservationRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -119,27 +119,25 @@ public class ConcertService {
 	 * 예외를 발생시킨다.
 	 */
 	@Transactional
-	public ConcertReservationInfo reservationSeat(long seatId, ConcertReservationRequest request) {
+	public ConcertReservationInfo reservationSeat(long seatId, ConcertReservationCommand command) {
 
 		// 유효한 스케줄인지 확인
-		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
-				request.toCommand().concertScheduleDate())
+		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(command.concertScheduleId(),
+				command.concertScheduleDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 		// 좌석 조회
 		ConcertSeat seat = concertRepository
-			.getConcertSeatWhere(seatId, request.toCommand().concertScheduleId(),
-				request.toCommand().concertScheduleDate(),
+			.getConcertSeatWhere(seatId, command.concertScheduleId(),
+				command.concertScheduleDate(),
 				ConcertSeatStatus.AVAILABLE)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.INVALID_RESERVATION_CONCERT_SEAT));
 
-		User user = userRepository.findById(request.userId())
+		User user = userRepository.findById(command.userId())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
-		seat.changeStatus(ConcertSeatStatus.HELD); // 좌석상태 임시예약으로 변경
-
-		// 예약정보 생성
+		// 예약 정보 생성
 		ConcertReservation reservation = concertRepository.save(
-			ConcertReservation.createPendingReservation(user, seat, concertSchedule));
+			ConcertReservation.createPendingReservation(user, seat, concertSchedule, ConcertReservationStatus.HELD));
 
 		return ConcertReservationInfo.from(reservation);
 	}
@@ -192,7 +190,7 @@ public class ConcertService {
 		List<ConcertReservation> reservations = concertRepository
 			.getConcertReservationStatus(ConcertReservationStatus.HELD);
 		for (ConcertReservation reservation : reservations) {
-			reservation.cancel(LocalDateTime.now());
+			reservation.cancelDueToTimeout(LocalDateTime.now());
 		}
 	}
 }

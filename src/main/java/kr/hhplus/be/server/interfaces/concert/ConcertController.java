@@ -60,7 +60,8 @@ public class ConcertController implements ConcertApi {
 	public ResponseEntity<ConcertReservationResponse> reserveSeat(@PathVariable(name = "seatId") long seatId,
 		@RequestBody ConcertReservationRequest request) {
 		return ResponseEntity.ok()
-			.body(ConcertReservationResponse.of("좌석 예약에 성공하였습니다", concertService.reservationSeat(seatId, request)));
+			.body(ConcertReservationResponse.of("좌석 예약에 성공하였습니다",
+				concertService.reservationSeat(seatId, request.toCommand())));
 
 	}
 
