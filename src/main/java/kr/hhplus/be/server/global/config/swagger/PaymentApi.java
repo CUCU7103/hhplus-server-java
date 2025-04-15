@@ -11,8 +11,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.hhplus.be.server.interfaces.concert.request.ConcertPaymentRequest;
-import kr.hhplus.be.server.interfaces.concert.response.ConcertPaymentResponse;
+import kr.hhplus.be.server.presentation.payment.PaymentRequest;
+import kr.hhplus.be.server.presentation.payment.PaymentResponse;
 
 @Tag(name = "Payment API", description = "좌석 결제 API")
 public interface PaymentApi {
@@ -24,7 +24,7 @@ public interface PaymentApi {
 			description = "좌석 결제 성공",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ConcertPaymentResponse.class),
+				schema = @Schema(implementation = PaymentResponse.class),
 				examples = @ExampleObject(
 					name = "successResponse",
 					summary = "성공 응답 예시",
@@ -61,6 +61,6 @@ public interface PaymentApi {
 		)
 	})
 	@PostMapping("/transaction")
-	ResponseEntity<ConcertPaymentResponse> seatPayment(@RequestBody ConcertPaymentRequest dto);
+	ResponseEntity<PaymentResponse> seatPayment(@RequestBody PaymentRequest dto);
 
 }

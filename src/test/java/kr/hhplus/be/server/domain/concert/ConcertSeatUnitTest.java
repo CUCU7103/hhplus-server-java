@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import kr.hhplus.be.server.domain.concert.model.ConcertSeatStatus;
+import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
+import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 
 public class ConcertSeatUnitTest {
 

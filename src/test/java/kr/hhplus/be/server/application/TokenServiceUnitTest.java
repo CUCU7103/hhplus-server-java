@@ -15,6 +15,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import kr.hhplus.be.server.application.token.TokenService;
+import kr.hhplus.be.server.application.token.info.ActiveTokenInfo;
+import kr.hhplus.be.server.application.token.info.IssueTokenInfo;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.domain.token.TokenStatus;
@@ -22,8 +25,6 @@ import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.token.TokenActiveInfo;
-import kr.hhplus.be.server.interfaces.token.TokenInfo;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceUnitTest {
@@ -59,12 +60,12 @@ class TokenServiceUnitTest {
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.empty());
 
 		//act
-		TokenInfo tokenInfo = tokenService.issueToken(userId);
+		IssueTokenInfo issueTokenInfo = tokenService.issueToken(userId);
 
 		// 결과 검증: 토큰 정보가 올바르게 생성되었는지 확인
-		assertThat(tokenInfo).isNotNull();
-		assertThat(tokenInfo.userId()).isEqualTo(userId);
-		assertThat(tokenInfo.status()).isEqualTo(TokenStatus.WAITING);
+		assertThat(issueTokenInfo).isNotNull();
+		assertThat(issueTokenInfo.userId()).isEqualTo(userId);
+		assertThat(issueTokenInfo.status()).isEqualTo(TokenStatus.WAITING);
 	}
 
 	@Test
@@ -81,13 +82,13 @@ class TokenServiceUnitTest {
 		// 기존 토큰이 있는 경우 해당 토큰을 반환해야 함
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
 
-		TokenInfo tokenInfo = tokenService.issueToken(userId);
+		IssueTokenInfo issueTokenInfo = tokenService.issueToken(userId);
 
 		// 결과 검증: 기존 토큰 정보와 동일한 정보를 반환하는지 확인
-		assertThat(tokenInfo).isNotNull();
-		assertThat(tokenInfo.userId()).isEqualTo(userId);
-		assertThat(tokenInfo.status()).isEqualTo(TokenStatus.WAITING);
-		assertThat(tokenInfo.tokenValue()).isEqualTo(token.getTokenValue());
+		assertThat(issueTokenInfo).isNotNull();
+		assertThat(issueTokenInfo.userId()).isEqualTo(userId);
+		assertThat(issueTokenInfo.status()).isEqualTo(TokenStatus.WAITING);
+		assertThat(issueTokenInfo.tokenValue()).isEqualTo(token.getTokenValue());
 	}
 
 	@Test
@@ -112,7 +113,7 @@ class TokenServiceUnitTest {
 		given(tokenRepository.getWaitingRank(token.getId())).willReturn(1); // 대기순위 1위
 
 		// when
-		TokenActiveInfo result = tokenService.activateToken(token.getId());
+		ActiveTokenInfo result = tokenService.activateToken(token.getId());
 
 		// then
 		assertThat(result).isNotNull();
