@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TokenRepository {
 
-	Optional<Token> findToken(long userId);
+	Optional<Token> findToken(long tokenId);
 
 	Optional<Token> findByUserId(long userId);
 

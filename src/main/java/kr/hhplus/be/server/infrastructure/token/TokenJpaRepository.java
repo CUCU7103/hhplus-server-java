@@ -10,6 +10,7 @@ import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenStatus;
 
 public interface TokenJpaRepository extends JpaRepository<Token, Long> {
+	Token getById(long tokenId);
 
 	Optional<Token> findById(long tokenId);
 
