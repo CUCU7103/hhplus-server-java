@@ -28,7 +28,7 @@ springdoc:
     path: /swagger-ui.html
 
 ---
-spring.config.activate.on-profile: local, test
+spring.config.activate.on-profile: local
 
 spring:
   datasource:
