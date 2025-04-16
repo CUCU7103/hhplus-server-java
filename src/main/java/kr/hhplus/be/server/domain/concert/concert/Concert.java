@@ -27,7 +27,7 @@ public class Concert {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "concert_id")
-	private Long concertId;
+	private Long id;
 
 	@Column(name = "concert_title", length = 100, nullable = false)
 	private String concertTitle;
@@ -46,9 +46,9 @@ public class Concert {
 	private List<ConcertSchedule> concertSchedules = new ArrayList<>();
 
 	@Builder
-	public Concert(Long concertId, String concertTitle, String artistName
+	public Concert(Long id, String concertTitle, String artistName
 	) {
-		this.concertId = concertId;
+		this.id = id;
 		this.concertTitle = concertTitle;
 		this.artistName = artistName;
 	}
