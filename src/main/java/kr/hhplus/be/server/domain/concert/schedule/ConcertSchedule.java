@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.concert.schedule;
 
+import static jakarta.persistence.ConstraintMode.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -12,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -57,7 +60,7 @@ public class ConcertSchedule {
 
 	// concert_id와의 관계 설정
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "concert_id", nullable = false)
+	@JoinColumn(name = "concert_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private Concert concert;
 
 	@Builder

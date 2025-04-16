@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.reservation;
 
+import static jakarta.persistence.ConstraintMode.*;
+
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -15,6 +17,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -68,15 +71,15 @@ public class Reservation {
 	private LocalDateTime expirationAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "seat_id", nullable = false)
+	@JoinColumn(name = "seat_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private ConcertSeat concertSeat;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "concert_schedule_id", nullable = false)
+	@JoinColumn(name = "concert_schedule_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private ConcertSchedule concertSchedule;
 
 	@Builder

@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.token;
 
+import static jakarta.persistence.ConstraintMode.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,6 +12,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,7 +55,7 @@ public class Token {
 	private LocalDateTime expirationAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private User user;
 
 	@Builder
