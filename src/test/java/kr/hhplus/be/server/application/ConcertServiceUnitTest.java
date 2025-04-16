@@ -113,8 +113,8 @@ class ConcertServiceUnitTest {
 
 		for (int i = 0; i < concertScheduleIds.size(); i++) {
 			schedules.add(
-				ConcertSchedule.of(concertScheduleIds.get(i), "성균관대", dateTimes.get(i), ConcertScheduleStatus.AVAILABLE,
-					LocalDateTime.now()));
+				ConcertSchedule.of("성균관대", dateTimes.get(i), ConcertScheduleStatus.AVAILABLE,
+					LocalDateTime.now(), concert));
 		}
 
 		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));

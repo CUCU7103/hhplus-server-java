@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 public class ConcertSchedule {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
 	private Long id;
 
 	@Column(name = "venue", nullable = false)
@@ -50,7 +51,7 @@ public class ConcertSchedule {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at", nullable = false)
+	@Column(name = "modified_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	private LocalDateTime modifiedAt;
 
@@ -64,33 +65,30 @@ public class ConcertSchedule {
 	private Concert concert;
 
 	@Builder
-	public ConcertSchedule(long id, String venue, LocalDate concertDate, ConcertScheduleStatus status,
-		LocalDateTime createdAt) {
-		this.id = id;
+	public ConcertSchedule(String venue, LocalDate concertDate, ConcertScheduleStatus status,
+		LocalDateTime createdAt, Concert concert) {
 		this.venue = venue;
 		this.concertDate = concertDate;
 		this.status = status;
 		this.createdAt = (createdAt != null) ? createdAt : LocalDateTime.now();
+		this.concert = concert;
 		validateField();
 	}
 
-	public static ConcertSchedule of(long id, String venue, LocalDate concertDate, ConcertScheduleStatus status,
-		LocalDateTime createdAt) {
+	public static ConcertSchedule of(String venue, LocalDate concertDate, ConcertScheduleStatus status,
+		LocalDateTime createdAt, Concert concert) {
 		return ConcertSchedule.builder()
-			.id(id)
 			.venue(venue)
 			.concertDate(concertDate)
 			.createdAt(createdAt)
 			.status(status)
+			.concert(concert)
 			.build();
 	}
 
 	private void validateField() {
-		if (this.venue.isEmpty() || this.concertDate == null || this.status == null || this.id == null) {
+		if (this.venue.isEmpty() || this.concertDate == null || this.status == null || this.concert == null) {
 			throw new CustomException(CustomErrorCode.EMPTY_FIELD);
-		}
-		if (this.id <= 0) {
-			throw new CustomException(CustomErrorCode.INVALID_CONCERT_SCHEDULE_ID);
 		}
 	}
 
