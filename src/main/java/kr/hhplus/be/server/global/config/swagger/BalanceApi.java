@@ -13,8 +13,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.hhplus.be.server.interfaces.balance.BalanceChargeRequest;
-import kr.hhplus.be.server.interfaces.balance.BalanceResponse;
+import kr.hhplus.be.server.presentation.balance.BalanceChargeRequest;
+import kr.hhplus.be.server.presentation.balance.BalanceResponse;
 
 @Tag(name = "Balance API", description = "잔액 관련 API")
 public interface BalanceApi {

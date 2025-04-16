@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import kr.hhplus.be.server.domain.concert.command.ConcertDateSearchCommand;
-import kr.hhplus.be.server.domain.concert.command.ConcertSeatSearchCommand;
+import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
+import kr.hhplus.be.server.application.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 

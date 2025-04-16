@@ -13,17 +13,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import kr.hhplus.be.server.domain.MoneyVO;
-import kr.hhplus.be.server.domain.balance.Balance;
-import kr.hhplus.be.server.domain.balance.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.BalanceHistoryRepository;
-import kr.hhplus.be.server.domain.balance.BalanceRepository;
-import kr.hhplus.be.server.domain.balance.model.BalanceInfo;
+import kr.hhplus.be.server.application.balance.BalanceInfo;
+import kr.hhplus.be.server.application.balance.BalanceService;
+import kr.hhplus.be.server.domain.balance.balance.Balance;
+import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
+import kr.hhplus.be.server.domain.balance.history.BalanceHistory;
+import kr.hhplus.be.server.domain.balance.history.BalanceHistoryRepository;
+import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.interfaces.balance.BalanceChargeRequest;
+import kr.hhplus.be.server.presentation.balance.BalanceChargeRequest;
 
 @ExtendWith(MockitoExtension.class)
 class BalanceServiceUnitTest {
@@ -62,7 +63,6 @@ class BalanceServiceUnitTest {
 		assertThat(response).isNotNull();
 		assertThat(response.balanceId()).isEqualTo(balanceId);
 		assertThat(response.moneyVO().getAmount()).isEqualTo(moneyVO.getAmount());
-
 		// userRepository가 호출되었는지 확인
 		verify(userRepository, times(1)).findById(userId);
 
