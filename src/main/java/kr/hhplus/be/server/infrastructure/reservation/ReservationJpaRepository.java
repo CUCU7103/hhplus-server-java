@@ -14,6 +14,6 @@ public interface ReservationJpaRepository extends JpaRepository<Reservation, Lon
 
 	Optional<Reservation> getById(long reservationId);
 
-	List<Reservation> getConcertReservationStatus(ReservationStatus status);
+	List<Reservation> findByReservationStatus(ReservationStatus status);
 
 }

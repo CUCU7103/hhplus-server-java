@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TokenRepository {
-	Token getToken(long userId);
 
 	Optional<Token> findToken(long userId);
 

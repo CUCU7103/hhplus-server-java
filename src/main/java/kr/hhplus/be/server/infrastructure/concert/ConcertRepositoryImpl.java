@@ -26,13 +26,14 @@ public class ConcertRepositoryImpl implements ConcertRepository {
 
 	@Override
 	public Optional<ConcertSchedule> getConcertSchedule(long concertScheduleId, LocalDate localDate) {
-		return concertScheduleJpaRepository.getConcertSchedule(concertScheduleId, localDate);
+		return concertScheduleJpaRepository.findByIdAndConcertDate(concertScheduleId, localDate);
 	}
 
 	@Override
 	public List<ConcertSchedule> getConcertScheduleList(long concertId, LocalDate start, LocalDate end,
 		ConcertScheduleStatus concertStatus) {
-		return concertScheduleJpaRepository.getConcertScheduleList(concertId, start, end, concertStatus);
+		return concertScheduleJpaRepository.findByConcertIdAndConcertDateBetweenAndStatus(concertId, start, end,
+			concertStatus);
 	}
 
 	@Override
@@ -43,7 +44,7 @@ public class ConcertRepositoryImpl implements ConcertRepository {
 	@Override
 	public Page<ConcertSeat> findByConcertScheduleIdAndSeatStatusContaining(long concertScheduleId,
 		ConcertSeatStatus concertSeatStatus, Pageable pageable) {
-		return concertSeatJpaRepository.findByConcertScheduleIdAndStatusContaining(concertScheduleId, concertSeatStatus,
+		return concertSeatJpaRepository.findByConcertScheduleIdAndStatus(concertScheduleId, concertSeatStatus,
 			pageable);
 	}
 

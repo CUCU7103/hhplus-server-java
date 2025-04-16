@@ -20,11 +20,11 @@ public class TokenRepositoryImpl implements TokenRepository {
 		return tokenJpaRepository.findById(tokenId);
 	}
 
-	@Override
+	/*@Override
 	public Token getToken(long userId) {
-		return tokenJpaRepository.getToken(userId);
+		return tokenJpaRepository.findByUserId(userId);
 	}
-
+*/
 	@Override
 	public Optional<Token> findByUserId(long userId) {
 		return tokenJpaRepository.findByUserId(userId);

@@ -10,8 +10,8 @@ import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 
 public interface ConcertScheduleJpaRepository extends JpaRepository<ConcertSchedule, Long> {
-	Optional<ConcertSchedule> getConcertSchedule(long concertScheduleId, LocalDate localDate);
+	Optional<ConcertSchedule> findByIdAndConcertDate(long concertScheduleId, LocalDate concertDate);
 
-	List<ConcertSchedule> getConcertScheduleList(long concertId, LocalDate start, LocalDate end,
+	List<ConcertSchedule> findByConcertIdAndConcertDateBetweenAndStatus(long concertId, LocalDate start, LocalDate end,
 		ConcertScheduleStatus status);
 }

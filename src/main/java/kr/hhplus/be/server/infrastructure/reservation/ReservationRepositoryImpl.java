@@ -28,6 +28,6 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
 	@Override
 	public List<Reservation> getConcertReservationStatus(ReservationStatus status) {
-		return reservationJpaRepository.getConcertReservationStatus(status);
+		return reservationJpaRepository.findByReservationStatus(status);
 	}
 }
