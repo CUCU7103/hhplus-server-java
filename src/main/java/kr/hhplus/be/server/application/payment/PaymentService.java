@@ -11,7 +11,6 @@ import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationRepository;
-import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
@@ -27,7 +26,6 @@ public class PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final UserRepository userRepository;
 	private final ReservationRepository reservationRepository;
-	private final TokenRepository tokenRepository;
 	private final ConcertRepository concertRepository;
 
 	/**
@@ -51,8 +49,6 @@ public class PaymentService {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_RESERVATION));
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-		Token token = tokenRepository.findByUserId(userId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 
 		// 결제 수행
 		// 결제 수행시, 포인트 차감 진행, 예약의 상태 변경, 좌석의 상태 변경, 결제 내역을 기록한다.

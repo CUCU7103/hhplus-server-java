@@ -61,17 +61,19 @@ public class Payment {
 
 	// 정적 팩토리 메서드 - 새로운 결제 생성
 	public static Payment createPayment(Reservation reservation, User user, BigDecimal price, ConcertSeat concertSeat,
-		Balance balance) {
-		return new Payment(reservation, user, price, concertSeat, balance);
+		Balance balance, Token token) {
+		return new Payment(reservation, user, price, concertSeat, balance, token);
 	}
 
 	// reservationId 말고 reservation을 사용하는 이유??
 	// reservationId 는 long이다 도메인 객체의 기능에서 이 값이 진짜 reservation에 존재하는 아이디인지 알 수있을까?
 	// 객체를 받아와서 값을 사용하면 명확하게 해결이 가능하다.
-	private Payment(Reservation reservation, User user, BigDecimal amount, ConcertSeat concertSeat, Balance balance) {
-		validatePaymentData(reservation.getId(), user, amount, concertSeat);
+	private Payment(Reservation reservation, User user, BigDecimal amount, ConcertSeat concertSeat, Balance balance,
+		Token token) {
+		validatePaymentData(reservation.getId(), user, amount, concertSeat, balance, token);
 		balance.usePoint(amount);
 		reservation.confirm();
+		token.expiredToken();
 		this.reservationId = reservation.getId();
 		this.user = user;
 		this.amount = amount;
@@ -79,7 +81,8 @@ public class Payment {
 	}
 
 	// 유효성 검증 메서드
-	public void validatePaymentData(long reservationId, User user, BigDecimal price, ConcertSeat concertSeat) {
+	public void validatePaymentData(long reservationId, User user, BigDecimal price, ConcertSeat concertSeat,
+		Balance balance, Token token) {
 		if (reservationId <= 0) {
 			throw new CustomException(CustomErrorCode.INVALID_RESERVATION_ID);
 		}
@@ -91,6 +94,12 @@ public class Payment {
 		}
 		if (concertSeat == null) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_CONCERT_SEAT);
+		}
+		if (balance == null) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_BALANCE);
+		}
+		if (token == null) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_TOKEN);
 		}
 	}
 
