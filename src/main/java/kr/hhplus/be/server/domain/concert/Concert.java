@@ -42,5 +42,6 @@ public class Concert {
 		this.id = id;
 		this.concertTitle = concertTitle;
 		this.artistName = artistName;
+		this.createdAt = LocalDateTime.now();
 	}
 }
