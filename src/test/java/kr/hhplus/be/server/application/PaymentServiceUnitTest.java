@@ -171,7 +171,7 @@ public class PaymentServiceUnitTest {
 		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		given(tokenRepository.getToken(userId)).willReturn(token);
+		given(tokenRepository.findToken(token.getId())).willReturn(Optional.of(token));
 		given(paymentRepository.save(any(Payment.class))).willReturn(payment);
 
 		// mock 반환값 설정 (Optional)

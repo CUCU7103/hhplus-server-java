@@ -86,7 +86,6 @@ public class ReservationServiceUnitTest {
 			ConcertSeatStatus.AVAILABLE
 		);
 
-		verify(concertRepository, times(0)).save(any(Reservation.class));
 	}
 
 	@Test

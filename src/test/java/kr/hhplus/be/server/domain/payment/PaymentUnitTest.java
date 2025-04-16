@@ -11,6 +11,7 @@ import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
+import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
@@ -29,8 +30,9 @@ public class PaymentUnitTest {
 			.concertSeat(concertSeat)
 			.build();
 		Balance balance = mock(Balance.class);
+		Token token = mock(Token.class);
 
-		Payment payment = Payment.createPayment(reservation, user, amount, concertSeat, balance);
+		Payment payment = Payment.createPayment(reservation, user, amount, concertSeat, balance, token);
 
 		assertThat(payment).isNotNull();
 		assertThat(payment.getAmount()).isEqualTo(amount);
@@ -45,9 +47,11 @@ public class PaymentUnitTest {
 		BigDecimal amount = BigDecimal.valueOf(1000);
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Payment payment = mock(Payment.class, CALLS_REAL_METHODS); // 실제 메서드 호출을 위해
-
+		Token token = mock(Token.class);
+		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(invalidReservationId, user, amount, concertSeat))
+		assertThatThrownBy(
+			() -> payment.validatePaymentData(invalidReservationId, user, amount, concertSeat, balance, token))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_RESERVATION_ID.getMessage());
 	}
@@ -60,9 +64,10 @@ public class PaymentUnitTest {
 		BigDecimal amount = BigDecimal.valueOf(1000);
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Payment payment = mock(Payment.class, CALLS_REAL_METHODS);
-
+		Token token = mock(Token.class);
+		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
 	}
@@ -75,9 +80,10 @@ public class PaymentUnitTest {
 		BigDecimal amount = null;
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Payment payment = mock(Payment.class, CALLS_REAL_METHODS);
-
+		Token token = mock(Token.class);
+		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_PAYMENT_AMOUNT.getMessage());
 	}
@@ -90,9 +96,11 @@ public class PaymentUnitTest {
 		BigDecimal amount = BigDecimal.ZERO;
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Payment payment = mock(Payment.class, CALLS_REAL_METHODS);
+		Token token = mock(Token.class);
+		Balance balance = mock(Balance.class);
 
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_PAYMENT_AMOUNT.getMessage());
 	}
@@ -105,9 +113,10 @@ public class PaymentUnitTest {
 		BigDecimal amount = BigDecimal.valueOf(1000);
 		ConcertSeat concertSeat = null;
 		Payment payment = mock(Payment.class, CALLS_REAL_METHODS);
-
+		Token token = mock(Token.class);
+		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT_SEAT.getMessage());
 	}
