@@ -11,12 +11,12 @@ import kr.hhplus.be.server.application.token.info.ActiveTokenInfo;
 import kr.hhplus.be.server.application.token.info.IssueTokenInfo;
 import kr.hhplus.be.server.application.token.info.SearchTokenInfo;
 import kr.hhplus.be.server.domain.token.Token;
+import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.infrastructure.token.TokenRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,13 +24,13 @@ import lombok.RequiredArgsConstructor;
 public class TokenService {
 
 	private final UserRepository userRepository;
-	private final TokenRepositoryImpl tokenRepositoryImpl;
+	private final TokenRepository tokenRepository;
 
 	@Transactional
 	public IssueTokenInfo issueToken(long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-		Token issueToken = tokenRepositoryImpl.findByUserId(userId)
+		Token issueToken = tokenRepository.findByUserId(userId)
 			.orElseGet(() -> Token.createToken(user));
 		return IssueTokenInfo.from(issueToken);
 
@@ -42,21 +42,21 @@ public class TokenService {
 		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 		// 토큰 조회
-		Token token = tokenRepositoryImpl.findByUserId(userId)
+		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 		return SearchTokenInfo.from(token);
 	}
 
 	@Transactional
 	public ActiveTokenInfo activateToken(long tokenId) {
-		Token token = tokenRepositoryImpl.findToken(tokenId)
+		Token token = tokenRepository.findToken(tokenId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 		// 만료 검증: 스케줄러 보완용 만료 체크 로직
 		token.expireTokenIfTimedOut();
 		// 현재 ACTIVE 토큰 수 조회
-		long activeTokenCount = tokenRepositoryImpl.countByStatus(TokenStatus.ACTIVE);
+		long activeTokenCount = tokenRepository.countByStatus(TokenStatus.ACTIVE);
 		// 대기 순위 조회 후 토큰 활성화 처리
-		int waitingRank = tokenRepositoryImpl.getWaitingRank(token.getId());
+		int waitingRank = tokenRepository.getWaitingRank(token.getId());
 		token.activateToken(waitingRank, activeTokenCount);
 		return ActiveTokenInfo.from(token);
 	}
@@ -64,7 +64,7 @@ public class TokenService {
 	@Scheduled(fixedRate = 60 * 60 * 1000) // 1시간마다 실행
 	@Transactional
 	public void expireTokensScheduler() {
-		List<Token> activeTokens = tokenRepositoryImpl.findAllByStatus(TokenStatus.ACTIVE);
+		List<Token> activeTokens = tokenRepository.findAllByStatus(TokenStatus.ACTIVE);
 		LocalDateTime now = LocalDateTime.now();
 		for (Token token : activeTokens) {
 			// 생성시간 기준 10분이 지난 경우 EXPIRED로 전환
@@ -75,7 +75,7 @@ public class TokenService {
 	}
 
 	public void validateTokenByUserId(long userId) {
-		Token token = tokenRepositoryImpl.findByUserId(userId)
+		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 		token.validateTokenStatus();
 	}

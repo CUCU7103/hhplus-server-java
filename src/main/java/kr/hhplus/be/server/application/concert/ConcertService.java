@@ -13,13 +13,13 @@ import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
 import kr.hhplus.be.server.application.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.application.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.application.concert.info.ConcertSeatInfo;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.infrastructure.concert.ConcertDomainRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,7 +29,7 @@ public class ConcertService {
 	/**
 	 * 먼저 콘서트 서비스에  콘서트 스케줄, 콘서트 관련 로직들을 전부 몰아서 넣고 많은 것 같으면 분리 진행하기
 	 */
-	private final ConcertDomainRepositoryImpl concertDomainRepositoryImpl;
+	private final ConcertRepository concertRepository;
 
 	/**
 	 * 	예약 가능 일자 조회 기능 <br/>
@@ -49,10 +49,10 @@ public class ConcertService {
 	@Transactional(readOnly = true)
 	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
 
-		concertDomainRepositoryImpl.findByConcertId(concertId)
+		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		List<ConcertSchedule> concertSchedules = concertDomainRepositoryImpl.getConcertScheduleList(concertId,
+		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(concertId,
 			command.startDate(), command.endDate(), ConcertScheduleStatus.AVAILABLE);
 
 		return concertSchedules.stream().map(ConcertScheduleInfo::from).toList();
@@ -73,16 +73,16 @@ public class ConcertService {
 	@Transactional(readOnly = true)
 	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchCommand command) {
 
-		concertDomainRepositoryImpl.findByConcertId(concertId)
+		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		concertDomainRepositoryImpl.getConcertSchedule(command.concertScheduleId(),
+		concertRepository.getConcertSchedule(command.concertScheduleId(),
 				command.concertDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 
 		Pageable pageable = PageRequest.of(command.page(), command.size(), Sort.by("section"));
 
-		Page<ConcertSeat> seats = concertDomainRepositoryImpl.findByConcertScheduleIdAndSeatStatusContaining(
+		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
 			command.concertScheduleId(),
 			ConcertSeatStatus.AVAILABLE, pageable);
 
