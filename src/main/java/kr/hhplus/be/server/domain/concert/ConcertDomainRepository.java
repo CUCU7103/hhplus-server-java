@@ -13,9 +13,6 @@ import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
-import kr.hhplus.be.server.domain.payment.Payment;
-import kr.hhplus.be.server.domain.reservation.Reservation;
-import kr.hhplus.be.server.domain.reservation.ReservationStatus;
 
 @Repository
 public interface ConcertDomainRepository {
@@ -42,15 +39,5 @@ public interface ConcertDomainRepository {
 		ConcertSeatStatus available);
 
 	Optional<ConcertSeat> getByConcertSeatId(long seatId);
-
-	//payment
-	Payment save(Payment payment);
-
-	// reservation
-	Optional<Reservation> getByConcertReservationId(long reservationId);
-
-	Reservation save(Reservation reservation);
-
-	List<Reservation> getConcertReservationStatus(ReservationStatus status);
 
 }
