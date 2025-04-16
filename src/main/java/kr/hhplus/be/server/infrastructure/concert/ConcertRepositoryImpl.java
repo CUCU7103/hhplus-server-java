@@ -8,8 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
-import kr.hhplus.be.server.domain.concert.concert.Concert;
+import kr.hhplus.be.server.domain.concert.Concert;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class ConcertDomainRepositoryImpl implements ConcertDomainRepository {
+public class ConcertRepositoryImpl implements ConcertRepository {
 
 	private final ConcertScheduleJpaRepository concertScheduleJpaRepository;
 	private final ConcertSeatJpaRepository concertSeatJpaRepository;

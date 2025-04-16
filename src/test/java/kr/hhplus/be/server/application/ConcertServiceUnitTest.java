@@ -24,8 +24,8 @@ import org.springframework.data.domain.Sort;
 import kr.hhplus.be.server.application.concert.ConcertService;
 import kr.hhplus.be.server.application.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.application.concert.info.ConcertSeatInfo;
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
-import kr.hhplus.be.server.domain.concert.concert.Concert;
+import kr.hhplus.be.server.domain.concert.Concert;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -39,7 +39,7 @@ import kr.hhplus.be.server.presentation.concert.request.ConcertSeatSearchRequest
 class ConcertServiceUnitTest {
 
 	@Mock
-	private ConcertDomainRepository concertDomainRepository;
+	private ConcertRepository concertRepository;
 
 	@InjectMocks
 	private ConcertService concertService;
@@ -54,7 +54,7 @@ class ConcertServiceUnitTest {
 		// DTO (Request) 객체 준비
 		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate);
 		// repository가 Optional.empty()를 반환하도록 설정
-		given(concertDomainRepository.findByConcertId(concertId)).willReturn(Optional.empty());
+		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.empty());
 
 		// act & assert
 		assertThatThrownBy(() -> concertService.searchDate(concertId, request.toCommand()))
@@ -71,7 +71,7 @@ class ConcertServiceUnitTest {
 
 		// 실제 Concert 엔티티 준비
 		Concert concert = Concert.builder()
-			.concertId(concertId)
+			.id(concertId)
 			.artistName("윤하")
 			.concertTitle("윤하 콘서트")
 			.build();
@@ -80,8 +80,8 @@ class ConcertServiceUnitTest {
 		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate);
 
 		// stub
-		given(concertDomainRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
-		given(concertDomainRepository.getConcertScheduleList(
+		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
+		given(concertRepository.getConcertScheduleList(
 			concertId,
 			request.toCommand().startDate(),
 			request.toCommand().endDate(),
@@ -117,8 +117,8 @@ class ConcertServiceUnitTest {
 					LocalDateTime.now()));
 		}
 
-		given(concertDomainRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
-		given(concertDomainRepository.getConcertScheduleList(concertId,
+		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
+		given(concertRepository.getConcertScheduleList(concertId,
 			request.toCommand().startDate(),
 			request.toCommand().endDate(), ConcertScheduleStatus.AVAILABLE)).willReturn(schedules);
 		// act
@@ -142,7 +142,7 @@ class ConcertServiceUnitTest {
 		String concertDate = "2025-06-01";
 		// 실제 Concert 엔티티 준비
 		Concert concert = Concert.builder()
-			.concertId(concertId)
+			.id(concertId)
 			.artistName("윤하")
 			.concertTitle("윤하 콘서트")
 			.build();
@@ -151,9 +151,9 @@ class ConcertServiceUnitTest {
 		ConcertSeatSearchRequest request = new ConcertSeatSearchRequest(concertScheduleId, concertDate, 0, 10);
 
 		// stub
-		given(concertDomainRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
+		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
 		// repository가 Optional.empty()를 반환하도록 설정
-		given(concertDomainRepository.getConcertSchedule(concertScheduleId,
+		given(concertRepository.getConcertSchedule(concertScheduleId,
 			request.toCommand().concertDate())).willReturn(Optional.empty());
 
 		// act & assert
@@ -193,11 +193,11 @@ class ConcertServiceUnitTest {
 		Page<ConcertSeat> seatPage = new PageImpl<>(concertSeatList, pageable, concertSeatList.size());
 
 		// Mock repository 동작 설정
-		given(concertDomainRepository.findByConcertId(concertScheduleId)).willReturn(Optional.of(concert));
-		given(concertDomainRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
+		given(concertRepository.findByConcertId(concertScheduleId)).willReturn(Optional.of(concert));
+		given(concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
 			request.toCommand().concertDate()))
 			.willReturn(Optional.of(concertSchedule)); // Concert 엔티티 객체는 실제 코드와 맞게 세팅
-		given(concertDomainRepository.findByConcertScheduleIdAndSeatStatusContaining(
+		given(concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
 			1L, ConcertSeatStatus.AVAILABLE, pageable)
 		).willReturn(seatPage);
 

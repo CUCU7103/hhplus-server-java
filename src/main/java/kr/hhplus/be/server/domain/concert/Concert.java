@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.concert.concert;
+package kr.hhplus.be.server.domain.concert;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

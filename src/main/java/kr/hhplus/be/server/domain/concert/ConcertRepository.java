@@ -8,14 +8,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import kr.hhplus.be.server.domain.concert.concert.Concert;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 
 @Repository
-public interface ConcertDomainRepository {
+public interface ConcertRepository {
 
 	// schedule
 	Optional<ConcertSchedule> getConcertSchedule(long concertScheduleId, LocalDate localDate);

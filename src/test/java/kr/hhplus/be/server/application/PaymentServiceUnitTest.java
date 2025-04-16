@@ -18,7 +18,7 @@ import kr.hhplus.be.server.application.payment.PaymentInfo;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
@@ -40,7 +40,7 @@ import kr.hhplus.be.server.presentation.payment.PaymentRequest;
 public class PaymentServiceUnitTest {
 
 	@Mock
-	private ConcertDomainRepository concertDomainRepository;
+	private ConcertRepository concertRepository;
 
 	@Mock
 	private BalanceRepository balanceRepository;
@@ -109,7 +109,7 @@ public class PaymentServiceUnitTest {
 		PaymentRequest request = new PaymentRequest(paymentId, reservationId, BigDecimal.valueOf(1000));
 
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertDomainRepository.getByConcertSeatId(reservationId)).willReturn(Optional.of(concertSeat));
+		given(concertRepository.getByConcertSeatId(reservationId)).willReturn(Optional.of(concertSeat));
 
 		assertThatThrownBy(() -> paymentService.paymentSeat(reservationId, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_RESERVATION.getMessage());
@@ -131,7 +131,7 @@ public class PaymentServiceUnitTest {
 		PaymentRequest request = new PaymentRequest(paymentId, seatId, BigDecimal.valueOf(1000));
 
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertDomainRepository.getByConcertSeatId(request.toCommand().seatId())).willReturn(
+		given(concertRepository.getByConcertSeatId(request.toCommand().seatId())).willReturn(
 			Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 
@@ -168,7 +168,7 @@ public class PaymentServiceUnitTest {
 
 		given(user.getId()).willReturn(userId);
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertDomainRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
+		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
 		given(tokenRepository.getToken(userId)).willReturn(token);
