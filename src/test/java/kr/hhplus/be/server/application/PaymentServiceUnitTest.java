@@ -13,49 +13,50 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.application.payment.PaymentInfo;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
+import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.reservation.Reservation;
+import kr.hhplus.be.server.domain.reservation.ReservationRepository;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
 import kr.hhplus.be.server.domain.token.Token;
+import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.infrastructure.balance.BalanceRepositoryImpl;
-import kr.hhplus.be.server.infrastructure.concert.ConcertRepositoryImpl;
-import kr.hhplus.be.server.infrastructure.payment.PaymentRepositoryImpl;
-import kr.hhplus.be.server.infrastructure.reservation.ReservationRepositoryImpl;
-import kr.hhplus.be.server.infrastructure.token.TokenRepositoryImpl;
-import kr.hhplus.be.server.infrastructure.user.UserRepositoryImpl;
 import kr.hhplus.be.server.presentation.payment.PaymentRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class PaymentServiceUnitTest {
 
 	@Mock
-	private ConcertRepositoryImpl concertRepository;
+	private ConcertRepository concertRepository;
 
 	@Mock
-	private BalanceRepositoryImpl balanceRepository;
+	private BalanceRepository balanceRepository;
 
 	@Mock
-	private UserRepositoryImpl userRepository;
+	private UserRepository userRepository;
 
 	@Mock
-	private TokenRepositoryImpl tokenRepository;
+	private TokenRepository tokenRepository;
 
 	@Mock
-	private PaymentRepositoryImpl paymentRepository;
+	private PaymentRepository paymentRepository;
 
 	@Mock
-	private ReservationRepositoryImpl reservationRepository;
+	private ReservationRepository reservationRepository;
 
 	@InjectMocks
 	private PaymentService paymentService;
@@ -154,10 +155,12 @@ public class PaymentServiceUnitTest {
 		Reservation reservation = Reservation.builder()
 			.price(MoneyVO.of(amount))
 			.reservationStatus(ReservationStatus.HELD)
-			.concertSchedule(concertSchedule)
-			.concertSeat(concertSeat)
 			.user(user)
+			.concertSeat(concertSeat)
+			.concertSchedule(concertSchedule)
 			.build();
+		ReflectionTestUtils.setField(reservation, "id", reservationId);
+
 		Token token = mock(Token.class);
 		Payment payment = mock(Payment.class); // 새롭게 추가
 
@@ -178,7 +181,7 @@ public class PaymentServiceUnitTest {
 		given(payment.getCreatedAt()).willReturn(LocalDateTime.now());
 
 		// when
-		PaymentInfo result = paymentService.paymentSeat(reservation.getId(), userId, request.toCommand());
+		PaymentInfo result = paymentService.paymentSeat(reservationId, userId, request.toCommand());
 
 		// then
 		verify(balance, timeout(1)).usePoint(amount);
