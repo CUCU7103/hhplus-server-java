@@ -83,9 +83,8 @@ public class Reservation {
 	private ConcertSchedule concertSchedule;
 
 	@Builder
-	public Reservation(long id, MoneyVO price, ReservationStatus reservationStatus,
+	public Reservation(MoneyVO price, ReservationStatus reservationStatus,
 		User user, ConcertSeat concertSeat, ConcertSchedule concertSchedule) {
-		this.id = id;
 		this.price = price;
 		this.reservationStatus = reservationStatus;
 		this.user = user;
@@ -94,7 +93,7 @@ public class Reservation {
 		this.createdAt = LocalDateTime.now();
 		this.expirationAt = LocalDateTime.now().plusMinutes(5);
 	}
-
+	
 	public static Reservation createPendingReservation(User user, ConcertSeat seat, ConcertSchedule schedule,
 		ReservationStatus status) {
 		// 예약 전 검증 진행

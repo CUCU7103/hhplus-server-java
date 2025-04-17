@@ -73,7 +73,6 @@ class ReservationUnitTest {
 		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
 			1L, price);
 		Reservation reservation = Reservation.builder()
-			.id(1L)
 			.reservationStatus(ReservationStatus.HELD)
 			.concertSeat(concertSeat)
 			.build();
@@ -90,7 +89,6 @@ class ReservationUnitTest {
 		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
 			1L, price);
 		Reservation reservation = Reservation.builder()
-			.id(1L)
 			.reservationStatus(ReservationStatus.AVAILABLE)
 			.concertSeat(concertSeat)
 			.build();
