@@ -5,6 +5,14 @@ import static org.assertj.core.api.Assertions.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,4 +159,133 @@ public class PaymentIntegrationTest {
 
 	}
 
+	@Test
+	void 한_사용자가_동시에_여러_스레드에서_결제를_시도하면_잔액_불일치_문제가_발생한다() throws InterruptedException {
+		/* -------- arrange -------- */
+		// 1) 사용자 한 명 생성 및 정확히 한 번의 결제만 가능한 잔액 설정
+		User user = userJpaRepository.save(User.builder().name("철수").build());
+		balanceJpaRepository.save(
+			Balance.of(MoneyVO.of(BigDecimal.valueOf(5000)), LocalDateTime.now(), user.getId()));
+		tokenJpaRepository.save(Token.createToken(user));
+
+		// 2) 콘서트/스케줄 설정
+		Concert concert = concertJpaRepository.save(
+			Concert.builder().concertTitle("테스트 콘서트").artistName("테스트").build());
+
+		ConcertSchedule schedule = concertScheduleJpaRepository.save(
+			ConcertSchedule.builder()
+				.concertDate(LocalDate.of(2025, 4, 20))
+				.venue("테스트홀")
+				.status(ConcertScheduleStatus.AVAILABLE)
+				.createdAt(LocalDateTime.now())
+				.concert(concert)
+				.build());
+
+		// 3) 두 개의 서로 다른 좌석 생성
+		ConcertSeat seat1 = concertSeatJpaRepository.save(
+			ConcertSeat.builder()
+				.concertSchedule(schedule)
+				.section("A")
+				.seatNumber(1)
+				.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+				.status(ConcertSeatStatus.AVAILABLE)
+				.build());
+
+		ConcertSeat seat2 = concertSeatJpaRepository.save(
+			ConcertSeat.builder()
+				.concertSchedule(schedule)
+				.section("A")
+				.seatNumber(2)
+				.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+				.status(ConcertSeatStatus.AVAILABLE)
+				.build());
+
+		// 4) 두 좌석 각각에 대한 예약 생성
+		Reservation reservation1 = reservationJpaRepository.save(
+			Reservation.createPendingReservation(
+				user, seat1, schedule, ReservationStatus.HELD));
+
+		Reservation reservation2 = reservationJpaRepository.save(
+			Reservation.createPendingReservation(
+				user, seat2, schedule, ReservationStatus.HELD));
+
+		// 5) 동시 실행을 위한 설정
+		int numberOfThreads = 2;
+		CountDownLatch readyLatch = new CountDownLatch(numberOfThreads);
+		CountDownLatch startLatch = new CountDownLatch(1);
+		CountDownLatch finishLatch = new CountDownLatch(numberOfThreads);
+
+		AtomicInteger successCount = new AtomicInteger(0);
+		List<Exception> exceptions = Collections.synchronizedList(new ArrayList<>());
+
+		/* -------- act -------- */
+		// 두 개의 스레드에서 동시에 결제 시도 (사용자는 하나, 잔액은 한 번만 결제할 수 있는 금액)
+		ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+
+		// 첫 번째 좌석 결제 시도
+		executorService.submit(() -> {
+			try {
+				PaymentCommand command = new PaymentCommand(seat1.getId(), BigDecimal.valueOf(5000));
+				readyLatch.countDown();
+				startLatch.await();
+
+				paymentService.paymentSeat(reservation1.getId(), user.getId(), command);
+				successCount.incrementAndGet();
+			} catch (Exception e) {
+				exceptions.add(e);
+			} finally {
+				finishLatch.countDown();
+			}
+		});
+
+		// 두 번째 좌석 결제 시도
+		executorService.submit(() -> {
+			try {
+				PaymentCommand command = new PaymentCommand(seat2.getId(), BigDecimal.valueOf(5000));
+				readyLatch.countDown();
+				startLatch.await();
+
+				paymentService.paymentSeat(reservation2.getId(), user.getId(), command);
+				successCount.incrementAndGet();
+			} catch (Exception e) {
+				exceptions.add(e);
+			} finally {
+				finishLatch.countDown();
+			}
+		});
+
+		// 모든 스레드가 준비될 때까지 대기
+		readyLatch.await(5, TimeUnit.SECONDS);
+
+		// 시작 신호 발생
+		startLatch.countDown();
+
+		// 모든 스레드가 완료될 때까지 대기
+		finishLatch.await(10, TimeUnit.SECONDS);
+		executorService.shutdown();
+
+		/* -------- assert -------- */
+		// 락이 없으면 두 결제 모두 성공할 가능성이 있음 (잔액은 한 건만 가능한데!)
+		// 이것이 잔액에 대한 동시성 문제가 있음을 보여주는 것
+		assertThat(successCount.get()).isEqualTo(2);
+
+		// 사용자의 잔액이 마이너스가 되었는지 확인 (이것이 문제점)
+		Balance updatedBalance = balanceJpaRepository.findById(user.getId()).orElseThrow();
+		assertThat(updatedBalance.getMoneyVO().getAmount()).isLessThan(BigDecimal.ZERO);
+
+		// 두 예약 모두 BOOKED 상태인지 확인
+		Reservation updatedReservation1 = reservationJpaRepository.findById(reservation1.getId()).orElseThrow();
+		Reservation updatedReservation2 = reservationJpaRepository.findById(reservation2.getId()).orElseThrow();
+
+		assertThat(updatedReservation1.getReservationStatus()).isEqualTo(ReservationStatus.BOOKED);
+		assertThat(updatedReservation2.getReservationStatus()).isEqualTo(ReservationStatus.BOOKED);
+
+		// 두 좌석 모두 BOOKED 상태인지 확인
+		assertThat(concertSeatJpaRepository.findById(seat1.getId()).orElseThrow().getStatus())
+			.isEqualTo(ConcertSeatStatus.BOOKED);
+		assertThat(concertSeatJpaRepository.findById(seat2.getId()).orElseThrow().getStatus())
+			.isEqualTo(ConcertSeatStatus.BOOKED);
+
+		// 이 테스트가 통과한다면 잔액에 대한 동시성 문제가 있다는 것을 확인하는 것
+	}
 }
