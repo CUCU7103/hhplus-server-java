@@ -39,4 +39,15 @@ public class TokenRepositoryImpl implements TokenRepository {
 	public List<Token> findAllByStatus(TokenStatus tokenStatus) {
 		return tokenJpaRepository.findAllByStatus(tokenStatus);
 	}
+
+	@Override
+	public Optional<Token> findTokenIdAndWaitingToken(long tokenId) {
+		return tokenJpaRepository.findByIdAndStatus(tokenId, TokenStatus.WAITING);
+	}
+
+	@Override
+	public Optional<Token> findByUserIdAndWaitingToken(long userId) {
+		return tokenJpaRepository.findByUserIdAndStatus(userId, TokenStatus.WAITING);
+	}
+
 }

@@ -30,10 +30,9 @@ public class TokenService {
 	public IssueTokenInfo issueToken(long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-		Token issueToken = tokenRepository.findByUserId(userId)
-			.orElseGet(() -> Token.createToken(user));
-		return IssueTokenInfo.from(issueToken);
 
+		return IssueTokenInfo.from(tokenRepository.findByUserIdAndWaitingToken(userId)
+			.orElseGet(() -> Token.createToken(user)));
 	}
 
 	@Transactional(readOnly = true)
@@ -42,14 +41,14 @@ public class TokenService {
 		userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 		// 토큰 조회
-		Token token = tokenRepository.findByUserId(userId)
+		Token token = tokenRepository.findByUserIdAndWaitingToken(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		return SearchTokenInfo.from(token);
+		return SearchTokenInfo.from(token, tokenRepository.getWaitingRank(token.getId()));
 	}
 
 	@Transactional
 	public ActiveTokenInfo activateToken(long tokenId) {
-		Token token = tokenRepository.findToken(tokenId)
+		Token token = tokenRepository.findTokenIdAndWaitingToken(tokenId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 		// 만료 검증: 스케줄러 보완용 만료 체크 로직
 		token.expireTokenIfTimedOut();
@@ -58,7 +57,7 @@ public class TokenService {
 		// 대기 순위 조회 후 토큰 활성화 처리
 		int waitingRank = tokenRepository.getWaitingRank(token.getId());
 		token.activateToken(waitingRank, activeTokenCount);
-		return ActiveTokenInfo.from(token);
+		return ActiveTokenInfo.from(token, waitingRank);
 	}
 
 	@Scheduled(fixedRate = 60 * 60 * 1000) // 1시간마다 실행
@@ -68,7 +67,7 @@ public class TokenService {
 		LocalDateTime now = LocalDateTime.now();
 		for (Token token : activeTokens) {
 			// 생성시간 기준 10분이 지난 경우 EXPIRED로 전환
-			if (token.getExpirationAt().isAfter(now)) {
+			if (token.getExpirationAt().isBefore(now)) {
 				token.expiredToken();
 			}
 		}
