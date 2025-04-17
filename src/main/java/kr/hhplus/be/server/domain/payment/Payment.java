@@ -47,7 +47,7 @@ public class Payment {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at", nullable = false)
+	@Column(name = "modified_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	@LastModifiedDate
 	private LocalDateTime modifiedAt;

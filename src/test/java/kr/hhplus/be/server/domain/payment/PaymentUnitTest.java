@@ -25,7 +25,6 @@ public class PaymentUnitTest {
 		User user = mock(User.class);
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Reservation reservation = Reservation.builder()
-			.id(1L)
 			.reservationStatus(ReservationStatus.HELD)
 			.concertSeat(concertSeat)
 			.build();
