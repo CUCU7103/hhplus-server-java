@@ -13,12 +13,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.application.payment.PaymentInfo;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
@@ -40,7 +41,7 @@ import kr.hhplus.be.server.presentation.payment.PaymentRequest;
 public class PaymentServiceUnitTest {
 
 	@Mock
-	private ConcertDomainRepository concertDomainRepository;
+	private ConcertRepository concertRepository;
 
 	@Mock
 	private BalanceRepository balanceRepository;
@@ -63,11 +64,11 @@ public class PaymentServiceUnitTest {
 	@Test
 	void 잔액을_조회할_수없어_좌석_결제에_실패한다() {
 
-		long paymentId = 1L;
 		long userId = 1L;
+		long seat = 1L;
 		long reservationId = 1L;
 
-		PaymentRequest request = new PaymentRequest(paymentId, reservationId, BigDecimal.valueOf(1000));
+		PaymentRequest request = new PaymentRequest(seat, BigDecimal.valueOf(1000));
 
 		given(balanceRepository.findById(userId)).willReturn(Optional.empty());
 
@@ -79,19 +80,18 @@ public class PaymentServiceUnitTest {
 	@Test
 	void 좌석_정보를_찾을수_없어_좌석_결제에_실패한다() {
 
-		long paymentId = 1L;
 		long balanceId = 1L;
 		long userId = 1L;
-		long reservationId = 1L;
+		long seat = 1L;
 		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
 
 		Balance balance = Balance.builder().id(balanceId).moneyVO(moneyVO).userId(userId).build();
 
-		PaymentRequest request = new PaymentRequest(paymentId, reservationId, BigDecimal.valueOf(1000));
+		PaymentRequest request = new PaymentRequest(seat, BigDecimal.valueOf(1000));
 
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
 
-		assertThatThrownBy(() -> paymentService.paymentSeat(reservationId, userId, request.toCommand())).isInstanceOf(
+		assertThatThrownBy(() -> paymentService.paymentSeat(seat, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT_SEAT.getMessage());
 
 	}
@@ -101,17 +101,17 @@ public class PaymentServiceUnitTest {
 
 		long paymentId = 1L;
 		long userId = 1L;
-		long reservationId = 1L;
+		long seatId = 1L;
 
 		Balance balance = mock(Balance.class);
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 
-		PaymentRequest request = new PaymentRequest(paymentId, reservationId, BigDecimal.valueOf(1000));
+		PaymentRequest request = new PaymentRequest(seatId, BigDecimal.valueOf(1000));
 
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertDomainRepository.getByConcertSeatId(reservationId)).willReturn(Optional.of(concertSeat));
+		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 
-		assertThatThrownBy(() -> paymentService.paymentSeat(reservationId, userId, request.toCommand())).isInstanceOf(
+		assertThatThrownBy(() -> paymentService.paymentSeat(seatId, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_RESERVATION.getMessage());
 
 	}
@@ -119,7 +119,6 @@ public class PaymentServiceUnitTest {
 	@Test
 	void 사용자를_찾을_수_없어_결제에_실패한다() {
 		// arange
-		long paymentId = 1L;
 		long userId = 1L;
 		long seatId = 1L;
 		long reservationId = 1L;
@@ -128,10 +127,10 @@ public class PaymentServiceUnitTest {
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Reservation reservation = mock(Reservation.class);
 
-		PaymentRequest request = new PaymentRequest(paymentId, seatId, BigDecimal.valueOf(1000));
+		PaymentRequest request = new PaymentRequest(seatId, BigDecimal.valueOf(1000));
 
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertDomainRepository.getByConcertSeatId(request.toCommand().seatId())).willReturn(
+		given(concertRepository.getByConcertSeatId(request.toCommand().seatId())).willReturn(
 			Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 
@@ -154,24 +153,25 @@ public class PaymentServiceUnitTest {
 		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
 		User user = mock(User.class);
 		Reservation reservation = Reservation.builder()
-			.id(reservationId)
 			.price(MoneyVO.of(amount))
 			.reservationStatus(ReservationStatus.HELD)
-			.concertSchedule(concertSchedule)
-			.concertSeat(concertSeat)
 			.user(user)
+			.concertSeat(concertSeat)
+			.concertSchedule(concertSchedule)
 			.build();
+		ReflectionTestUtils.setField(reservation, "id", reservationId);
+
 		Token token = mock(Token.class);
 		Payment payment = mock(Payment.class); // 새롭게 추가
 
-		PaymentRequest request = new PaymentRequest(paymentId, seatId, amount);
+		PaymentRequest request = new PaymentRequest(seatId, amount);
 
 		given(user.getId()).willReturn(userId);
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertDomainRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
+		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		given(tokenRepository.getToken(userId)).willReturn(token);
+		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
 		given(paymentRepository.save(any(Payment.class))).willReturn(payment);
 
 		// mock 반환값 설정 (Optional)
@@ -181,7 +181,7 @@ public class PaymentServiceUnitTest {
 		given(payment.getCreatedAt()).willReturn(LocalDateTime.now());
 
 		// when
-		PaymentInfo result = paymentService.paymentSeat(reservation.getId(), userId, request.toCommand());
+		PaymentInfo result = paymentService.paymentSeat(reservationId, userId, request.toCommand());
 
 		// then
 		verify(balance, timeout(1)).usePoint(amount);

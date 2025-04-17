@@ -18,7 +18,6 @@ import kr.hhplus.be.server.application.balance.BalanceService;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.history.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.history.BalanceHistoryRepository;
 import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
@@ -33,9 +32,6 @@ class BalanceServiceUnitTest {
 
 	@Mock
 	private UserRepository userRepository;
-
-	@Mock
-	private BalanceHistoryRepository balanceHistoryRepository;
 
 	@InjectMocks
 	private BalanceService balanceService;
@@ -145,7 +141,7 @@ class BalanceServiceUnitTest {
 		// 포인트가 기존 200 + 100 = 300이 되었는지 검증
 		assertThat(result.moneyVO().getAmount()).isEqualTo(existingBalance.getMoneyVO().getAmount());
 		// pointHistory 저장 로직이 정상 호출되었는지 검증
-		verify(balanceHistoryRepository, times(1)).save(any(BalanceHistory.class));
+		verify(balanceRepository, times(1)).save(any(BalanceHistory.class));
 	}
 
 	@Test
@@ -164,7 +160,7 @@ class BalanceServiceUnitTest {
 		BalanceInfo result = balanceService.chargePoint(userId, request.toCommand());
 
 		assertThat(result.moneyVO().getAmount()).isEqualTo(request.toCommand().chargePoint());
-		verify(balanceHistoryRepository, times(1)).save(any(BalanceHistory.class));
+		verify(balanceRepository, times(1)).save(any(BalanceHistory.class));
 	}
 
 }

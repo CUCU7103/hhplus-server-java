@@ -9,16 +9,13 @@ import kr.hhplus.be.server.application.payment.PaymentCommand;
 public record PaymentRequest(
 	@NotNull
 	@Positive
-	long paymentId,
-	@NotNull
-	@Positive
 	long seatId,
 	@NotNull
 	@Positive
 	BigDecimal amount) {
 
 	public PaymentCommand toCommand() {
-		return new PaymentCommand(paymentId, seatId, amount);
+		return new PaymentCommand(seatId, amount);
 	}
 }
 

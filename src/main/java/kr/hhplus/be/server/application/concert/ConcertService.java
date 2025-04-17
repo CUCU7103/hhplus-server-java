@@ -13,7 +13,7 @@ import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
 import kr.hhplus.be.server.application.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.application.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.application.concert.info.ConcertSeatInfo;
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -29,7 +29,7 @@ public class ConcertService {
 	/**
 	 * 먼저 콘서트 서비스에  콘서트 스케줄, 콘서트 관련 로직들을 전부 몰아서 넣고 많은 것 같으면 분리 진행하기
 	 */
-	private final ConcertDomainRepository concertDomainRepository;
+	private final ConcertRepository concertRepository;
 
 	/**
 	 * 	예약 가능 일자 조회 기능 <br/>
@@ -49,10 +49,10 @@ public class ConcertService {
 	@Transactional(readOnly = true)
 	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
 
-		concertDomainRepository.findByConcertId(concertId)
+		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		List<ConcertSchedule> concertSchedules = concertDomainRepository.getConcertScheduleList(concertId,
+		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(concertId,
 			command.startDate(), command.endDate(), ConcertScheduleStatus.AVAILABLE);
 
 		return concertSchedules.stream().map(ConcertScheduleInfo::from).toList();
@@ -73,16 +73,16 @@ public class ConcertService {
 	@Transactional(readOnly = true)
 	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchCommand command) {
 
-		concertDomainRepository.findByConcertId(concertId)
+		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		concertDomainRepository.getConcertSchedule(command.concertScheduleId(),
+		concertRepository.getConcertSchedule(command.concertScheduleId(),
 				command.concertDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 
 		Pageable pageable = PageRequest.of(command.page(), command.size(), Sort.by("section"));
 
-		Page<ConcertSeat> seats = concertDomainRepository.findByConcertScheduleIdAndSeatStatusContaining(
+		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
 			command.concertScheduleId(),
 			ConcertSeatStatus.AVAILABLE, pageable);
 
@@ -91,13 +91,5 @@ public class ConcertService {
 			.toList();
 
 	}
-
-	/**
-	 *  스케줄러 로직
-	 *  먼저 예약 도메인의 임시예약 상태를 조회한다.
-	 *  임시예약 상태인 좌석들의 만료 시간을 확인한다
-	 *  현재시간 보다 만료시간이 이전인 예약의 상태를 예약 가능 상태로 변경한다.
-	 *  좌석의 상태도 예약 가능 상태로 변경한다.
-	 */
 
 }
