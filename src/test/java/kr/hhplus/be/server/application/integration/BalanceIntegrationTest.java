@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.application.balance.BalanceInfo;
 import kr.hhplus.be.server.application.balance.BalanceService;
@@ -19,6 +20,7 @@ import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.infrastructure.balance.BalanceJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 
+@Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 public class BalanceIntegrationTest {

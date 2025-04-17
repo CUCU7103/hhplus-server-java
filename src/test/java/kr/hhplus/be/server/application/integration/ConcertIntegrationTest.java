@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.application.concert.ConcertService;
 import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
@@ -26,13 +27,13 @@ import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 
+@Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 public class ConcertIntegrationTest {
 
 	@Autowired
 	private ConcertService concertService;
-
 	@Autowired
 	private ConcertJpaRepository concertJpaRepository;
 	@Autowired
