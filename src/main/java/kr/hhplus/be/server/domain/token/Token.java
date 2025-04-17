@@ -47,7 +47,7 @@ public class Token {
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at", nullable = false)
+	@Column(name = "modified_at")
 	private LocalDateTime modifiedAt;
 
 	@Column(name = "expiration_at")
@@ -59,14 +59,12 @@ public class Token {
 	private User user;
 
 	@Builder
-	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status,
-		long id) {
+	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status) {
 		this.user = user;
 		this.modifiedAt = modifiedAt;
 		this.createdAt = createdAt;
 		this.tokenValue = tokenValue;
 		this.status = status;
-		this.id = id;
 		this.expirationAt = createdAt.plusMinutes(10);
 	}
 
