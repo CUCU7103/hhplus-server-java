@@ -7,17 +7,18 @@ import kr.hhplus.be.server.domain.token.TokenStatus;
 import lombok.Builder;
 
 public record SearchTokenInfo(String tokenValue, TokenStatus status, LocalDateTime createdAt,
-							  long userId) {
+							  long userId, int waitingRank) {
 	@Builder
 	public SearchTokenInfo(String tokenValue, TokenStatus status, LocalDateTime createdAt,
-		long userId) {
+		long userId, int waitingRank) {
 		this.tokenValue = tokenValue;
 		this.status = status;
 		this.createdAt = createdAt;
 		this.userId = userId;
+		this.waitingRank = waitingRank;
 	}
 
-	public static SearchTokenInfo from(Token token) {
+	public static SearchTokenInfo from(Token token, int waitingRank) {
 		return SearchTokenInfo.builder()
 			.tokenValue(token.getTokenValue())
 			.status(token.getStatus())

@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class ReservationService {
 
 	private final ReservationRepository reservationRepository;
-	private final ConcertDomainRepository concertDomainRepository;
+	private final ConcertRepository concertRepository;
 	private final UserRepository userRepository;
 
 	/**
@@ -38,11 +38,11 @@ public class ReservationService {
 	@Transactional
 	public ReservationInfo reservationSeat(long seatId, long userId, ReservationCommand command) {
 		// 유효한 스케줄인지 확인
-		ConcertSchedule concertSchedule = concertDomainRepository.getConcertSchedule(command.concertScheduleId(),
+		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(command.concertScheduleId(),
 				command.concertScheduleDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 		// 좌석 조회
-		ConcertSeat seat = concertDomainRepository
+		ConcertSeat seat = concertRepository
 			.getConcertSeatWhere(seatId, command.concertScheduleId(),
 				command.concertScheduleDate(),
 				ConcertSeatStatus.AVAILABLE)
@@ -59,7 +59,7 @@ public class ReservationService {
 
 	@Transactional
 	public void concertReservationCancel() {
-		List<Reservation> reservations = concertDomainRepository
+		List<Reservation> reservations = reservationRepository
 			.getConcertReservationStatus(ReservationStatus.HELD);
 		for (Reservation reservation : reservations) {
 			reservation.cancelDueToTimeout(LocalDateTime.now());

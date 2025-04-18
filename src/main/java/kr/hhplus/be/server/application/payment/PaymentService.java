@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
@@ -27,8 +27,8 @@ public class PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final UserRepository userRepository;
 	private final ReservationRepository reservationRepository;
+	private final ConcertRepository concertRepository;
 	private final TokenRepository tokenRepository;
-	private final ConcertDomainRepository concertDomainRepository;
 
 	/**
 	 *  사용자의 잔여 포인트를 조회한다.
@@ -45,22 +45,20 @@ public class PaymentService {
 		// 메서드를 누가 부를지 모른다!
 		Balance balance = balanceRepository.findById(userId).orElseThrow(
 			() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
-		ConcertSeat concertSeat = concertDomainRepository.getByConcertSeatId(command.seatId())
+		ConcertSeat concertSeat = concertRepository.getByConcertSeatId(command.seatId())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT_SEAT));
 		Reservation reservation = reservationRepository.getByConcertReservationId(reservationId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_RESERVATION));
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-
+		Token token = tokenRepository.findByUserId(userId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 		// 결제 수행
 		// 결제 수행시, 포인트 차감 진행, 예약의 상태 변경, 좌석의 상태 변경, 결제 내역을 기록한다.
 		// 결제가 가지는 책임은 협력 객체인 좌석, 포인트에게 각각 상태와 차감을 지시함.
 		// 예약 도메인에서 좌석의 상태를 변경하는 책임을 가지고 있기에 예약 확정!
 		Payment payment = paymentRepository.save(Payment
-			.createPayment(reservation, user, command.amount(), concertSeat, balance));
-
-		Token token = tokenRepository.getToken(userId);
-		token.expiredToken();
+			.createPayment(reservation, user, command.amount(), concertSeat, balance, token));
 
 		return PaymentInfo.from(payment);
 	}
