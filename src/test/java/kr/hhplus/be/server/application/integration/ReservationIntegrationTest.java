@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -161,8 +162,9 @@ public class ReservationIntegrationTest {
 
 	}
 
+	// 2명이 동시에 접근했을때 먼저 접근한 한명은 성공하고 다른 한명은 실패해야한다.
 	@Test
-	void 동시에_여러명이_같은_좌석을_예약하면_중복_예약이_발생할_수_있다() throws InterruptedException {
+	void 동시에_여러명이_같은_좌석을_예약하면_먼저_예약한_사람이_성공한다() throws InterruptedException {
 		// arrange
 		User user1 = userJpaRepository.save(User.builder().name("철수").build());
 		User user2 = userJpaRepository.save(User.builder().name("영희").build());
@@ -186,6 +188,8 @@ public class ReservationIntegrationTest {
 				.build());
 
 		log.info("스케줄 아이디 {} ", schedule.getId());
+		log.info("스케줄 날짜 {} ", schedule.getConcertDate());
+		log.info("스케줄 상태 {} ", schedule.getStatus());
 
 		ConcertSeat seat = concertSeatJpaRepository.save(
 			ConcertSeat.builder()
@@ -206,20 +210,23 @@ public class ReservationIntegrationTest {
 		// act
 		results.add(executor.submit(() -> {
 			try {
+				log.info("User1 시도: seatId={}, userId={}, scheduleId={}, scheduleDate={}",
+					seat.getId(), user1.getId(), command.concertScheduleId(), command.concertScheduleDate());
 				return reservationService.reservationSeat(seat.getId(), user1.getId(), command);
 			} catch (Exception e) {
-				System.out.println("User1 실패: " + e.getMessage());
+				log.error("User1 실패: " + e.getMessage(), e);
 				return null;
 			} finally {
 				latch.countDown();
 			}
 		}));
-
 		results.add(executor.submit(() -> {
 			try {
+				log.info("User2 시도: seatId={}, userId={}, scheduleId={}, scheduleDate={}",
+					seat.getId(), user2.getId(), command.concertScheduleId(), command.concertScheduleDate());
 				return reservationService.reservationSeat(seat.getId(), user2.getId(), command);
 			} catch (Exception e) {
-				System.out.println("User2 실패: " + e.getMessage());
+				log.error("User2 실패: " + e.getMessage(), e);
 				return null;
 			} finally {
 				latch.countDown();
@@ -227,13 +234,19 @@ public class ReservationIntegrationTest {
 		}));
 
 		latch.await();
+		executor.shutdown();
 
 		// assert
-		List<Reservation> all = reservationJpaRepository.findAll();
-		System.out.println("전체 예약 건수 = " + all.size());
+		long successCount = results.stream().filter(Objects::nonNull).count();
+		long failCount = results.stream().filter(Objects::isNull).count();
 
-		// ❌ 실패 조건: 예약이 두 건 이상이면 동시성 문제가 발생한 것
-		assertThat(all.size()).isGreaterThan(1); // 실제 서비스에선 이건 금지되어야 함
+		assertThat(successCount).isEqualTo(1L);
+		assertThat(failCount).isEqualTo(1L);
+
+		// 실제로 저장된 예약 건도 하나여야 한다
+		List<Reservation> allReservations = reservationJpaRepository.findAll();
+		assertThat(allReservations).hasSize(1);
+		assertThat(allReservations.get(0).getConcertSeat().getId()).isEqualTo(seat.getId());
 	}
 
 }
