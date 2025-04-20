@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application;
+package kr.hhplus.be.server.application.unit;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
