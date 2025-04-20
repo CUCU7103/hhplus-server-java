@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.token;
 
+import static jakarta.persistence.ConstraintMode.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,6 +12,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,7 +47,7 @@ public class Token {
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at", nullable = false)
+	@Column(name = "modified_at")
 	private LocalDateTime modifiedAt;
 
 	@Column(name = "expiration_at")
@@ -52,18 +55,16 @@ public class Token {
 	private LocalDateTime expirationAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private User user;
 
 	@Builder
-	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status,
-		long id) {
+	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status) {
 		this.user = user;
 		this.modifiedAt = modifiedAt;
 		this.createdAt = createdAt;
 		this.tokenValue = tokenValue;
 		this.status = status;
-		this.id = id;
 		this.expirationAt = createdAt.plusMinutes(10);
 	}
 
@@ -95,8 +96,8 @@ public class Token {
 		if (!TokenStatus.WAITING.equals(this.getStatus())) {
 			throw new CustomException(CustomErrorCode.INVALID_STATUS);
 		}
-		// 대기순위가 1이고, 현재 활성화 토큰 수가 maxActive 미만이면 ACTIVE 상태로 전환
-		if (waitingRank == 1 && activeTokenCount < MAX_ACTIVE) {
+		// 대기순위가 1순위이고, 현재 활성화 토큰 수가 maxActive 미만이면 ACTIVE 상태로 전환
+		if (waitingRank == 0 && activeTokenCount < MAX_ACTIVE) {
 			this.status = TokenStatus.ACTIVE;
 		}
 		// 그렇지 않으면 상태를 변경하지 않습니다.

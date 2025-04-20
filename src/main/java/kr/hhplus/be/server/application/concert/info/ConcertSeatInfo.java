@@ -4,10 +4,10 @@ import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import lombok.Builder;
 
-public record ConcertSeatInfo(long seatId, String section, long seatNumber, ConcertSeatStatus status,
+public record ConcertSeatInfo(long seatId, String section, int seatNumber, ConcertSeatStatus status,
 							  long concertScheduleId) {
 	@Builder
-	public ConcertSeatInfo(long seatId, String section, long seatNumber, ConcertSeatStatus status,
+	public ConcertSeatInfo(long seatId, String section, int seatNumber, ConcertSeatStatus status,
 		long concertScheduleId) {
 		this.seatId = seatId;
 		this.section = section;

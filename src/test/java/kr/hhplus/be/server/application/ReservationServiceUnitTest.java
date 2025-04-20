@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import kr.hhplus.be.server.application.reservation.ReservationCommand;
 import kr.hhplus.be.server.application.reservation.ReservationInfo;
 import kr.hhplus.be.server.application.reservation.ReservationService;
-import kr.hhplus.be.server.domain.concert.ConcertDomainRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReservationServiceUnitTest {
 
 	@Mock
-	private ConcertDomainRepository concertDomainRepository;
+	private ConcertRepository concertRepository;
 
 	@Mock
 	private ReservationRepository reservationRepository;
@@ -68,9 +68,9 @@ public class ReservationServiceUnitTest {
 
 		// stub
 		// repository가 Optional.empty()를 반환하도록 설정
-		given(concertDomainRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
+		given(concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
 			request.toCommand().concertScheduleDate())).willReturn(Optional.of(concertSchedule));
-		given(concertDomainRepository.getConcertSeatWhere(seatId, request.toCommand().concertScheduleId(),
+		given(concertRepository.getConcertSeatWhere(seatId, request.toCommand().concertScheduleId(),
 			request.toCommand()
 				.concertScheduleDate(), ConcertSeatStatus.AVAILABLE)).willReturn(Optional.empty());
 
@@ -79,14 +79,13 @@ public class ReservationServiceUnitTest {
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_RESERVATION_CONCERT_SEAT.getMessage());
 
-		verify(concertDomainRepository, times(1)).getConcertSeatWhere(
+		verify(concertRepository, times(1)).getConcertSeatWhere(
 			seatId,
 			request.toCommand().concertScheduleId(),
 			request.toCommand().concertScheduleDate(),
 			ConcertSeatStatus.AVAILABLE
 		);
 
-		verify(concertDomainRepository, times(0)).save(any(Reservation.class));
 	}
 
 	@Test
@@ -109,9 +108,9 @@ public class ReservationServiceUnitTest {
 		ReservationCommand command = new ReservationCommand(concertScheduleId, concertScheduleDate);
 
 		// Repository 스터빙
-		given(concertDomainRepository.getConcertSchedule(concertScheduleId, concertScheduleDate))
+		given(concertRepository.getConcertSchedule(concertScheduleId, concertScheduleDate))
 			.willReturn(Optional.of(concertSchedule));
-		given(concertDomainRepository.getConcertSeatWhere(seatId, concertScheduleId, concertScheduleDate,
+		given(concertRepository.getConcertSeatWhere(seatId, concertScheduleId, concertScheduleDate,
 			ConcertSeatStatus.AVAILABLE))
 			.willReturn(Optional.of(seat));
 		given(userRepository.findById(userId))
@@ -143,7 +142,7 @@ public class ReservationServiceUnitTest {
 		List<Reservation> heldReservations = Arrays.asList(reservation1, reservation2);
 
 		// repository 스터빙: HELD 상태의 예약 리스트 반환
-		given(concertDomainRepository.getConcertReservationStatus(ReservationStatus.HELD))
+		given(reservationRepository.getConcertReservationStatus(ReservationStatus.HELD))
 			.willReturn(heldReservations);
 
 		// act

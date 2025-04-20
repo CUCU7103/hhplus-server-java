@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.history.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.history.BalanceHistoryRepository;
 import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
@@ -21,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class BalanceService {
 
 	private final BalanceRepository balanceRepository;
-	private final BalanceHistoryRepository balanceHistoryRepository;
 	private final UserRepository userRepository;
 
 	// 유저의 포인트 조회 메서드
@@ -46,7 +44,7 @@ public class BalanceService {
 			.orElseGet(() -> Balance.of(MoneyVO.of(BigDecimal.ZERO), LocalDateTime.now(), userId));
 
 		Balance delta = balance.chargePoint(command.chargePoint());
-		balanceHistoryRepository.save(BalanceHistory
+		balanceRepository.save(BalanceHistory
 			.createdHistory(balance, delta.getMoneyVO()));
 
 		return BalanceInfo.from(balance.getId(), delta.getMoneyVO(), userId);
