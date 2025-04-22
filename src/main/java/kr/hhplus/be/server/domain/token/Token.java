@@ -4,6 +4,9 @@ import static jakarta.persistence.ConstraintMode.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.data.annotation.CreatedDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -44,11 +47,15 @@ public class Token {
 	@Column(name = "token_value", nullable = false, length = 255)
 	private String tokenValue;
 
+	@CreatedDate
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@Column(name = "modified_at")
 	private LocalDateTime modifiedAt;
+
+	@Column(name = "waiting_rank", nullable = false)
+	private int waitingRank;
 
 	@Column(name = "expiration_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -58,11 +65,15 @@ public class Token {
 	@JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private User user;
 
+	private static final AtomicInteger rankGenerator = new AtomicInteger(0);
+
 	@Builder
-	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status) {
+	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, int waitingRank,
+		String tokenValue, TokenStatus status) {
 		this.user = user;
 		this.modifiedAt = modifiedAt;
 		this.createdAt = createdAt;
+		this.waitingRank = waitingRank;
 		this.tokenValue = tokenValue;
 		this.status = status;
 		this.expirationAt = createdAt.plusMinutes(10);
@@ -74,6 +85,7 @@ public class Token {
 			.status(TokenStatus.WAITING)
 			.tokenValue(UUID.randomUUID().toString())
 			.createdAt(LocalDateTime.now())
+			.waitingRank(rankGenerator.getAndIncrement())
 			.build();
 	}
 

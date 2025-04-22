@@ -43,21 +43,24 @@ public class TokenService {
 		// 토큰 조회
 		Token token = tokenRepository.findByUserIdAndWaitingToken(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		return SearchTokenInfo.from(token, tokenRepository.getWaitingRankWithSharedLock(token.getId()));
+		return SearchTokenInfo.from(token, 100);
 	}
 
-	@Transactional
+	@Transactional // 메서드 전체를 하나의 트랜잭션으로 묶어 DB 일관성 보장
 	public ActiveTokenInfo activateToken(long tokenId) {
-		Token token = tokenRepository.findTokenWithSharedLock(tokenId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		// 만료 검증: 스케줄러 보완용 만료 체크 로직
+
+		// 해당 tokenId에 대해 쓰기 락(PESSIMISTIC_WRITE)을 획득하여 조회 (동시성 충돌 방지)
+		Token token = tokenRepository.findTokenWithWriteLock(tokenId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN)); // 없으면 예외 발생
+		// 토큰이 만료시간이 지났으면 상태를 EXPIRED로 변경
 		token.expireTokenIfTimedOut();
-		tokenRepository.lockAnyActiveTokenId(); // 최소 ACTIVE 1건에 락
-		// 현재 ACTIVE 토큰 수 조회
+		// 현재 ACTIVE 상태의 토큰 수 조회 (동시 활성화 개수 제한 조건에 사용)
 		long activeTokenCount = tokenRepository.countByStatus(TokenStatus.ACTIVE);
-		// 대기 순위 조회 후 토큰 활성화 처리
-		int waitingRank = tokenRepository.getWaitingRankWithSharedLock(token.getId());
+		// 사전에 생성 시 부여된 waitingRank 값을 가져옴 (AtomicInteger 기반 순차값)
+		int waitingRank = token.getWaitingRank();
+		// waitingRank가 0이고 ACTIVE 수가 제한 이하일 경우 상태를 ACTIVE로 전환
 		token.activateToken(waitingRank, activeTokenCount);
+		// 활성화 결과 정보를 반환
 		return ActiveTokenInfo.from(token, waitingRank);
 	}
 
