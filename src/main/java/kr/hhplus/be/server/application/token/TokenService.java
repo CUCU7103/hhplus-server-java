@@ -43,19 +43,20 @@ public class TokenService {
 		// 토큰 조회
 		Token token = tokenRepository.findByUserIdAndWaitingToken(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		return SearchTokenInfo.from(token, tokenRepository.getWaitingRank(token.getId()));
+		return SearchTokenInfo.from(token, tokenRepository.getWaitingRankWithSharedLock(token.getId()));
 	}
 
 	@Transactional
 	public ActiveTokenInfo activateToken(long tokenId) {
-		Token token = tokenRepository.findTokenIdAndWaitingToken(tokenId)
+		Token token = tokenRepository.findTokenWithSharedLock(tokenId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
 		// 만료 검증: 스케줄러 보완용 만료 체크 로직
 		token.expireTokenIfTimedOut();
+		tokenRepository.lockAnyActiveTokenId(); // 최소 ACTIVE 1건에 락
 		// 현재 ACTIVE 토큰 수 조회
 		long activeTokenCount = tokenRepository.countByStatus(TokenStatus.ACTIVE);
 		// 대기 순위 조회 후 토큰 활성화 처리
-		int waitingRank = tokenRepository.getWaitingRank(token.getId());
+		int waitingRank = tokenRepository.getWaitingRankWithSharedLock(token.getId());
 		token.activateToken(waitingRank, activeTokenCount);
 		return ActiveTokenInfo.from(token, waitingRank);
 	}

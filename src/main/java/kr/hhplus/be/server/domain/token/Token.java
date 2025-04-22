@@ -104,9 +104,8 @@ public class Token {
 	}
 
 	public void expireTokenIfTimedOut() {
-		// 토큰 상태가 ACTIVE이면서, 생성시간 기준 10분이 지난 경우 만료 처리
 		if (TokenStatus.ACTIVE.equals(this.status) &&
-			this.expirationAt.isAfter(createdAt.plusMinutes(10))) {
+			LocalDateTime.now().isAfter(this.expirationAt)) {
 			expiredToken();
 		}
 	}

@@ -13,9 +13,13 @@ public interface TokenRepository {
 
 	Optional<Token> findByUserId(long userId);
 
-	int getWaitingRank(long id);
+	int getWaitingRankWithSharedLock(long id);
+
+	Optional<Long> lockAnyActiveTokenId();
 
 	long countByStatus(TokenStatus tokenStatus);
 
 	List<Token> findAllByStatus(TokenStatus tokenStatus);
+
+	Optional<Token> findTokenWithSharedLock(long tokenId);
 }
