@@ -9,14 +9,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.token.TokenService;
 import kr.hhplus.be.server.application.token.info.ActiveTokenInfo;
 import kr.hhplus.be.server.application.token.info.IssueTokenInfo;
@@ -28,7 +27,7 @@ import kr.hhplus.be.server.infrastructure.token.TokenJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 import lombok.extern.slf4j.Slf4j;
 
-@Transactional // 각 테스트가 독립적으로 실행되어진다.
+@Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 @Slf4j
@@ -40,12 +39,6 @@ public class TokenIntegrationTest {
 	private UserJpaRepository userJpaRepository;
 	@Autowired
 	private TokenJpaRepository tokenJpaRepository;
-
-	@BeforeEach
-	public void setUp() {
-		userJpaRepository.deleteAll();
-		tokenJpaRepository.deleteAll();
-	}
 
 	@Test
 	void 대기_토큰이_없는_사용자는_토큰_발급에_성공한다() {
@@ -131,5 +124,6 @@ public class TokenIntegrationTest {
 		assertThat(statusCount.get(TokenStatus.EXPIRED)).isEqualTo(2L);
 		assertThat(statusCount.get(TokenStatus.ACTIVE)).isEqualTo(1L);
 	}
+
 }
 
