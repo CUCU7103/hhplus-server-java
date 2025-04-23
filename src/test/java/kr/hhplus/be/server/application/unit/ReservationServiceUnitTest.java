@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import kr.hhplus.be.server.application.reservation.ReservationCommand;
 import kr.hhplus.be.server.application.reservation.ReservationInfo;
@@ -153,4 +154,38 @@ public class ReservationServiceUnitTest {
 		verify(reservation1, times(1)).cancelDueToTimeout(any(LocalDateTime.class));
 		verify(reservation2, times(1)).cancelDueToTimeout(any(LocalDateTime.class));
 	}
+
+	@Test
+	void 낙관적락_예외_발생시_CustomException으로_전환된다() {
+		// Arrange
+		long concertScheduleId = 1L;
+		long seatId = 1L;
+		long userId = 1L;
+		LocalDate concertScheduleDate = LocalDate.of(2025, 6, 1);
+		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+
+		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
+		User user = mock(User.class);
+		ConcertSeat seat = ConcertSeat.of(concertSchedule, ConcertSeatStatus.AVAILABLE, 1, "A", seatId, price);
+
+		ReservationCommand command = new ReservationCommand(concertScheduleId, concertScheduleDate);
+
+		given(concertRepository.getConcertSchedule(concertScheduleId, concertScheduleDate)).willReturn(
+			Optional.of(concertSchedule));
+		given(concertRepository.getConcertSeatWhere(seatId, concertScheduleId, concertScheduleDate,
+			ConcertSeatStatus.AVAILABLE)).willReturn(Optional.of(seat));
+		given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+		// 핵심: save 호출 시 ObjectOptimisticLockingFailureException 발생
+		given(reservationRepository.save(any(Reservation.class)))
+			.willThrow(new ObjectOptimisticLockingFailureException("Reservation", seatId));
+
+		// Act & Assert
+		assertThatThrownBy(() -> reservationService.reservationSeat(seatId, userId, command))
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.FAILED_RESERVATION_SEAT.getMessage());
+
+		verify(reservationRepository, times(1)).save(any(Reservation.class));
+	}
+
 }
