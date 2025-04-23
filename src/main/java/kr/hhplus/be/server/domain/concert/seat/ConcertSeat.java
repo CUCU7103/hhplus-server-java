@@ -23,6 +23,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
@@ -64,6 +65,10 @@ public class ConcertSeat {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	@CreatedDate
 	private LocalDateTime createdAt;
+
+	@Version
+	@Column(name = "version")
+	private long version;
 
 	@Column(name = "modified_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
