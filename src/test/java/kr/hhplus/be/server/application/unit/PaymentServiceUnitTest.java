@@ -83,7 +83,7 @@ public class PaymentServiceUnitTest {
 		long balanceId = 1L;
 		long userId = 1L;
 		long seat = 1L;
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(1000));
 
 		Balance balance = Balance.builder().id(balanceId).moneyVO(moneyVO).userId(userId).build();
 
@@ -153,7 +153,7 @@ public class PaymentServiceUnitTest {
 		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
 		User user = mock(User.class);
 		Reservation reservation = Reservation.builder()
-			.price(MoneyVO.of(amount))
+			.price(MoneyVO.create(amount))
 			.reservationStatus(ReservationStatus.HELD)
 			.user(user)
 			.concertSeat(concertSeat)

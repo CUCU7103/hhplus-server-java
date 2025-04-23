@@ -46,7 +46,7 @@ class BalanceControllerUnitTest {
 		// arrange : 테스트에 사용할 데이터 및 모의 행위 설정
 		long userId = 1L;
 		long balanceId = 1L;
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(1000));
 
 		BalanceInfo result = BalanceInfo.builder()
 			.balanceId(userId)
@@ -73,7 +73,7 @@ class BalanceControllerUnitTest {
 		long userId = 1L;
 		long balanceId = 1L;
 		long chargePointId = 1000L;
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(50000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(50000));
 		// 요청 바디로 사용할 DTO
 		BalanceChargeRequest request = new BalanceChargeRequest(balanceId, chargePointId);
 

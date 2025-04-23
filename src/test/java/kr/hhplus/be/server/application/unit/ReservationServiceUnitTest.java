@@ -96,7 +96,7 @@ public class ReservationServiceUnitTest {
 		long seatId = 1L;
 		long userId = 1L;
 		LocalDate concertScheduleDate = LocalDate.of(2025, 6, 1);
-		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		MoneyVO price = MoneyVO.create(BigDecimal.valueOf(10000));
 		// 모의 객체 준비
 		ConcertSchedule concertSchedule = org.mockito.Mockito.mock(ConcertSchedule.class);
 		User user = org.mockito.Mockito.mock(User.class);
@@ -162,7 +162,7 @@ public class ReservationServiceUnitTest {
 		long seatId = 1L;
 		long userId = 1L;
 		LocalDate concertScheduleDate = LocalDate.of(2025, 6, 1);
-		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		MoneyVO price = MoneyVO.create(BigDecimal.valueOf(10000));
 
 		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
 		User user = mock(User.class);

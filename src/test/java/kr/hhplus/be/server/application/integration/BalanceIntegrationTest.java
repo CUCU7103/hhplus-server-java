@@ -44,7 +44,7 @@ public class BalanceIntegrationTest {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		Balance balance = balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
 
 		BalanceInfo balanceInfo = balanceService.getPoint(user.getId());
 		// assert
@@ -58,7 +58,7 @@ public class BalanceIntegrationTest {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		Balance balance = balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
 		// act
 		ChargeBalanceCommand command = new ChargeBalanceCommand(balance.getId(), BigDecimal.valueOf(1000));
 		BalanceInfo balanceInfo = balanceService.chargePoint(user.getId(), command);
@@ -75,7 +75,7 @@ public class BalanceIntegrationTest {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		Balance balance = balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
 
 		// act
 		ExecutorService executor = Executors.newFixedThreadPool(3);

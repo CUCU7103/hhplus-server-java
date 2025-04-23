@@ -73,7 +73,7 @@ public class ReservationIntegrationTest {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
 
 		// 2) 콘서트/스케줄/좌석
 		Concert concert = concertJpaRepository.save(
@@ -93,7 +93,7 @@ public class ReservationIntegrationTest {
 				.concertSchedule(schedule)
 				.section("A")
 				.seatNumber(1)
-				.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+				.price(MoneyVO.create(BigDecimal.valueOf(5000)))
 				.status(ConcertSeatStatus.AVAILABLE)
 				.build());
 		// act
@@ -114,7 +114,7 @@ public class ReservationIntegrationTest {
 		// 예약 더미 데이터 생성
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
 
 		Concert concert = concertJpaRepository.save(
 			Concert.builder().concertTitle("윤하 콘서트").artistName("윤하").build());
@@ -134,7 +134,7 @@ public class ReservationIntegrationTest {
 					.concertSchedule(schedule)
 					.section("A")
 					.seatNumber(i)
-					.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+					.price(MoneyVO.create(BigDecimal.valueOf(5000)))
 					.status(ConcertSeatStatus.AVAILABLE)
 					.build());
 		}
@@ -142,7 +142,7 @@ public class ReservationIntegrationTest {
 
 		for (ConcertSeat seat : seats) {
 			reservationJpaRepository.save(Reservation.builder()
-				.price(MoneyVO.of(BigDecimal.valueOf(4000)))
+				.price(MoneyVO.create(BigDecimal.valueOf(4000)))
 				.concertSchedule(schedule)
 				.concertSeat(seat)
 				.user(user)
@@ -172,7 +172,7 @@ public class ReservationIntegrationTest {
 
 		for (User user : users) {
 			balanceJpaRepository.save(
-				Balance.of(MoneyVO.of(BigDecimal.valueOf(20000)), LocalDateTime.now(), user.getId()));
+				Balance.create(MoneyVO.create(BigDecimal.valueOf(20000)), LocalDateTime.now(), user.getId()));
 		}
 
 		Concert concert = concertJpaRepository.save(
@@ -196,7 +196,7 @@ public class ReservationIntegrationTest {
 				.concertSchedule(schedule)
 				.section("VIP")
 				.seatNumber(1)
-				.price(MoneyVO.of(BigDecimal.valueOf(10000)))
+				.price(MoneyVO.create(BigDecimal.valueOf(10000)))
 				.status(ConcertSeatStatus.AVAILABLE)
 				.build());
 

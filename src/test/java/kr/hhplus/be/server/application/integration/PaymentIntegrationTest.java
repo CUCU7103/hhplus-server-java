@@ -72,7 +72,7 @@ public class PaymentIntegrationTest {
 		// 1) 유저·잔액
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
 
 		// 2) 콘서트/스케줄/좌석
 		Concert concert = concertJpaRepository.save(
@@ -92,7 +92,7 @@ public class PaymentIntegrationTest {
 				.concertSchedule(schedule)
 				.section("A")
 				.seatNumber(1)
-				.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+				.price(MoneyVO.create(BigDecimal.valueOf(5000)))
 				.status(ConcertSeatStatus.AVAILABLE)
 				.build());
 		// 3) 예약(HELD 상태)
@@ -118,7 +118,7 @@ public class PaymentIntegrationTest {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("영희").build());
 		balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(new BigDecimal("100")), LocalDateTime.now(), user.getId())); // 100원뿐
+			Balance.create(MoneyVO.create(new BigDecimal("100")), LocalDateTime.now(), user.getId())); // 100원뿐
 
 		Concert concert = concertJpaRepository.save(
 			Concert.builder().concertTitle("테스트").artistName("테스트").build());
@@ -165,7 +165,7 @@ public class PaymentIntegrationTest {
 		// 1) 사용자 한 명 생성 및 정확히 한 번의 결제만 가능한 잔액 설정
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		balanceJpaRepository.save(
-			Balance.of(MoneyVO.of(BigDecimal.valueOf(5000)), LocalDateTime.now(), user.getId()));
+			Balance.create(MoneyVO.create(BigDecimal.valueOf(5000)), LocalDateTime.now(), user.getId()));
 		tokenJpaRepository.save(Token.createToken(user));
 
 		// 2) 콘서트/스케줄 설정
@@ -187,7 +187,7 @@ public class PaymentIntegrationTest {
 				.concertSchedule(schedule)
 				.section("A")
 				.seatNumber(1)
-				.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+				.price(MoneyVO.create(BigDecimal.valueOf(5000)))
 				.status(ConcertSeatStatus.AVAILABLE)
 				.build());
 
@@ -196,7 +196,7 @@ public class PaymentIntegrationTest {
 				.concertSchedule(schedule)
 				.section("A")
 				.seatNumber(2)
-				.price(MoneyVO.of(BigDecimal.valueOf(5000)))
+				.price(MoneyVO.create(BigDecimal.valueOf(5000)))
 				.status(ConcertSeatStatus.AVAILABLE)
 				.build());
 
