@@ -29,7 +29,7 @@ public class BalanceService {
 	public BalanceInfo getPoint(long userId) {
 		userRepository.findById(userId).orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
-		Balance balance = balanceRepository.findById(userId)
+		Balance balance = balanceRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
 
 		return BalanceInfo.from(balance.getId(), balance.getMoneyVO(), userId);

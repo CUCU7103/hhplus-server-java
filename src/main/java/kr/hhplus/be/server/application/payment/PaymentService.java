@@ -39,7 +39,7 @@ public class PaymentService {
 	@Transactional
 	public PaymentInfo paymentSeat(long reservationId, long userId, PaymentCommand command) {
 		// 메서드를 누가 부를지 모른다!
-		Balance balance = balanceRepository.findById(userId).orElseThrow(
+		Balance balance = balanceRepository.findByUserId(userId).orElseThrow(
 			() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
 		Reservation reservation = reservationRepository.getByConcertReservationId(reservationId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_RESERVATION));
@@ -55,8 +55,8 @@ public class PaymentService {
 			return PaymentInfo.from(payment);
 		} catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
 			throw new CustomException(CustomErrorCode.PAYMENT_ERROR);
-		} catch (Exception e) {
-			throw new CustomException(CustomErrorCode.SERVER_ERROR);
+		} catch (CustomException e) {
+			throw e;
 		}
 	}
 

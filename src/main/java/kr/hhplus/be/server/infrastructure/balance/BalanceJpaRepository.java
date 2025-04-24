@@ -12,4 +12,5 @@ public interface BalanceJpaRepository extends JpaRepository<Balance, Long> {
 
 	Optional<Balance> findByIdAndUserId(long balanceId, long userId);
 
+	Optional<Balance> findByUserId(long userId);
 }
