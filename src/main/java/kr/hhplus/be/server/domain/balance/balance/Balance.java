@@ -42,7 +42,7 @@ public class Balance {
 
 	@Version
 	@Column(name = "version")
-	private long version;
+	private Long version;
 
 	@Column(name = "user_id")
 	private long userId;

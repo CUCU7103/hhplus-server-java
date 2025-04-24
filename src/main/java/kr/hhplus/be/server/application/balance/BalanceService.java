@@ -48,8 +48,8 @@ public class BalanceService {
 			return BalanceInfo.from(balance.getId(), delta.getMoneyVO(), userId);
 		} catch (OptimisticLockException e) {
 			throw new CustomException(CustomErrorCode.CHARGED_ERROR);
-		} catch (Exception e) {
-			throw new CustomException(CustomErrorCode.SERVER_ERROR);
+		} catch (CustomException e) {
+			throw e;
 		}
 
 	}
