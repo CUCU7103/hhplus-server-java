@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.global.support.resolver;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -10,18 +11,18 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 
+@Component
 public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResolver {
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		// @CurrentUserId 어노테이션이 붙어 있으면 지원
-		return parameter.hasParameterAnnotation(CurrentUserId.class);
+		return parameter.hasParameterAnnotation(CurrentUserId.class) && (parameter.getParameterType() == long.class || (
+			parameter.getParameterType() == Long.class));
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter,
-		ModelAndViewContainer mavContainer,
-		NativeWebRequest webRequest,
-		WebDataBinderFactory binderFactory) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+		NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 		// Header에서 'userId' 값을 추출
 		String userId = webRequest.getHeader("userId");
 		if (userId == null || userId.isEmpty()) {
