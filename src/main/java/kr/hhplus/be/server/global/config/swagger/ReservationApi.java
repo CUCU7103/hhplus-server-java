@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import kr.hhplus.be.server.global.support.resolver.CurrentUserId;
 import kr.hhplus.be.server.presentation.reservation.ReservationRequest;
 import kr.hhplus.be.server.presentation.reservation.ReservationResponse;
 
@@ -61,7 +60,6 @@ public interface ReservationApi {
 		)
 	})
 	@PostMapping("/{seatId}/seats")
-	ResponseEntity<ReservationResponse> reserveSeat(@PathVariable(name = "seatId") long seatId,
-		@CurrentUserId long userId,
+	ResponseEntity<ReservationResponse> reserveSeat(@PathVariable(name = "seatId") long seatId, long userId,
 		@RequestBody ReservationRequest request);
 }
