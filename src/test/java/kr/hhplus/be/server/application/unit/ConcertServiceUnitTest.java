@@ -148,7 +148,7 @@ class ConcertServiceUnitTest {
 			.build();
 
 		// DTO (Request) 객체 준비
-		ConcertSeatSearchRequest request = new ConcertSeatSearchRequest(concertScheduleId, concertDate, 0, 10);
+		ConcertSeatSearchRequest request = new ConcertSeatSearchRequest(concertDate, 0, 10);
 
 		// stub
 		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
@@ -169,7 +169,7 @@ class ConcertServiceUnitTest {
 		Concert concert = mock(Concert.class);
 		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
 		ConcertSeatSearchRequest request = new ConcertSeatSearchRequest(
-			concertScheduleId, "2025-05-20", 0, 10);
+			"2025-05-20", 0, 10);
 
 		ConcertSeat concertSeat1 = ConcertSeat.builder()
 			.id(1L)
@@ -194,7 +194,7 @@ class ConcertServiceUnitTest {
 
 		// Mock repository 동작 설정
 		given(concertRepository.findByConcertId(concertScheduleId)).willReturn(Optional.of(concert));
-		given(concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
+		given(concertRepository.getConcertSchedule(concert.getId(),
 			request.toCommand().concertDate()))
 			.willReturn(Optional.of(concertSchedule)); // Concert 엔티티 객체는 실제 코드와 맞게 세팅
 		given(concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
