@@ -15,4 +15,6 @@ public interface TokenRepository {
 
 	Optional<Token> findTokenWithWriteLock(long tokenId);
 
+	Token save(Token token);
+
 }
