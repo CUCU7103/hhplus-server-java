@@ -168,9 +168,7 @@ public class PaymentServiceUnitTest {
 
 		given(user.getId()).willReturn(userId);
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
-		given(userRepository.findById(userId)).willReturn(Optional.of(user));
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
 		given(paymentRepository.save(any(Payment.class))).willReturn(payment);
 
