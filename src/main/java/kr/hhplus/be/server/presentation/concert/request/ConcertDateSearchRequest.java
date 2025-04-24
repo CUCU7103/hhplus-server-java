@@ -22,7 +22,7 @@ public record ConcertDateSearchRequest(
 
 	public ConcertDateSearchCommand toCommand() {
 		LocalDate startDate = LocalDate.parse(startDay, DATE_TIME_FORMATTER);
-		LocalDate endDate = LocalDate.parse(startDay, DATE_TIME_FORMATTER);
+		LocalDate endDate = LocalDate.parse(endDay, DATE_TIME_FORMATTER);
 		return new ConcertDateSearchCommand(startDate, endDate);
 	}
 

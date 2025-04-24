@@ -10,10 +10,7 @@ import kr.hhplus.be.server.application.concert.command.ConcertSeatSearchCommand;
 
 public record ConcertSeatSearchRequest(
 	@NotEmpty
-	@PositiveOrZero
-	long concertScheduleId,
-	@NotEmpty
-	@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}}")
+	@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
 	String date,
 	@PositiveOrZero
 	int page,
@@ -25,6 +22,6 @@ public record ConcertSeatSearchRequest(
 
 	public ConcertSeatSearchCommand toCommand() {
 		LocalDate dateTime = LocalDate.parse(date, DATE_TIME_FORMATTER);
-		return new ConcertSeatSearchCommand(concertScheduleId, dateTime, page, size);
+		return new ConcertSeatSearchCommand(dateTime, page, size);
 	}
 }

@@ -12,6 +12,6 @@ public record ConcertSeatSearchResponse(String message, List<ConcertSeatInfo> in
 	}
 
 	public static ConcertSeatSearchResponse of(List<ConcertSeatInfo> info) {
-		return new ConcertSeatSearchResponse("날짜 조회에 성공하였습니다.", info);
+		return new ConcertSeatSearchResponse("좌석 조회에 성공하였습니다.", info);
 	}
 }
