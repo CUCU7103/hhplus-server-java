@@ -23,11 +23,13 @@ import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
+import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
+import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 
 @SpringBootTest
@@ -44,6 +46,8 @@ public class ReservationConcurrencyTest {
 	private UserJpaRepository userJpaRepository;
 	@Autowired
 	private ReservationService reservationService;
+	@Autowired
+	private ReservationJpaRepository reservationJpaRepository;
 
 	@Test
 	void 동시에_여러_사용자가_예약을_진행하면_한명만_성공한다() throws InterruptedException {
@@ -102,9 +106,22 @@ public class ReservationConcurrencyTest {
 		}
 		latch.await();
 		executor.shutdown();
-
+		List<Reservation> reservations = reservationJpaRepository.findAll();
+		List<ConcertSeat> seats = concertSeatJpaRepository.findAll();
 		assertThat(successCount.get()).isEqualTo(1);
 		assertThat(failCount.get()).isEqualTo(9);
+
+		Reservation saved = reservations.get(0);
+		assertThat(saved).isNotNull();
+		assertThat(saved.getUser()).isNotNull();
+		assertThat(saved.getConcertSchedule().getId())
+			.isEqualTo(schedule.getId());
+		assertThat(saved.getConcertSeat().getId())
+			.isEqualTo(seat.getId());
+
+		ConcertSeat concertSeat = seats.get(0);
+		assertThat(concertSeat.getStatus()).isEqualTo(ConcertSeatStatus.HELD);
+
 	}
 
 }
