@@ -68,7 +68,7 @@ public class ConcertSeat {
 
 	@Version
 	@Column(name = "version")
-	private long version;
+	private Long version;
 
 	@Column(name = "modified_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")

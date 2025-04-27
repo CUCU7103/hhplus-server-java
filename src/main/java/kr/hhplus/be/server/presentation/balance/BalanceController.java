@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import kr.hhplus.be.server.application.balance.BalanceService;
-import kr.hhplus.be.server.global.config.swagger.BalanceApi;
 import kr.hhplus.be.server.global.support.resolver.CurrentUserId;
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/balances")
 @RequiredArgsConstructor
 @Validated
-public class BalanceController implements BalanceApi {
+public class BalanceController {
 
 	private final BalanceService balanceService;
 

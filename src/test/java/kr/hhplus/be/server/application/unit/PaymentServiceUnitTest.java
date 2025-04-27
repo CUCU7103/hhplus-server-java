@@ -70,7 +70,7 @@ public class PaymentServiceUnitTest {
 
 		PaymentRequest request = new PaymentRequest(seat, BigDecimal.valueOf(1000));
 
-		given(balanceRepository.findById(userId)).willReturn(Optional.empty());
+		given(balanceRepository.findByUserId(userId)).willReturn(Optional.empty());
 
 		assertThatThrownBy(() -> paymentService.paymentSeat(reservationId, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_BALANCE.getMessage());
@@ -89,7 +89,7 @@ public class PaymentServiceUnitTest {
 
 		PaymentRequest request = new PaymentRequest(seat, BigDecimal.valueOf(1000));
 
-		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
+		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 
 		assertThatThrownBy(() -> paymentService.paymentSeat(seat, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT_SEAT.getMessage());
@@ -108,7 +108,7 @@ public class PaymentServiceUnitTest {
 
 		PaymentRequest request = new PaymentRequest(seatId, BigDecimal.valueOf(1000));
 
-		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
+		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 
 		assertThatThrownBy(() -> paymentService.paymentSeat(seatId, userId, request.toCommand())).isInstanceOf(
@@ -129,7 +129,7 @@ public class PaymentServiceUnitTest {
 
 		PaymentRequest request = new PaymentRequest(seatId, BigDecimal.valueOf(1000));
 
-		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
+		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 		given(concertRepository.getByConcertSeatId(request.toCommand().seatId())).willReturn(
 			Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
@@ -167,7 +167,7 @@ public class PaymentServiceUnitTest {
 		PaymentRequest request = new PaymentRequest(seatId, amount);
 
 		given(user.getId()).willReturn(userId);
-		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
+		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
 		given(paymentRepository.save(any(Payment.class))).willReturn(payment);

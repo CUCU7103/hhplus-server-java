@@ -114,7 +114,7 @@ public class Token {
 			throw new CustomException(CustomErrorCode.INVALID_STATUS);
 		}
 		// 대기순위가 1순위이고, 현재 활성화 토큰 수가 maxActive 미만이면 ACTIVE 상태로 전환
-		if (waitingRank == 0 && activeTokenCount < MAX_ACTIVE) {
+		if (waitingRank == 0 || activeTokenCount < MAX_ACTIVE) {
 			this.status = TokenStatus.ACTIVE;
 		}
 		// 그렇지 않으면 상태를 변경하지 않습니다.

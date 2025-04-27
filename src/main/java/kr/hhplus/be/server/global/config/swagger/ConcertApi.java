@@ -3,6 +3,7 @@ package kr.hhplus.be.server.global.config.swagger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import kr.hhplus.be.server.presentation.concert.request.ConcertDateSearchRequest;
 import kr.hhplus.be.server.presentation.concert.request.ConcertSeatSearchRequest;
@@ -21,7 +23,7 @@ import kr.hhplus.be.server.presentation.concert.response.ConcertSeatSearchRespon
 @Tag(name = "Concert API", description = "콘서트 관련 API")
 public interface ConcertApi {
 
-	@Operation(summary = "[MOCK] 예약 가능 날짜 조회 API", description = "예약 가능 날짜를 조회합니다.")
+	@Operation(summary = "예약 가능 날짜 조회 API", description = "예약 가능 날짜를 조회합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(
 			responseCode = "200",
@@ -63,12 +65,13 @@ public interface ConcertApi {
 			)
 		)
 	})
-	@GetMapping("/{concertId}/available-date")
+	@PostMapping("/{concertId}/available-date")
 	ResponseEntity<ConcertDateSearchResponse> searchDate(
 		@Positive @PathVariable(name = "concertId") long concertId,
-		@RequestBody ConcertDateSearchRequest request);
+		long userId,
+		@Valid @RequestBody ConcertDateSearchRequest request);
 
-	@Operation(summary = "[MOCK] 예약 가능 좌석 조회 API", description = "예약 가능 좌석을 조회합니다.")
+	@Operation(summary = "예약 가능 좌석 조회 API", description = "예약 가능 좌석을 조회합니다.")
 	@ApiResponses(value = {
 		@ApiResponse(
 			responseCode = "200",

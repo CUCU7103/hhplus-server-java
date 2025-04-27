@@ -131,7 +131,6 @@ public class ConcertIntegrationTest {
 
 		// 검색 조건
 		ConcertSeatSearchCommand command = new ConcertSeatSearchCommand(
-			schedule.getId(),          // concertScheduleId
 			schedule.getConcertDate(), // concertDate
 			0,                         // page
 			5                          // size
@@ -195,7 +194,6 @@ public class ConcertIntegrationTest {
 		);
 
 		ConcertSeatSearchCommand command = new ConcertSeatSearchCommand(
-			schedule.getId(),
 			schedule.getConcertDate(),
 			0,
 			10

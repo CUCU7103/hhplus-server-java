@@ -21,9 +21,11 @@ import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ConcertService {
 
 	/**
@@ -71,21 +73,21 @@ public class ConcertService {
 	 */
 
 	@Transactional(readOnly = true)
-	public List<ConcertSeatInfo> searchSeat(long concertId, ConcertSeatSearchCommand command) {
+	public List<ConcertSeatInfo> searchSeat(long concertScheduleId, ConcertSeatSearchCommand command) {
 
-		concertRepository.findByConcertId(concertId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
-
-		concertRepository.getConcertSchedule(command.concertScheduleId(),
+		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(concertScheduleId,
 				command.concertDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
+
+		concertRepository.findByConcertId(concertSchedule.getConcert().getId())
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
 		Pageable pageable = PageRequest.of(command.page(), command.size(), Sort.by("section"));
 
 		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
-			command.concertScheduleId(),
+			concertScheduleId,
 			ConcertSeatStatus.AVAILABLE, pageable);
-
+		log.info("test {} ", seats.stream().toList());
 		return seats.stream()
 			.map(ConcertSeatInfo::from)
 			.toList();

@@ -30,9 +30,8 @@ public class TokenService {
 	public IssueTokenInfo issueToken(long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-
 		return IssueTokenInfo.from(tokenRepository.findByUserIdAndWaitingToken(userId)
-			.orElseGet(() -> Token.createToken(user)));
+			.orElseGet(() -> tokenRepository.save(Token.createToken(user))));
 	}
 
 	@Transactional(readOnly = true)
@@ -43,12 +42,12 @@ public class TokenService {
 		// 토큰 조회
 		Token token = tokenRepository.findByUserIdAndWaitingToken(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
-		return SearchTokenInfo.from(token, 100);
+		int waitingRank = token.getWaitingRank();
+		return SearchTokenInfo.from(token, waitingRank);
 	}
 
 	@Transactional // 메서드 전체를 하나의 트랜잭션으로 묶어 DB 일관성 보장
 	public ActiveTokenInfo activateToken(long tokenId) {
-
 		// 해당 tokenId에 대해 쓰기 락(PESSIMISTIC_WRITE)을 획득하여 조회 (동시성 충돌 방지)
 		Token token = tokenRepository.findTokenWithWriteLock(tokenId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN)); // 없으면 예외 발생

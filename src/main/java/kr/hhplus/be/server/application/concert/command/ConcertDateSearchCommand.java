@@ -15,10 +15,10 @@ public record ConcertDateSearchCommand(LocalDate startDate, LocalDate endDate) {
 
 	private void validate() throws CustomException {
 		if (startDate.isBefore(LocalDate.now())) {
-			throw new CustomException(CustomErrorCode.INVALID_DATE);
+			throw new CustomException(CustomErrorCode.BEFORE_DATE);
 		}
 		if (endDate.isBefore(LocalDate.now())) {
-			throw new CustomException(CustomErrorCode.INVALID_DATE);
+			throw new CustomException(CustomErrorCode.BEFORE_DATE);
 		}
 	}
 }

@@ -57,7 +57,7 @@ class ConcertCommandUnitTest {
 		LocalDate futureDate = LocalDate.now().plusDays(1);
 
 		// act & assert
-		assertThatThrownBy(() -> new ConcertSeatSearchCommand(invalidId, futureDate, 0, 10))
+		assertThatThrownBy(() -> new ConcertSeatSearchCommand(futureDate, 0, 10))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_CONCERT_SCHEDULE_ID.getMessage());
 	}
@@ -69,7 +69,7 @@ class ConcertCommandUnitTest {
 		LocalDate pastDate = LocalDate.now().minusDays(1);
 
 		// act & assert
-		assertThatThrownBy(() -> new ConcertSeatSearchCommand(validId, pastDate, 0, 10))
+		assertThatThrownBy(() -> new ConcertSeatSearchCommand(pastDate, 0, 10))
 			.isInstanceOf(CustomException.class)
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_DATE.getMessage());
@@ -84,7 +84,7 @@ class ConcertCommandUnitTest {
 
 		// act
 		ConcertSeatSearchCommand command =
-			new ConcertSeatSearchCommand(validId, futureDate, 0, invalidSize);
+			new ConcertSeatSearchCommand(futureDate, 0, invalidSize);
 
 		// assert
 		assertThat(command.size()).isEqualTo(10);
@@ -99,10 +99,9 @@ class ConcertCommandUnitTest {
 		int size = 5;
 
 		// act
-		ConcertSeatSearchCommand command = new ConcertSeatSearchCommand(validId, futureDate, page, size);
+		ConcertSeatSearchCommand command = new ConcertSeatSearchCommand(futureDate, page, size);
 
 		// assert
-		assertThat(command.concertScheduleId()).isEqualTo(validId);
 		assertThat(command.concertDate()).isEqualTo(futureDate);
 		assertThat(command.page()).isEqualTo(page);
 		assertThat(command.size()).isEqualTo(size);

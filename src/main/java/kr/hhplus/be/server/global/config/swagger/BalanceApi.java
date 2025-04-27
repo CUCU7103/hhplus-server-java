@@ -2,7 +2,6 @@ package kr.hhplus.be.server.global.config.swagger;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -60,8 +59,8 @@ public interface BalanceApi {
 			)
 		)
 	})
-	@GetMapping("/{userId}/points")
-	ResponseEntity<BalanceResponse> getPoint(@PathVariable("userId") long userId);
+	@GetMapping
+	ResponseEntity<BalanceResponse> getPoint(long userId);
 
 	@Operation(summary = "[MOCK] 유저의 포인트 충전 API", description = "유저의 포인트 충전을 진행")
 	@ApiResponses(value = {
@@ -104,8 +103,8 @@ public interface BalanceApi {
 			)
 		)
 	})
-	@PutMapping("/{userId}/transactions")
-	ResponseEntity<BalanceResponse> charge(@PathVariable("userId") long userId,
+	@PutMapping("/transactions")
+	ResponseEntity<BalanceResponse> charge(long userId,
 		@RequestBody BalanceChargeRequest request);
 
 }

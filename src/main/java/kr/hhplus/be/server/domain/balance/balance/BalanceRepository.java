@@ -8,7 +8,7 @@ import jakarta.persistence.LockModeType;
 import kr.hhplus.be.server.domain.balance.history.BalanceHistory;
 
 public interface BalanceRepository {
-	Optional<Balance> findById(long userId);
+	Optional<Balance> findByUserId(long userId);
 
 	@Lock(LockModeType.OPTIMISTIC)
 	Optional<Balance> findByIdAndUserId(long balanceId, long userId);

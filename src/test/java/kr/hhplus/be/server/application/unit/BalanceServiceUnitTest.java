@@ -52,7 +52,7 @@ class BalanceServiceUnitTest {
 
 		//stub
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		given(balanceRepository.findById(balanceId)).willReturn(Optional.of(balance));
+		given(balanceRepository.findByUserId(balanceId)).willReturn(Optional.of(balance));
 		// act
 		BalanceInfo response = balanceService.getPoint(userId);
 		// assert
@@ -78,7 +78,7 @@ class BalanceServiceUnitTest {
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
 
 		// 유저가 없으면 BalanceRepository가 호출되지 않았는지 확인
-		verify(balanceRepository, times(0)).findById(anyLong());
+		verify(balanceRepository, times(0)).findByUserId(anyLong());
 	}
 
 	@Test
@@ -92,7 +92,7 @@ class BalanceServiceUnitTest {
 			.build();
 
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		given(balanceRepository.findById(balanceId))
+		given(balanceRepository.findByUserId(balanceId))
 			.willReturn(Optional.empty());
 
 		// act& assert

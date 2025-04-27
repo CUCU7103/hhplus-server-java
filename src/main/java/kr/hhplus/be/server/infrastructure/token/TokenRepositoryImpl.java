@@ -39,4 +39,9 @@ public class TokenRepositoryImpl implements TokenRepository {
 	public Optional<Token> findTokenWithWriteLock(long tokenId) {
 		return tokenJpaRepository.findTokenWithWriteLock(tokenId);
 	}
+
+	@Override
+	public Token save(Token token) {
+		return tokenJpaRepository.save(token);
+	}
 }
