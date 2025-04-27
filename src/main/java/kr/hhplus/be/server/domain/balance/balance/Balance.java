@@ -14,6 +14,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
@@ -39,6 +40,10 @@ public class Balance {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
+	@Version
+	@Column(name = "version")
+	private long version;
+
 	@Column(name = "user_id")
 	private long userId;
 
@@ -58,7 +63,7 @@ public class Balance {
 		validateField();
 	}
 
-	public static Balance of(MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
+	public static Balance create(MoneyVO moneyVO, LocalDateTime createdAt, long userId) {
 		return new Balance(moneyVO, createdAt, userId);
 	}
 

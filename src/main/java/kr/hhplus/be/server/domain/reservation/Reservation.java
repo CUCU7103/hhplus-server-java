@@ -24,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
@@ -70,6 +71,10 @@ public class Reservation {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	private LocalDateTime expirationAt;
 
+	@Version
+	@Column
+	private long version;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private User user;
@@ -93,7 +98,7 @@ public class Reservation {
 		this.createdAt = LocalDateTime.now();
 		this.expirationAt = LocalDateTime.now().plusMinutes(5);
 	}
-	
+
 	public static Reservation createPendingReservation(User user, ConcertSeat seat, ConcertSchedule schedule,
 		ReservationStatus status) {
 		// 예약 전 검증 진행
@@ -124,7 +129,6 @@ public class Reservation {
 		if (this.reservationStatus != ReservationStatus.HELD) {
 			throw new CustomException(CustomErrorCode.NOT_HELD_RESERVATION);
 		}
-		concertSeat.validateStatus();
 		// 관련 객체들의 상태도 함께 변경
 		this.concertSeat.changeStatus(ConcertSeatStatus.BOOKED);
 		this.reservationStatus = ReservationStatus.BOOKED;

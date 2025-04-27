@@ -4,6 +4,9 @@ import static jakarta.persistence.ConstraintMode.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.data.annotation.CreatedDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -19,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
@@ -44,11 +48,19 @@ public class Token {
 	@Column(name = "token_value", nullable = false, length = 255)
 	private String tokenValue;
 
+	@CreatedDate
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@Column(name = "modified_at")
 	private LocalDateTime modifiedAt;
+
+	@Column(name = "waiting_rank", nullable = false)
+	private int waitingRank;
+
+	@Version
+	@Column(name = "version")
+	private long version;
 
 	@Column(name = "expiration_at")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -58,11 +70,15 @@ public class Token {
 	@JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private User user;
 
+	private static final AtomicInteger rankGenerator = new AtomicInteger(0);
+
 	@Builder
-	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, String tokenValue, TokenStatus status) {
+	public Token(User user, LocalDateTime modifiedAt, LocalDateTime createdAt, int waitingRank,
+		String tokenValue, TokenStatus status) {
 		this.user = user;
 		this.modifiedAt = modifiedAt;
 		this.createdAt = createdAt;
+		this.waitingRank = waitingRank;
 		this.tokenValue = tokenValue;
 		this.status = status;
 		this.expirationAt = createdAt.plusMinutes(10);
@@ -74,6 +90,7 @@ public class Token {
 			.status(TokenStatus.WAITING)
 			.tokenValue(UUID.randomUUID().toString())
 			.createdAt(LocalDateTime.now())
+			.waitingRank(rankGenerator.getAndIncrement())
 			.build();
 	}
 
@@ -104,9 +121,8 @@ public class Token {
 	}
 
 	public void expireTokenIfTimedOut() {
-		// 토큰 상태가 ACTIVE이면서, 생성시간 기준 10분이 지난 경우 만료 처리
 		if (TokenStatus.ACTIVE.equals(this.status) &&
-			this.expirationAt.isAfter(createdAt.plusMinutes(10))) {
+			LocalDateTime.now().isAfter(this.expirationAt)) {
 			expiredToken();
 		}
 	}

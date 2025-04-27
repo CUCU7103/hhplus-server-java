@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.balance.history;
 
+import static jakarta.persistence.ConstraintMode.*;
+
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -16,6 +18,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -63,7 +66,7 @@ public class BalanceHistory {
 	private LocalDateTime createdAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "balance_id", nullable = false)
+	@JoinColumn(name = "balance_id", nullable = false, foreignKey = @ForeignKey(NO_CONSTRAINT))
 	private Balance balance;
 
 	@Builder
@@ -74,10 +77,10 @@ public class BalanceHistory {
 		this.balance = balance;
 	}
 
-	public static BalanceHistory createdHistory(Balance balance, MoneyVO deltaPoint) {
+	public static BalanceHistory createdHistory(Balance balance, MoneyVO previousPoint) {
 		return BalanceHistory.builder()
-			.previousPoint(balance.getMoneyVO())
-			.deltaPoint(deltaPoint)
+			.previousPoint(previousPoint)
+			.deltaPoint(balance.getMoneyVO())
 			.type(BalanceType.EARN)
 			.balance(balance)
 			.build();

@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -26,12 +27,14 @@ public class PaymentUnitTest {
 		ConcertSeat concertSeat = mock(ConcertSeat.class);
 		Reservation reservation = Reservation.builder()
 			.reservationStatus(ReservationStatus.HELD)
+			.user(user)
 			.concertSeat(concertSeat)
 			.build();
 		Balance balance = mock(Balance.class);
 		Token token = mock(Token.class);
+		ReflectionTestUtils.setField(reservation, "id", 1L);
 
-		Payment payment = Payment.createPayment(reservation, user, amount, concertSeat, balance, token);
+		Payment payment = Payment.createPayment(reservation, amount, balance, token);
 
 		assertThat(payment).isNotNull();
 		assertThat(payment.getAmount()).isEqualTo(amount);

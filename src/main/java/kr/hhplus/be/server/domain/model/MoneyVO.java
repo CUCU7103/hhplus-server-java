@@ -24,7 +24,7 @@ public class MoneyVO {
 		this.amount = amount;
 	}
 
-	public static MoneyVO of(BigDecimal amount) {
+	public static MoneyVO create(BigDecimal amount) {
 		return new MoneyVO(amount);
 	}
 

@@ -18,7 +18,7 @@ public class MoneyVOUnitTest {
 		BigDecimal amount = BigDecimal.valueOf(10000);
 
 		// act
-		MoneyVO moneyVO = MoneyVO.of(amount);
+		MoneyVO moneyVO = MoneyVO.create(amount);
 
 		// assert
 		assertThat(moneyVO).isNotNull();
@@ -31,7 +31,7 @@ public class MoneyVOUnitTest {
 		BigDecimal negativeAmount = BigDecimal.valueOf(-100);
 
 		// act & assert
-		assertThatThrownBy(() -> MoneyVO.of(negativeAmount))
+		assertThatThrownBy(() -> MoneyVO.create(negativeAmount))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.OVER_USED_POINT.getMessage());
 	}
@@ -42,7 +42,7 @@ public class MoneyVOUnitTest {
 		BigDecimal overMaxAmount = BigDecimal.valueOf(100_001);
 
 		// act & assert
-		assertThatThrownBy(() -> MoneyVO.of(overMaxAmount))
+		assertThatThrownBy(() -> MoneyVO.create(overMaxAmount))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.OVER_CHARGED_POINT.getMessage());
 	}
@@ -53,7 +53,7 @@ public class MoneyVOUnitTest {
 		BigDecimal maxAmount = BigDecimal.valueOf(100_000);
 
 		// act
-		MoneyVO moneyVO = MoneyVO.of(maxAmount);
+		MoneyVO moneyVO = MoneyVO.create(maxAmount);
 
 		// assert
 		assertThat(moneyVO).isNotNull();
@@ -63,7 +63,7 @@ public class MoneyVOUnitTest {
 	@Test
 	void 포인트_합산_테스트() {
 		// arrange
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(5000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(5000));
 		BigDecimal addAmount = BigDecimal.valueOf(3000);
 
 		// act
@@ -77,7 +77,7 @@ public class MoneyVOUnitTest {
 	@Test
 	void 포인트_차감_테스트() {
 		// arrange
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(5000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(5000));
 		BigDecimal subtractAmount = BigDecimal.valueOf(3000);
 
 		// act
@@ -91,7 +91,7 @@ public class MoneyVOUnitTest {
 	@Test
 	void 포인트_차감시_음수되면_예외발생() {
 		// arrange
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(1000));
 		BigDecimal subtractAmount = BigDecimal.valueOf(2000);
 
 		// act & assert
@@ -103,7 +103,7 @@ public class MoneyVOUnitTest {
 	@Test
 	void 포인트_합산시_최대치_초과하면_예외발생() {
 		// arrange
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(90_000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(90_000));
 		BigDecimal addAmount = BigDecimal.valueOf(20_000);
 
 		// act & assert

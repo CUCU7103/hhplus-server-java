@@ -3,9 +3,11 @@ package kr.hhplus.be.server.application.reservation;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.OptimisticLockException;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -35,6 +37,11 @@ public class ReservationService {
 	 * 유효하지 않은 스케줄일 경우
 	 * 예외를 발생시킨다.
 	 */
+
+	/**
+	 * 낙관적 락을 걸거다
+	 *
+	 * */
 	@Transactional
 	public ReservationInfo reservationSeat(long seatId, long userId, ReservationCommand command) {
 		// 유효한 스케줄인지 확인
@@ -49,12 +56,16 @@ public class ReservationService {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.INVALID_RESERVATION_CONCERT_SEAT));
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-
 		// 예약 정보 생성
-		Reservation reservation = reservationRepository.save(
-			Reservation.createPendingReservation(user, seat, concertSchedule, ReservationStatus.HELD));
-
-		return ReservationInfo.from(reservation);
+		try {
+			Reservation reservation = reservationRepository
+				.save(Reservation.createPendingReservation(user, seat, concertSchedule, ReservationStatus.HELD));
+			return ReservationInfo.from(reservation);
+		} catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
+			throw new CustomException(CustomErrorCode.FAILED_RESERVATION_SEAT);
+		} catch (Exception e) {
+			throw new CustomException(CustomErrorCode.SERVER_ERROR);
+		}
 	}
 
 	@Transactional

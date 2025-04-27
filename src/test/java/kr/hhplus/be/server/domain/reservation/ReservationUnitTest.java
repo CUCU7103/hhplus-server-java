@@ -32,7 +32,7 @@ class ReservationUnitTest {
 
 	@Test
 	void 정상적으로_예약이_성공하면_HELD_상태로_생성되어진다() {
-		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		MoneyVO price = MoneyVO.create(BigDecimal.valueOf(10000));
 		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
 			1L, price);
 
@@ -53,7 +53,7 @@ class ReservationUnitTest {
 	void 배정된_예약_시간이_지났을때_cancel_DueToTimeout_호출시_상태변경() {
 		// given
 		LocalDateTime future = LocalDateTime.now().plusMinutes(20);
-		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		MoneyVO price = MoneyVO.create(BigDecimal.valueOf(10000));
 		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
 			1L, price);
 
@@ -69,7 +69,7 @@ class ReservationUnitTest {
 
 	@Test
 	void 결제_후_예약_확정을_통해_좌석과_예약의_상태_변경에_성공한다() {
-		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		MoneyVO price = MoneyVO.create(BigDecimal.valueOf(10000));
 		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
 			1L, price);
 		Reservation reservation = Reservation.builder()
@@ -85,7 +85,7 @@ class ReservationUnitTest {
 
 	@Test
 	void 예약_확정시_예약_상태가_HELD가_아니라면_예약에_실패한다() {
-		MoneyVO price = MoneyVO.of(BigDecimal.valueOf(10000));
+		MoneyVO price = MoneyVO.create(BigDecimal.valueOf(10000));
 		ConcertSeat concertSeat = ConcertSeat.of(schedule, ConcertSeatStatus.AVAILABLE, 11, "A",
 			1L, price);
 		Reservation reservation = Reservation.builder()

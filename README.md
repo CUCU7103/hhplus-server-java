@@ -13,3 +13,7 @@
 <br>
 
 ## [INDEX 보고서](https://tame-board-bb2.notion.site/4-1d89bafd176180f5a66ae4ccede0c5b7?pvs=4)
+
+<br>
+
+## [동시성 제어 보고서](https://tame-board-bb2.notion.site/5-1de9bafd17618022aef3ca3fbdfb53c5)

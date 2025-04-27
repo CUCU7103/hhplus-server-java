@@ -3,9 +3,11 @@ package kr.hhplus.be.server.application.balance;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.OptimisticLockException;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.history.BalanceHistory;
@@ -18,15 +20,14 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
-
+	private final ApplicationEventPublisher eventPublisher;
 	private final BalanceRepository balanceRepository;
 	private final UserRepository userRepository;
 
 	// 유저의 포인트 조회 메서드
 	@Transactional(readOnly = true)
 	public BalanceInfo getPoint(long userId) {
-		userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
+		userRepository.findById(userId).orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 
 		Balance balance = balanceRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
@@ -37,17 +38,19 @@ public class BalanceService {
 	// 유저의 포인트 충전 메서드
 	@Transactional
 	public BalanceInfo chargePoint(long userId, ChargeBalanceCommand command) {
-		userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
-
-		Balance balance = balanceRepository.findByIdAndUserId(command.balanceId(), userId)
-			.orElseGet(() -> Balance.of(MoneyVO.of(BigDecimal.ZERO), LocalDateTime.now(), userId));
-
-		Balance delta = balance.chargePoint(command.chargePoint());
-		balanceRepository.save(BalanceHistory
-			.createdHistory(balance, delta.getMoneyVO()));
-
-		return BalanceInfo.from(balance.getId(), delta.getMoneyVO(), userId);
+		userRepository.findById(userId).orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
+		try {
+			Balance balance = balanceRepository.findByIdAndUserId(command.balanceId(), userId)
+				.orElseGet(() -> Balance.create(MoneyVO.create(BigDecimal.ZERO), LocalDateTime.now(), userId));
+			MoneyVO previousPoint = balance.getMoneyVO();
+			Balance delta = balance.chargePoint(command.chargePoint());
+			balanceRepository.save(BalanceHistory.createdHistory(delta, previousPoint));
+			return BalanceInfo.from(balance.getId(), delta.getMoneyVO(), userId);
+		} catch (OptimisticLockException e) {
+			throw new CustomException(CustomErrorCode.CHARGED_ERROR);
+		} catch (Exception e) {
+			throw new CustomException(CustomErrorCode.SERVER_ERROR);
+		}
 
 	}
 

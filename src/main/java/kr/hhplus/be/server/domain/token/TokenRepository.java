@@ -5,17 +5,14 @@ import java.util.Optional;
 
 public interface TokenRepository {
 
-	Optional<Token> findToken(long tokenId);
-
-	Optional<Token> findTokenIdAndWaitingToken(long tokenId);
-
 	Optional<Token> findByUserIdAndWaitingToken(long userId);
 
 	Optional<Token> findByUserId(long userId);
 
-	int getWaitingRank(long id);
-
 	long countByStatus(TokenStatus tokenStatus);
 
 	List<Token> findAllByStatus(TokenStatus tokenStatus);
+
+	Optional<Token> findTokenWithWriteLock(long tokenId);
+
 }

@@ -16,18 +16,8 @@ public class TokenRepositoryImpl implements TokenRepository {
 	private final TokenJpaRepository tokenJpaRepository;
 
 	@Override
-	public Optional<Token> findToken(long tokenId) {
-		return tokenJpaRepository.findById(tokenId);
-	}
-
-	@Override
 	public Optional<Token> findByUserId(long userId) {
 		return tokenJpaRepository.findByUserId(userId);
-	}
-
-	@Override
-	public int getWaitingRank(long id) {
-		return tokenJpaRepository.getWaitingRank(id);
 	}
 
 	@Override
@@ -41,13 +31,12 @@ public class TokenRepositoryImpl implements TokenRepository {
 	}
 
 	@Override
-	public Optional<Token> findTokenIdAndWaitingToken(long tokenId) {
-		return tokenJpaRepository.findByIdAndStatus(tokenId, TokenStatus.WAITING);
-	}
-
-	@Override
 	public Optional<Token> findByUserIdAndWaitingToken(long userId) {
 		return tokenJpaRepository.findByUserIdAndStatus(userId, TokenStatus.WAITING);
 	}
 
+	@Override
+	public Optional<Token> findTokenWithWriteLock(long tokenId) {
+		return tokenJpaRepository.findTokenWithWriteLock(tokenId);
+	}
 }

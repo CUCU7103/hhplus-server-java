@@ -41,7 +41,7 @@ class BalanceServiceUnitTest {
 		// arrange
 		long userId = 1L;
 		long balanceId = 1L;
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(1000));
 		User user = mock(User.class);
 
 		Balance balance = Balance.builder()
@@ -126,10 +126,10 @@ class BalanceServiceUnitTest {
 		long userId = 1L;
 		long balanceId = 10L;
 		BalanceChargeRequest request = new BalanceChargeRequest(balanceId, 100L);
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(1000));
 		User user = mock(User.class);
 		// 포인트 충전 검증을 위함.
-		Balance existingBalance = Balance.of(moneyVO, LocalDateTime.now(), userId);
+		Balance existingBalance = Balance.create(moneyVO, LocalDateTime.now(), userId);
 		existingBalance.chargePoint(BigDecimal.valueOf(100));
 
 		given(userRepository.findById(userId)).willReturn(Optional.of(user));

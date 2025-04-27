@@ -83,7 +83,7 @@ public class PaymentServiceUnitTest {
 		long balanceId = 1L;
 		long userId = 1L;
 		long seat = 1L;
-		MoneyVO moneyVO = MoneyVO.of(BigDecimal.valueOf(1000));
+		MoneyVO moneyVO = MoneyVO.create(BigDecimal.valueOf(1000));
 
 		Balance balance = Balance.builder().id(balanceId).moneyVO(moneyVO).userId(userId).build();
 
@@ -153,7 +153,7 @@ public class PaymentServiceUnitTest {
 		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
 		User user = mock(User.class);
 		Reservation reservation = Reservation.builder()
-			.price(MoneyVO.of(amount))
+			.price(MoneyVO.create(amount))
 			.reservationStatus(ReservationStatus.HELD)
 			.user(user)
 			.concertSeat(concertSeat)
@@ -168,9 +168,7 @@ public class PaymentServiceUnitTest {
 
 		given(user.getId()).willReturn(userId);
 		given(balanceRepository.findById(userId)).willReturn(Optional.of(balance));
-		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
-		given(userRepository.findById(userId)).willReturn(Optional.of(user));
 		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
 		given(paymentRepository.save(any(Payment.class))).willReturn(payment);
 

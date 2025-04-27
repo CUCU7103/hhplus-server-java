@@ -108,9 +108,8 @@ class TokenServiceUnitTest {
 		User user = mock(User.class);
 		Token token = Token.createToken(user);
 
-		given(tokenRepository.findToken(token.getId())).willReturn(Optional.of(token));
+		given(tokenRepository.findTokenWithWriteLock(token.getId())).willReturn(Optional.of(token));
 		given(tokenRepository.countByStatus(TokenStatus.ACTIVE)).willReturn(3L); // ACTIVE 수가 3개
-		given(tokenRepository.getWaitingRank(token.getId())).willReturn(1); // 대기순위 1위
 
 		// when
 		ActiveTokenInfo result = tokenService.activateToken(token.getId());
