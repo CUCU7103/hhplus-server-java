@@ -37,7 +37,7 @@ public enum CustomErrorCode {
 	FAILED_RESERVATION_SEAT(HttpStatus.BAD_REQUEST, "400", "좌석 예약에 실패하였습니다"),
 	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "500", "예상하지 못한 오류가 발생하였습니다."),
 	CHARGED_ERROR(HttpStatus.BAD_REQUEST, "400", "여러 번의 충전 요청이 발생하였습니다"),
-	PAYMENT_ERROR(HttpStatus.BAD_REQUEST, "400", "여러 번의 결제요청이 발생했습니다"),
+	PAYMENT_ERROR(HttpStatus.BAD_REQUEST, "400", "결제에 실패 했습니다"),
 	BEFORE_DATE(HttpStatus.BAD_REQUEST, "400", "현재 날짜 보다 이전 날짜를 입력하여 오류가 발생하였습니다");
 
 	private final HttpStatus httpStatus;

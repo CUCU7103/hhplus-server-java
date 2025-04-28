@@ -24,7 +24,7 @@ public class PaymentController {
 		@RequestBody PaymentRequest request) {
 		return ResponseEntity.ok()
 			.body(
-				PaymentResponse.of("좌석 예약 성공", paymentService.paymentSeat(reservationId, userId, request.toCommand())));
+				PaymentResponse.of("좌석 예약 성공", paymentService.payment(reservationId, userId, request.toCommand())));
 	}
 
 }

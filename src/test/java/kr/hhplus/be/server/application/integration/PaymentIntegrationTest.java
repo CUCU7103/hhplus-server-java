@@ -96,7 +96,7 @@ public class PaymentIntegrationTest {
 		// 5) 결제 명령
 		PaymentCommand command = new PaymentCommand(reservation.getId(), BigDecimal.valueOf(5000));
 		/* -------- act -------- */
-		PaymentInfo info = paymentService.paymentSeat(
+		PaymentInfo info = paymentService.payment(
 			reservation.getId(), user.getId(), command);
 
 		/* -------- assert -------- */
@@ -138,7 +138,7 @@ public class PaymentIntegrationTest {
 
 		// act & assert
 		assertThatThrownBy(() ->
-			paymentService.paymentSeat(reservation.getId(), user.getId(), command))
+			paymentService.payment(reservation.getId(), user.getId(), command))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.OVER_USED_POINT.getMessage());
 

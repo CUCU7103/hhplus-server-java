@@ -14,10 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.ActiveProfiles;
 
-import jakarta.persistence.OptimisticLockException;
 import kr.hhplus.be.server.application.payment.PaymentCommand;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
@@ -32,6 +30,7 @@ import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.infrastructure.balance.BalanceJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
@@ -113,13 +112,11 @@ public class PaymentConcurrencyTest {
 		for (int i = 0; i < payCount; i++) {
 			executor.submit(() -> {
 				try {
-					paymentService.paymentSeat(reservation.getId(), user.getId(), command);
+					paymentService.payment(reservation.getId(), user.getId(), command);
 					successCount.incrementAndGet();
-				} catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
+				} catch (CustomException e) {
 					log.error("에러 확인용 {}", e.getMessage());
 					failCount.incrementAndGet(); // 도메인 예외 포함 (락 충돌 등)
-				} catch (Exception e) {
-					failCount.incrementAndGet(); // 예외 catch 누락 방지
 				} finally {
 					latch.countDown();
 				}

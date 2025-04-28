@@ -37,7 +37,7 @@ public class PaymentService {
 	 *  토큰의 상태를 만료 처리한다.
 	 */
 	@Transactional
-	public PaymentInfo paymentSeat(long reservationId, long userId, PaymentCommand command) {
+	public PaymentInfo payment(long reservationId, long userId, PaymentCommand command) {
 		// 메서드를 누가 부를지 모른다!
 		Balance balance = balanceRepository.findByUserId(userId).orElseThrow(
 			() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
@@ -50,13 +50,11 @@ public class PaymentService {
 		// 결제가 가지는 책임은 협력 객체인 좌석, 포인트에게 각각 상태와 차감을 지시함.
 		// 예약 도메인에서 좌석의 상태를 변경하는 책임을 가지고 있기에 예약 확정!
 		try {
-			Payment payment = paymentRepository.save(Payment
+			Payment payment = paymentRepository.saveAndFlush(Payment
 				.createPayment(reservation, command.amount(), balance, token));
 			return PaymentInfo.from(payment);
 		} catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
 			throw new CustomException(CustomErrorCode.PAYMENT_ERROR);
-		} catch (CustomException e) {
-			throw e;
 		}
 	}
 

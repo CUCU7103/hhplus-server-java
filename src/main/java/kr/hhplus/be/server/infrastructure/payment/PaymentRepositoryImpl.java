@@ -9,11 +9,15 @@ import lombok.RequiredArgsConstructor;
 @Repository
 @RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepository {
-
 	private final PaymentJpaRepository paymentJpaRepository;
 
 	@Override
 	public Payment save(Payment payment) {
 		return paymentJpaRepository.save(payment);
+	}
+
+	@Override
+	public Payment saveAndFlush(Payment payment) {
+		return paymentJpaRepository.saveAndFlush(payment);
 	}
 }
