@@ -70,7 +70,7 @@ public class TokenService {
 		LocalDateTime now = LocalDateTime.now();
 		for (Token token : activeTokens) {
 			// 생성시간 기준 10분이 지난 경우 EXPIRED로 전환
-			if (token.getExpirationAt().isBefore(now)) {
+			if (LocalDateTime.now().isAfter(token.getExpirationAt())) {
 				token.expiredToken();
 			}
 		}

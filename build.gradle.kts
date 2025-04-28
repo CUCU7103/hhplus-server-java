@@ -39,6 +39,13 @@ dependencies {
 
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework:spring-aspects")
+
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+
+
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 

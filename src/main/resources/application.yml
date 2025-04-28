@@ -27,6 +27,15 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+
+  management:
+    tracing:
+      enabled: true   # Tracing 기능 켜기
+      sampling:
+        probability: 1.0  # 100% 샘플링 (모든 요청을 추적하고 싶으면 1.0, 일부만 하고 싶으면 낮춰야 해
+
+
+
 ---
 spring.config.activate.on-profile: local
 

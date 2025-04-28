@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
+import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -11,123 +12,114 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@RequiredArgsConstructor
 public class ApiFilter extends OncePerRequestFilter {
-	// Jackson ObjectMapper 인스턴스 생성 - JSON 처리를 위한 객체
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();  // JSON 처리를 위한 ObjectMapper 인스턴스
+	private final Tracer tracer;  // Micrometer Tracer 주입
 
-	// 필터 빈(Bean) 초기화 시 호출되는 메서드 오버라이드
-	@Override
-	protected void initFilterBean() throws ServletException {
-		// 필터 초기화 시 로그 출력 (인스턴스 ID 함께 출력)
-		log.info("ApiFilter 초기화 완료 - 인스턴스 ID: {}", System.identityHashCode(this));
-		// 부모 클래스의 초기화 메서드 호출
-		super.initFilterBean();
+	@Override  // 부모 클래스의 메서드를 오버라이드
+	protected void initFilterBean() throws ServletException {  // 필터 빈 초기화 시 호출
+		log.info("ApiFilter 초기화 완료 - 인스턴스 ID: {}", System.identityHashCode(this));  // 필터 초기화 로그 출력
+		super.initFilterBean();  // 부모 클래스 초기화 로직 실행
 	}
 
-	/**
-	 * ContentCachingRequestWrapper와 ContentCachingResponseWrapper의 역할에 대한 설명 주석
-	 * HTTP 요청과 응답의 바디는 일반적으로 한 번만 읽을 수 있는 스트림 형태임을 설명
-	 * 서블릿 API의 특성상 요청 본문을 한 번만 읽을 수 있고, 재시도 시 예외 발생
-	 *
-	 * 이런 래퍼 클래스가 필요한 이유:
-	 * 1. 여러 번 읽기: 필터와 컨트롤러에서 모두 본문을 읽을 수 있게 함
-	 * 2. 비파괴적 읽기: 원본 요청/응답을 변경하지 않고 내용 검사 가능
-	 */
-
-	@Override
+	@Override  // 부모 클래스의 메서드를 오버라이드
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 		throws ServletException, IOException {
 
-		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);  // 요청 바디 캐싱 래퍼 생성
+		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);  // 응답 바디 캐싱 래퍼 생성
 
-		long startTime = System.currentTimeMillis();
+		long startTime = System.currentTimeMillis();  // 요청 시작 시간 기록
 
 		try {
-			log.info("REQUEST: {} {}", requestWrapper.getMethod(), requestWrapper.getRequestURI());
-			logRequestHeaders(requestWrapper); // 헤더 추가 로그
-			filterChain.doFilter(requestWrapper, responseWrapper);
+			injectTraceInfoToMDC();  // 현재 Tracing 정보를 MDC에 주입
+			log.info("REQUEST: {} {}", requestWrapper.getMethod(), requestWrapper.getRequestURI());  // 요청 메서드 및 URI 로그
+			logRequestHeaders(requestWrapper);  // 요청 헤더 전체 로그
+
+			filterChain.doFilter(requestWrapper, responseWrapper);  // 다음 필터 또는 서블릿으로 요청/응답 전달
+
 		} finally {
-			long duration = System.currentTimeMillis() - startTime;
-			int status = responseWrapper.getStatus();
+			long duration = System.currentTimeMillis() - startTime;  // 처리 시간 계산
+			int status = responseWrapper.getStatus();  // 응답 상태 코드 가져오기
 
-			log.info("RESPONSE: {} ({}ms)", status, duration);
+			log.info("RESPONSE: {} ({}ms)", status, duration);  // 응답 상태 및 처리 시간 로그
 
-			logRequestBody(requestWrapper);
-			logResponseBody(responseWrapper, requestWrapper.getMethod(), requestWrapper.getRequestURI(), status);
+			logRequestBody(requestWrapper);  // 요청 바디 로그
+			logResponseBody(responseWrapper, requestWrapper.getMethod(), requestWrapper.getRequestURI(),
+				status);  // 응답 바디 로그
 
-			responseWrapper.copyBodyToResponse();
+			responseWrapper.copyBodyToResponse();  // 래퍼된 응답 바디를 원래 객체로 복사
+			MDC.clear();  // MDC 클리어하여 다음 요청에 영향 없도록 함
 		}
 	}
 
-	// 헤더 정보를 출력하기 한 메서드
-	private void logRequestHeaders(ContentCachingRequestWrapper request) {
-		Collections.list(request.getHeaderNames())
-			.forEach(headerName -> Collections.list(request.getHeaders(headerName))
-				.forEach(headerValue -> log.info("REQUEST HEADER: {}: {}", headerName, headerValue)));
-	}
-
-	// 요청 본문을 로깅하기 위한 메서드
-	private void logRequestBody(ContentCachingRequestWrapper request) {
-		byte[] content = request.getContentAsByteArray();
-		if (content.length > 0) {
-			String contentType = request.getContentType();
-			String body = new String(content, StandardCharsets.UTF_8);
-			logBody("REQUEST", contentType, body, false);
+	private void injectTraceInfoToMDC() {  // MDC에 Trace 정보 주입하는 헬퍼 메서드
+		Span currentSpan = tracer.currentSpan();  // 현재 Span 정보 가져오기
+		if (currentSpan != null) {  // Span이 존재할 경우
+			MDC.put("traceId", currentSpan.context().traceId());  // traceId를 MDC에 저장
+			MDC.put("spanId", currentSpan.context().spanId());  // spanId를 MDC에 저장
 		}
 	}
 
-	// 응답 본문을 로깅하기 위한 메서드
-	private void logResponseBody(ContentCachingResponseWrapper response, String method, String uri, int status) {
-		byte[] content = response.getContentAsByteArray();
-		if (content.length > 0) {
-			String contentType = response.getContentType();
-			String body = new String(content, StandardCharsets.UTF_8);
-			logBody("RESPONSE", contentType, body, status >= 400);
+	private void logRequestHeaders(ContentCachingRequestWrapper request) {  // 요청 헤더를 모두 로그 출력하는 메서드
+		Collections.list(request.getHeaderNames())  // 헤더 이름 리스트 획득
+			.forEach(headerName -> Collections.list(request.getHeaders(headerName))  // 각 헤더의 값 리스트 획득
+				.forEach(headerValue -> log.info("REQUEST HEADER: {}: {}", headerName, headerValue)));  // 헤더 이름과 값 로그
+	}
+
+	private void logRequestBody(ContentCachingRequestWrapper request) {  // 요청 바디를 로그 출력하는 메서드
+		byte[] content = request.getContentAsByteArray();  // 캐싱된 요청 바디 바이트 배열 획득
+		if (content.length > 0) {  // 바디가 비어있지 않을 때
+			String contentType = request.getContentType();  // 콘텐츠 타입 획득
+			String body = new String(content, StandardCharsets.UTF_8);  // 바디를 문자열로 변환
+			logBody("REQUEST", contentType, body, false);  // 로그 출력 (비에러)
 		}
 	}
 
-	private void logBody(String label, String contentType, String body, boolean isError) {
+	private void logResponseBody(ContentCachingResponseWrapper response, String method, String uri,
+		int status) {  // 응답 바디 로그 메서드
+		byte[] content = response.getContentAsByteArray();  // 캐싱된 응답 바디 바이트 배열 획득
+		if (content.length > 0) {  // 바디가 비어있지 않을 때
+			String contentType = response.getContentType();  // 콘텐츠 타입 획득
+			String body = new String(content, StandardCharsets.UTF_8);  // 바디를 문자열로 변환
+			logBody("RESPONSE", contentType, body, status >= 400);  // 상태 코드에 따라 에러 여부 결정
+		}
+	}
+
+	private void logBody(String label, String contentType, String body, boolean isError) {  // JSON 포맷팅 및 로깅 메서드
 		try {
-			// Content-Type이 JSON 형식인지 확인 (예: application/json, application/vnd.api+json 등 포함 가능)
-			if (contentType != null && contentType.contains("application/json")) {
-				// Jackson의 ObjectMapper를 사용해 문자열을 JsonNode 트리 구조로 파싱 (유효한 JSON인지 검사)
-				JsonNode jsonNode = objectMapper.readTree(body);
-				// JsonNode를 예쁘게 포맷된(줄바꿈 포함) JSON 문자열로 변환
-				String pretty = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
-				// 에러 로그로 출력할지 여부에 따라 로그 레벨 결정
+			if (contentType != null && contentType.contains("application/json")) {  // JSON 타입 체크
+				JsonNode jsonNode = objectMapper.readTree(body);  // JSON 파싱
+				String pretty = objectMapper.writerWithDefaultPrettyPrinter()
+					.writeValueAsString(jsonNode);  // pretty-print JSON
 				if (isError) {
-					// 에러 상황일 경우 error 레벨로 예쁘게 출력된 JSON 로그 기록
-					log.error("{} BODY [{}]:\n{}", label, contentType, pretty);
+					log.error("{} BODY [{}]:\n{}", label, contentType, pretty);  // 에러 레벨로 로그
 				} else {
-					// 정상 상황일 경우 info 레벨로 예쁘게 출력된 JSON 로그 기록
-					log.info("{} BODY [{}]:\n{}", label, contentType, pretty);
+					log.info("{} BODY [{}]:\n{}", label, contentType, pretty);  // 정보 레벨로 로그
 				}
 			} else {
-				// JSON이 아닌 일반 텍스트 요청/응답 본문에 대한 로깅 처리
 				if (isError) {
-					// 에러 응답인 경우 error 레벨로 로그 출력
-					log.error("{} BODY [{}]: {}", label, contentType, body);
+					log.error("{} BODY [{}]: {}", label, contentType, body);  // 에러 레벨 일반 바디 로그
 				} else {
-					// 정상 응답인 경우 info 레벨로 로그 출력
-					log.info("{} BODY [{}]: {}", label, contentType, body);
+					log.info("{} BODY [{}]: {}", label, contentType, body);  // 정보 레벨 일반 바디 로그
 				}
 			}
-		} catch (Exception e) {
-			// JSON 파싱이 실패했을 경우 예외 발생 시 fallback 로깅 처리 (raw 문자열 그대로 출력)
+		} catch (Exception e) {  // 예외 발생 시 raw 바디 로그
 			if (isError) {
-				// 에러 상황일 경우 파싱되지 않은 원본 문자열을 error 레벨로 출력
-				log.error("{} BODY [{}] (raw): {}", label, contentType, body);
+				log.error("{} BODY [{}] (raw): {}", label, contentType, body);  // 에러 레벨로 raw 로그
 			} else {
-				// 정상 상황일 경우 파싱되지 않은 원본 문자열을 info 레벨로 출력
-				log.info("{} BODY [{}] (raw): {}", label, contentType, body);
+				log.info("{} BODY [{}] (raw): {}", label, contentType, body);  // 정보 레벨로 raw 로그
 			}
 		}
 	}
