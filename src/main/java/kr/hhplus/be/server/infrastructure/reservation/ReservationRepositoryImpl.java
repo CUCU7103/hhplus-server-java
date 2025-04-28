@@ -30,4 +30,9 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 	public List<Reservation> getConcertReservationStatus(ReservationStatus status) {
 		return reservationJpaRepository.findByReservationStatus(status);
 	}
+
+	@Override
+	public Reservation saveAndFlush(Reservation reservation) {
+		return reservationJpaRepository.saveAndFlush(reservation);
+	}
 }

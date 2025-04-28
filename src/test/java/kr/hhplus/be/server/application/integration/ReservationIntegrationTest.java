@@ -212,7 +212,7 @@ public class ReservationIntegrationTest {
 			try {
 				log.info("User1 시도: seatId={}, userId={}, scheduleId={}, scheduleDate={}",
 					seat.getId(), user1.getId(), command.concertScheduleId(), command.concertScheduleDate());
-				return reservationService.reservationSeat(seat.getId(), user1.getId(), command);
+				return reservationService.reserve(seat.getId(), user1.getId(), command);
 			} catch (Exception e) {
 				log.error("User1 실패: " + e.getMessage(), e);
 				return null;
@@ -224,7 +224,7 @@ public class ReservationIntegrationTest {
 			try {
 				log.info("User2 시도: seatId={}, userId={}, scheduleId={}, scheduleDate={}",
 					seat.getId(), user2.getId(), command.concertScheduleId(), command.concertScheduleDate());
-				return reservationService.reservationSeat(seat.getId(), user2.getId(), command);
+				return reservationService.reserve(seat.getId(), user2.getId(), command);
 			} catch (Exception e) {
 				log.error("User2 실패: " + e.getMessage(), e);
 				return null;

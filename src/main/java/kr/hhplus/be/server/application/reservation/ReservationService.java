@@ -43,7 +43,7 @@ public class ReservationService {
 	 *
 	 * */
 	@Transactional
-	public ReservationInfo reservationSeat(long seatId, long userId, ReservationCommand command) {
+	public ReservationInfo reserve(long seatId, long userId, ReservationCommand command) {
 		// 유효한 스케줄인지 확인
 		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(command.concertScheduleId(),
 				command.concertScheduleDate())
@@ -57,9 +57,15 @@ public class ReservationService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
 		// 예약 정보 생성
+		// saveFlush
+		// 낙관적 락을 검출하기 위해 save 한 점도 좋았어요. 여기서 주의하셔야할 점은, 만약 낙관적 락이 트랜잭션 범위 도중에 존재한다면, flush 를 명시적으로 해야한다는 점입니다
+		// 결제의 경우, 말씀하신 것처럼 강결합이 우려될 수 있는데요. 이럴 경우엔, 같은 트랜잭션 내의 파사드에서 말씀하신 협력객체의 로직을 수행하고,
+		// 필요한 정보만 paymentService#create 에 넘겨 ( 예를 들면, orderId, userId 등등 ) 생성 로직은 가볍게 만드는 방법을 취할 수도 있습니다.
+		// 예외를 잡기 위함
 		try {
 			Reservation reservation = reservationRepository
-				.save(Reservation.createPendingReservation(user, seat, concertSchedule, ReservationStatus.HELD));
+				.saveAndFlush(
+					Reservation.createPendingReservation(user, seat, concertSchedule, ReservationStatus.HELD));
 			return ReservationInfo.from(reservation);
 		} catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
 			throw new CustomException(CustomErrorCode.FAILED_RESERVATION_SEAT);

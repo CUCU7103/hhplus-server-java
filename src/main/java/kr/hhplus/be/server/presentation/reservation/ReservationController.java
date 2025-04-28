@@ -25,7 +25,7 @@ public class ReservationController implements ReservationApi {
 		@RequestBody ReservationRequest request) {
 		return ResponseEntity.ok()
 			.body(ReservationResponse.of("좌석 예약에 성공하였습니다",
-				reservationService.reservationSeat(seatId, userId, request.toCommand())));
+				reservationService.reserve(seatId, userId, request.toCommand())));
 
 	}
 

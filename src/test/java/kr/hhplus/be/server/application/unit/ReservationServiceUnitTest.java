@@ -76,7 +76,7 @@ public class ReservationServiceUnitTest {
 				.concertScheduleDate(), ConcertSeatStatus.AVAILABLE)).willReturn(Optional.empty());
 
 		// act & assert
-		assertThatThrownBy(() -> reservationService.reservationSeat(concertId, userId, request.toCommand()))
+		assertThatThrownBy(() -> reservationService.reserve(concertId, userId, request.toCommand()))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_RESERVATION_CONCERT_SEAT.getMessage());
 
@@ -123,7 +123,7 @@ public class ReservationServiceUnitTest {
 			.willAnswer(invocation -> invocation.getArgument(0));
 
 		// Act
-		ReservationInfo result = reservationService.reservationSeat(seatId, userId, command);
+		ReservationInfo result = reservationService.reserve(seatId, userId, command);
 
 		// Assert
 		assertThat(result).isNotNull();
@@ -181,7 +181,7 @@ public class ReservationServiceUnitTest {
 			.willThrow(new ObjectOptimisticLockingFailureException("Reservation", seatId));
 
 		// Act & Assert
-		assertThatThrownBy(() -> reservationService.reservationSeat(seatId, userId, command))
+		assertThatThrownBy(() -> reservationService.reserve(seatId, userId, command))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.FAILED_RESERVATION_SEAT.getMessage());
 
