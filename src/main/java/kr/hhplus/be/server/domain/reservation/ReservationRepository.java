@@ -10,4 +10,6 @@ public interface ReservationRepository {
 	Reservation save(Reservation reservation);
 
 	List<Reservation> getConcertReservationStatus(ReservationStatus status);
+
+	Reservation saveAndFlush(Reservation reservation);
 }

@@ -93,12 +93,10 @@ public class ReservationConcurrencyTest {
 			final int count = i;
 			executor.submit(() -> {
 				try {
-					reservationService.reservationSeat(seat.getId(), userIds.get(count), command);
+					reservationService.reserve(seat.getId(), userIds.get(count), command);
 					successCount.incrementAndGet();
 				} catch (CustomException e) {
 					failCount.incrementAndGet(); // 도메인 예외 포함 (락 충돌 등)
-				} catch (Exception e) {
-					failCount.incrementAndGet(); // 예외 catch 누락 방지
 				} finally {
 					latch.countDown();
 				}

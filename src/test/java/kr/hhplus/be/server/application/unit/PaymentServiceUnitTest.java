@@ -72,7 +72,7 @@ public class PaymentServiceUnitTest {
 
 		given(balanceRepository.findByUserId(userId)).willReturn(Optional.empty());
 
-		assertThatThrownBy(() -> paymentService.paymentSeat(reservationId, userId, request.toCommand())).isInstanceOf(
+		assertThatThrownBy(() -> paymentService.payment(reservationId, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_BALANCE.getMessage());
 
 	}
@@ -91,7 +91,7 @@ public class PaymentServiceUnitTest {
 
 		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 
-		assertThatThrownBy(() -> paymentService.paymentSeat(seat, userId, request.toCommand())).isInstanceOf(
+		assertThatThrownBy(() -> paymentService.payment(seat, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT_SEAT.getMessage());
 
 	}
@@ -111,7 +111,7 @@ public class PaymentServiceUnitTest {
 		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 		given(concertRepository.getByConcertSeatId(seatId)).willReturn(Optional.of(concertSeat));
 
-		assertThatThrownBy(() -> paymentService.paymentSeat(seatId, userId, request.toCommand())).isInstanceOf(
+		assertThatThrownBy(() -> paymentService.payment(seatId, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_RESERVATION.getMessage());
 
 	}
@@ -135,7 +135,7 @@ public class PaymentServiceUnitTest {
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
 
 		//act & assert
-		assertThatThrownBy(() -> paymentService.paymentSeat(reservationId, userId, request.toCommand())).isInstanceOf(
+		assertThatThrownBy(() -> paymentService.payment(reservationId, userId, request.toCommand())).isInstanceOf(
 			CustomException.class).hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
 	}
 
@@ -179,7 +179,7 @@ public class PaymentServiceUnitTest {
 		given(payment.getCreatedAt()).willReturn(LocalDateTime.now());
 
 		// when
-		PaymentInfo result = paymentService.paymentSeat(reservationId, userId, request.toCommand());
+		PaymentInfo result = paymentService.payment(reservationId, userId, request.toCommand());
 
 		// then
 		verify(balance, timeout(1)).usePoint(amount);

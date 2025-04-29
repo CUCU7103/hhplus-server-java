@@ -50,8 +50,6 @@ public class ApiCheckInterceptor implements HandlerInterceptor {
 			log.info("=================== API 완료: {} {} =========================",
 				request.getMethod(), request.getRequestURI());
 		}
-
-		log.info("응답 상태: {}, 소요시간: {}ms", response.getStatus(), duration);
 	}
 
 }

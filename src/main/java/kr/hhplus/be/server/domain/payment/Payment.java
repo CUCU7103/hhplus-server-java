@@ -22,7 +22,6 @@ import jakarta.persistence.Table;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.reservation.Reservation;
-import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
@@ -61,20 +60,17 @@ public class Payment {
 
 	// 정적 팩토리 메서드 - 새로운 결제 생성
 	public static Payment createPayment(Reservation reservation, BigDecimal price,
-		Balance balance, Token token) {
-		return new Payment(reservation, price, balance, token);
+		Balance balance) {
+		return new Payment(reservation, price, balance);
 	}
 
 	// reservationId 말고 reservation을 사용하는 이유??
 	// reservationId 는 long이다 도메인 객체의 기능에서 이 값이 진짜 reservation에 존재하는 아이디인지 알 수있을까?
 	// 객체를 받아와서 값을 사용하면 명확하게 해결이 가능하다.
-	private Payment(Reservation reservation, BigDecimal amount, Balance balance,
-		Token token) {
-		validatePaymentData(reservation.getId(), reservation.getUser(), amount, reservation.getConcertSeat(), balance,
-			token);
+	private Payment(Reservation reservation, BigDecimal amount, Balance balance) {
+		validatePaymentData(reservation.getId(), reservation.getUser(), amount, reservation.getConcertSeat(), balance);
 		balance.usePoint(amount);
 		reservation.confirm();
-		token.expiredToken();
 		this.reservationId = reservation.getId();
 		this.user = reservation.getUser();
 		this.amount = amount;
@@ -83,7 +79,7 @@ public class Payment {
 
 	// 유효성 검증 메서드
 	public void validatePaymentData(long reservationId, User user, BigDecimal price, ConcertSeat concertSeat,
-		Balance balance, Token token) {
+		Balance balance) {
 		if (reservationId <= 0) {
 			throw new CustomException(CustomErrorCode.INVALID_RESERVATION_ID);
 		}
@@ -98,9 +94,6 @@ public class Payment {
 		}
 		if (balance == null) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_BALANCE);
-		}
-		if (token == null) {
-			throw new CustomException(CustomErrorCode.NOT_FOUND_TOKEN);
 		}
 	}
 
