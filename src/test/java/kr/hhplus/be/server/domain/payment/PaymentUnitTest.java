@@ -34,7 +34,7 @@ public class PaymentUnitTest {
 		Token token = mock(Token.class);
 		ReflectionTestUtils.setField(reservation, "id", 1L);
 
-		Payment payment = Payment.createPayment(reservation, amount, balance, token);
+		Payment payment = Payment.createPayment(reservation, amount, balance);
 
 		assertThat(payment).isNotNull();
 		assertThat(payment.getAmount()).isEqualTo(amount);
@@ -53,7 +53,7 @@ public class PaymentUnitTest {
 		Balance balance = mock(Balance.class);
 		// when & then
 		assertThatThrownBy(
-			() -> payment.validatePaymentData(invalidReservationId, user, amount, concertSeat, balance, token))
+			() -> payment.validatePaymentData(invalidReservationId, user, amount, concertSeat, balance))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_RESERVATION_ID.getMessage());
 	}
@@ -69,7 +69,7 @@ public class PaymentUnitTest {
 		Token token = mock(Token.class);
 		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
 	}
@@ -85,7 +85,7 @@ public class PaymentUnitTest {
 		Token token = mock(Token.class);
 		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_PAYMENT_AMOUNT.getMessage());
 	}
@@ -102,7 +102,7 @@ public class PaymentUnitTest {
 		Balance balance = mock(Balance.class);
 
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_PAYMENT_AMOUNT.getMessage());
 	}
@@ -118,7 +118,7 @@ public class PaymentUnitTest {
 		Token token = mock(Token.class);
 		Balance balance = mock(Balance.class);
 		// when & then
-		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance, token))
+		assertThatThrownBy(() -> payment.validatePaymentData(reservationId, user, amount, concertSeat, balance))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_CONCERT_SEAT.getMessage());
 	}

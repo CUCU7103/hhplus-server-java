@@ -1,10 +1,8 @@
 package kr.hhplus.be.server.application.payment;
 
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.OptimisticLockException;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
 import kr.hhplus.be.server.domain.payment.Payment;
@@ -45,17 +43,14 @@ public class PaymentService {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_RESERVATION));
 		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
+		token.validateTokenStatus();
 		// 결제 수행
 		// 결제 수행시, 포인트 차감 진행, 예약의 상태 변경, 좌석의 상태 변경, 결제 내역을 기록한다.
 		// 결제가 가지는 책임은 협력 객체인 좌석, 포인트에게 각각 상태와 차감을 지시함.
 		// 예약 도메인에서 좌석의 상태를 변경하는 책임을 가지고 있기에 예약 확정!
-		try {
-			Payment payment = paymentRepository.saveAndFlush(Payment
-				.createPayment(reservation, command.amount(), balance, token));
-			return PaymentInfo.from(payment);
-		} catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
-			throw new CustomException(CustomErrorCode.PAYMENT_ERROR);
-		}
+		Payment payment = paymentRepository.saveAndFlush(Payment
+			.createPayment(reservation, command.amount(), balance));
+		return PaymentInfo.from(payment);
 	}
 
 }

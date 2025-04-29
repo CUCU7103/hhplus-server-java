@@ -76,9 +76,16 @@ public class TokenService {
 		}
 	}
 
+	@Transactional
 	public void validateTokenByUserId(long userId) {
 		Token token = tokenRepository.findByUserId(userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_TOKEN));
+		// 만료 시간 검증 - 만료되었으면 상태 변경
+		if (LocalDateTime.now().isAfter(token.getExpirationAt())) {
+			token.expiredToken(); // 이 시점에 토큰 상태를 EXPIRED로 변경
+			tokenRepository.save(token); // 변경된 상태 저장
+			throw new CustomException(CustomErrorCode.TOKEN_EXPIRED);
+		}
 		token.validateTokenStatus();
 	}
 

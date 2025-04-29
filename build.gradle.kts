@@ -41,7 +41,7 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
 
     implementation("org.springframework.retry:spring-retry")
-    implementation("org.springframework:spring-aspects")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
 
