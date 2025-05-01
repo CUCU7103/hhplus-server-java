@@ -49,8 +49,8 @@ public class BalanceConcurrencyTest {
 	void 사용자가_중복으로_포인트_충전을_진행했을때_먼저_들어온_요청만_성공시킨다() throws InterruptedException {
 		// arrange
 		int chargeCount = 3;
-		User user = userJpaRepository.save(User.builder().name("사용자").build());
-		Balance balance = balanceJpaRepository.save(
+		User user = userJpaRepository.saveAndFlush(User.builder().name("사용자").build());
+		Balance balance = balanceJpaRepository.saveAndFlush(
 			Balance.create(MoneyVO.create(BigDecimal.valueOf(1000)), LocalDateTime.now(), user.getId()));
 		ChargeBalanceCommand command1 = new ChargeBalanceCommand(balance.getId(), BigDecimal.valueOf(2000));
 
