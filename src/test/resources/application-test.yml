@@ -12,3 +12,11 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
         show_sql: true
+
+    redis:
+      host: ${spring.redis.host}
+      port: ${spring.redis.port}
+
+    redisson:
+      single-server-config:
+        address: ${spring.redisson.single-server-config.address}
