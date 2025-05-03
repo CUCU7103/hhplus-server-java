@@ -38,10 +38,8 @@ public class BalanceService {
 
 	// 유저의 포인트 충전 메서드
 	@WithLock(
-		key = "'balance:charge:' + #userId",           // 락 키: balance:charge:123 과 같이 생성
-		type = LockType.REDIS_SPIN,                   // Redis Spin Lock 사용
-		timeoutMillis = 3000,                         // 최대 대기 시간 3초
-		retryIntervalMillis = 100,
+		key = "balance:charge",           // 락 키: balance:charge:123 과 같이 생성
+		type = LockType.REDIS_SIMPLE,                   // Redis Spin Lock 사용
 		expireMillis = 5000
 	)
 	@Transactional
