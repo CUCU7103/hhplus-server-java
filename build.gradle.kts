@@ -48,6 +48,8 @@ dependencies {
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
     //redis, redission 사용
     implementation("org.redisson:redisson-spring-boot-starter:3.46.0")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("com.github.ben-manes.caffeine:caffeine")  // 1차 캐시 (로컬 메모리에 저장하기 위함)
 
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")

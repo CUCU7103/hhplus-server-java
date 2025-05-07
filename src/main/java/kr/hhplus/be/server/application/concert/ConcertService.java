@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.concert;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,15 +49,24 @@ public class ConcertService {
 	 * 	유효한 날짜인지 확인해야 한다.<br/>
 	 * 	-> 컨트롤러 부분에서 처리해야함. ->전달받은 날짜값이 현재일 이전인지 확인 필요
 	 */
+	@Cacheable(
+		cacheNames = "concertSchedule",
+		key = "#concertId + '::' + #command.startDate + '::' + #command.endDate"
+	)
 	@Transactional(readOnly = true)
 	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
+		String cacheKey = concertId + "::" + command.startDate() + "::" + command.endDate();
+		log.info("[CACHE_CHECK] Attempting to get from cache: {}", cacheKey);
 
+		// 여기서 캐시 조회 시도 (자동으로 이루어짐)
+		log.info("[CACHE_MISS] Cache miss for key: {}", cacheKey);
 		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
 		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(concertId,
 			command.startDate(), command.endDate(), ConcertScheduleStatus.AVAILABLE);
 
+		log.info("[CACHE_STORE] Storing result in cache for key: {}", cacheKey);
 		return concertSchedules.stream().map(ConcertScheduleInfo::from).toList();
 	}
 
