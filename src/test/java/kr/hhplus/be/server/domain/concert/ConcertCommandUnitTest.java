@@ -20,9 +20,11 @@ class ConcertCommandUnitTest {
 		// given
 		LocalDate startDate = LocalDate.now().minusDays(1);
 		LocalDate endDate = LocalDate.now().plusDays(1);
+		int page = 1;
+		int size = 20;
 
 		// when & then
-		assertThatThrownBy(() -> new ConcertDateSearchCommand(startDate, endDate))
+		assertThatThrownBy(() -> new ConcertDateSearchCommand(startDate, endDate, page, size))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_DATE.getMessage());
 	}
@@ -32,9 +34,11 @@ class ConcertCommandUnitTest {
 		// given
 		LocalDate startDate = LocalDate.now().plusDays(1);
 		LocalDate endDate = LocalDate.now().minusDays(1);
+		int page = 1;
+		int size = 20;
 
 		// when & then
-		assertThatThrownBy(() -> new ConcertDateSearchCommand(startDate, endDate))
+		assertThatThrownBy(() -> new ConcertDateSearchCommand(startDate, endDate, page, size))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.INVALID_DATE.getMessage());
 	}
@@ -44,10 +48,11 @@ class ConcertCommandUnitTest {
 		// arrange
 		LocalDate startDate = LocalDate.now();
 		LocalDate endDate = LocalDate.now().plusDays(1);
-
+		int page = 1;
+		int size = 20;
 		// act & assert
 		assertThatNoException()
-			.isThrownBy(() -> new ConcertDateSearchCommand(startDate, endDate));
+			.isThrownBy(() -> new ConcertDateSearchCommand(startDate, endDate, page, size));
 	}
 
 	@ParameterizedTest

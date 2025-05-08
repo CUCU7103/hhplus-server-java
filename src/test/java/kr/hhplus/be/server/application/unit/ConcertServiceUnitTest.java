@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,13 +19,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.application.concert.ConcertService;
+import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
 import kr.hhplus.be.server.application.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.application.concert.info.ConcertSeatInfo;
 import kr.hhplus.be.server.domain.concert.Concert;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
+import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleCashRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
@@ -41,6 +43,9 @@ class ConcertServiceUnitTest {
 	@Mock
 	private ConcertRepository concertRepository;
 
+	@Mock
+	private ConcertScheduleCashRepository concertScheduleCashRepository;
+
 	@InjectMocks
 	private ConcertService concertService;
 
@@ -52,7 +57,7 @@ class ConcertServiceUnitTest {
 		String endDate = "2025-06-30";
 
 		// DTO (Request) 객체 준비
-		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate);
+		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate, 1, 20);
 		// repository가 Optional.empty()를 반환하도록 설정
 		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.empty());
 
@@ -77,15 +82,16 @@ class ConcertServiceUnitTest {
 			.build();
 
 		// DTO (Request) 객체 준비
-		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate);
+		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate, 1, 20);
 
 		// stub
 		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
-		given(concertRepository.getConcertScheduleList(
+		given(concertRepository.getConcertScheduleListOrderByDate(
 			concertId,
 			request.toCommand().startDate(),
 			request.toCommand().endDate(),
-			ConcertScheduleStatus.AVAILABLE))
+			ConcertScheduleStatus.AVAILABLE,
+			Sort.by("concertDate").descending()))
 			.willReturn(Collections.emptyList());
 
 		// act
@@ -98,40 +104,58 @@ class ConcertServiceUnitTest {
 
 	@Test
 	void 입력받은_콘서트_스케줄_아이디와_날짜에_해당하는_스케줄_조회에_성공() {
-		//arrange
+		// arrange
 		long concertId = 1L;
-		List<Long> concertScheduleIds = Arrays.asList(1L, 2L, 6L);
-		String startDate = "2025-06-01";
-		String endDate = "2025-06-30";
-		LocalDate date1 = LocalDate.of(2025, 6, 2);
-		LocalDate date2 = LocalDate.of(2025, 6, 5);
-		LocalDate date3 = LocalDate.of(2025, 6, 3);
-		Concert concert = mock(Concert.class);
-		List<LocalDate> dateTimes = Arrays.asList(date1, date2, date3);
-		ConcertDateSearchRequest request = new ConcertDateSearchRequest(startDate, endDate);
-		List<ConcertSchedule> schedules = new ArrayList<>();
+		List<Long> concertScheduleIds = List.of(1L, 2L, 6L);
+		List<LocalDate> dateTimes = List.of(
+			LocalDate.of(2025, 6, 2),
+			LocalDate.of(2025, 6, 5),
+			LocalDate.of(2025, 6, 3)
+		);
+		Concert concert = Concert.builder()
+			.id(concertId)
+			.artistName("윤하")
+			.concertTitle("윤하 콘서트")
+			.build();
 
+		List<ConcertSchedule> schedules = new ArrayList<>();
 		for (int i = 0; i < concertScheduleIds.size(); i++) {
-			schedules.add(
-				ConcertSchedule.of("성균관대", dateTimes.get(i), ConcertScheduleStatus.AVAILABLE,
-					LocalDateTime.now(), concert));
+			ConcertSchedule schedule = ConcertSchedule.of(
+				"성균관대", dateTimes.get(i), ConcertScheduleStatus.AVAILABLE,
+				LocalDateTime.now(), concert
+			);
+			// 방법2) setId()가 없으면 (Reflection 사용)
+			ReflectionTestUtils.setField(schedule, "id", concertScheduleIds.get(i));
+
+			schedules.add(schedule);
 		}
 
-		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
-		given(concertRepository.getConcertScheduleList(concertId,
-			request.toCommand().startDate(),
-			request.toCommand().endDate(), ConcertScheduleStatus.AVAILABLE)).willReturn(schedules);
-		// act
-		List<ConcertScheduleInfo> result = concertService.searchDate(concertId, request.toCommand());
-		// assert
-		assertThat(result).isNotNull();
-		assertThat(result.size()).isEqualTo(3);
-		assertThat(result.get(0).concertDate()).isEqualTo(date1);
-		assertThat(result.get(1).id()).isEqualTo(2L);
-		assertThat(result.get(1).concertDate()).isEqualTo(date2);
-		assertThat(result.get(2).id()).isEqualTo(6L);
-		assertThat(result.get(2).concertDate()).isEqualTo(date3);
+		given(concertRepository.findByConcertId(concertId))
+			.willReturn(Optional.of(concert));
+		given(concertRepository.getConcertScheduleListOrderByDate(
+			concertId,
+			LocalDate.of(2025, 6, 1),
+			LocalDate.of(2025, 6, 30),
+			ConcertScheduleStatus.AVAILABLE,
+			Sort.by("concertDate").descending()
+		))
+			.willReturn(schedules);
 
+		// act
+		List<ConcertScheduleInfo> result = concertService.searchDate(
+			concertId,
+			new ConcertDateSearchCommand(
+				LocalDate.of(2025, 6, 1),
+				LocalDate.of(2025, 6, 30),
+				1, 20
+			)
+		);
+
+		// assert
+		assertThat(result).hasSize(3);
+		assertThat(result.get(0).id()).isEqualTo(1L);
+		assertThat(result.get(1).id()).isEqualTo(2L);
+		assertThat(result.get(2).id()).isEqualTo(6L);
 	}
 
 	@Test
@@ -151,7 +175,6 @@ class ConcertServiceUnitTest {
 		ConcertSeatSearchRequest request = new ConcertSeatSearchRequest(concertDate, 0, 10);
 
 		// stub
-		given(concertRepository.findByConcertId(concertId)).willReturn(Optional.of(concert));
 		// repository가 Optional.empty()를 반환하도록 설정
 		given(concertRepository.getConcertSchedule(concertScheduleId,
 			request.toCommand().concertDate())).willReturn(Optional.empty());
@@ -164,53 +187,55 @@ class ConcertServiceUnitTest {
 
 	@Test
 	void 좌석_조회시_입력받은_콘서트_스케줄_아이디와_날짜의_예약_가능한_좌석조회에_성공() {
-		// arrange - 사전에 Mock 동작 정의 및 테스트에 필요한 데이터 준비
+		// arrange
 		long concertScheduleId = 1L;
+		long concertId = 1L;              // ← Concert ID 도 명시
 		Concert concert = mock(Concert.class);
-		ConcertSchedule concertSchedule = mock(ConcertSchedule.class);
-		ConcertSeatSearchRequest request = new ConcertSeatSearchRequest(
-			"2025-05-20", 0, 10);
+		ConcertSchedule schedule = mock(ConcertSchedule.class);
 
-		ConcertSeat concertSeat1 = ConcertSeat.builder()
-			.id(1L)
-			.section("A")
-			.seatNumber(10)
+		// mock Concert#getId() → 1L
+		when(concert.getId()).thenReturn(concertId);
+		// mock schedule.getConcert() → concert
+		when(schedule.getConcert()).thenReturn(concert);
+
+		ConcertSeatSearchRequest request =
+			new ConcertSeatSearchRequest("2025-05-20", 0, 10);
+
+		// 예시 좌석 엔티티
+		ConcertSeat seat1 = ConcertSeat.builder()
+			.id(1L).section("A").seatNumber(10)
 			.status(ConcertSeatStatus.AVAILABLE)
-			.concertSchedule(concertSchedule)
-			.build();
-
-		ConcertSeat concertSeat2 = ConcertSeat.builder()
-			.id(1L)
-			.section("B")
-			.seatNumber(11)
+			.concertSchedule(schedule).build();
+		ConcertSeat seat2 = ConcertSeat.builder()
+			.id(2L).section("B").seatNumber(11)
 			.status(ConcertSeatStatus.AVAILABLE)
-			.concertSchedule(concertSchedule)
-			.build();
-		List<ConcertSeat> concertSeatList = Arrays.asList(concertSeat1, concertSeat2);
+			.concertSchedule(schedule).build();
+		List<ConcertSeat> seatList = List.of(seat1, seat2);
 
-		// Page<Seat> 를 생성하여 페이징된 결과 형태로 Mock 반환 설정
 		PageRequest pageable = PageRequest.of(request.page(), request.size(), Sort.by("section"));
-		Page<ConcertSeat> seatPage = new PageImpl<>(concertSeatList, pageable, concertSeatList.size());
+		Page<ConcertSeat> seatPage = new PageImpl<>(seatList, pageable, seatList.size());
 
-		// Mock repository 동작 설정
-		given(concertRepository.findByConcertId(concertScheduleId)).willReturn(Optional.of(concert));
-		given(concertRepository.getConcertSchedule(concert.getId(),
+		// stub repository
+		given(concertRepository.getConcertSchedule(
+			concertScheduleId,
 			request.toCommand().concertDate()))
-			.willReturn(Optional.of(concertSchedule)); // Concert 엔티티 객체는 실제 코드와 맞게 세팅
+			.willReturn(Optional.of(schedule));
+
+		given(concertRepository.findByConcertId(concertId))
+			.willReturn(Optional.of(concert));
+
 		given(concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
-			1L, ConcertSeatStatus.AVAILABLE, pageable)
-		).willReturn(seatPage);
+			concertScheduleId, ConcertSeatStatus.AVAILABLE, pageable))
+			.willReturn(seatPage);
 
-		// when - 실제 서비스 메서드 호출
-		List<ConcertSeatInfo> concertSeatInfos = concertService.searchSeat(concertScheduleId, request.toCommand());
+		// when
+		List<ConcertSeatInfo> infos =
+			concertService.searchSeat(concertScheduleId, request.toCommand());
 
-		// then - 결과 검증
-		assertThat(concertSeatInfos).isNotNull();
-		assertThat(concertSeatInfos).hasSize(2); // seat1, seat2가 들어있으므로
-		assertThat(concertSeatInfos.get(0).seatId()).isEqualTo(1L);
-		assertThat(concertSeatInfos.get(0).section()).isEqualTo("A");
-		assertThat(concertSeatInfos.get(1).seatNumber()).isEqualTo(11L);
-		assertThat(concertSeatInfos.get(1).status()).isEqualTo(ConcertSeatStatus.AVAILABLE);
+		// then
+		assertThat(infos).hasSize(2);
+		assertThat(infos.get(0).section()).isEqualTo("A");
+		assertThat(infos.get(1).seatNumber()).isEqualTo(11);
 	}
 
 }

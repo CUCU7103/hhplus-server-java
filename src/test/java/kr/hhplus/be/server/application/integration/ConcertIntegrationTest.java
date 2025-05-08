@@ -47,7 +47,7 @@ public class ConcertIntegrationTest {
 		Concert concert = concertJpaRepository.save(
 			Concert.builder().concertTitle("윤하 콘서트").artistName("윤하").build());
 		ConcertSchedule schedule1 = ConcertSchedule.builder()
-			.concertDate(LocalDate.of(2025, 6, 20))
+			.concertDate(LocalDate.of(2025, 7, 25))
 			.venue("성균관대학교")
 			.status(
 				ConcertScheduleStatus.AVAILABLE)
@@ -73,8 +73,8 @@ public class ConcertIntegrationTest {
 		List<ConcertSchedule> schedules = Arrays.asList(schedule1, schedule2, schedule3);
 		concertScheduleJpaRepository.saveAll(schedules);
 
-		ConcertDateSearchCommand command = new ConcertDateSearchCommand(LocalDate.of(2025, 5, 1),
-			LocalDate.of(2025, 9, 22));
+		ConcertDateSearchCommand command = new ConcertDateSearchCommand(LocalDate.of(2025, 7, 10),
+			LocalDate.of(2025, 9, 22), 1, 20);
 
 		// act
 		List<ConcertScheduleInfo> info = concertService.searchDate(concert.getId(), command);
@@ -83,7 +83,7 @@ public class ConcertIntegrationTest {
 			.hasSize(3)
 			.extracting("concertDate") // 또는 .extracting(ConcertScheduleInfo::getConcertDate)
 			.containsExactlyInAnyOrder(
-				LocalDate.of(2025, 6, 20),
+				LocalDate.of(2025, 7, 25),
 				LocalDate.of(2025, 7, 22),
 				LocalDate.of(2025, 8, 22)
 			);

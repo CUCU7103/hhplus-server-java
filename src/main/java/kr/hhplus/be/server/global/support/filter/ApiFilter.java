@@ -106,7 +106,7 @@ public class ApiFilter extends OncePerRequestFilter {
 				if (isError) {
 					log.error("{} BODY [{}]:\n{}", label, contentType, pretty);  // 에러 레벨로 로그
 				} else {
-					log.info("{} BODY [{}]:\n{}", label, contentType, pretty);  // 정보 레벨로 로그
+					log.debug("{} BODY [{}]:\n{}", label, contentType, pretty);  // 정보 레벨로 로그
 				}
 			} else {
 				if (isError) {
