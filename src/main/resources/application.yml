@@ -47,12 +47,12 @@ spring:
 
   data:
     redis:
+      # 2) Redisson 전용 설정 파일 경로
+      redisson:
+        config: classpath:redisson.yml  # redisson.yaml 파일 사용 :contentReference[oaicite:8]{index=8}
       host: localhost
       port: 6379
 
-    # 2) Redisson 전용 설정 파일 경로
-    redisson:
-      config: classpath:redisson.yml  # redisson.yaml 파일 사용 :contentReference[oaicite:8]{index=8}
 
 
 
