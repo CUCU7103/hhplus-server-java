@@ -11,17 +11,15 @@ public record ConcertScheduleInfo(
 	long id,
 	String venue,
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-	LocalDate concertDate,
-	long totalCount) {
+	LocalDate concertDate) {
 
 	@Builder
 	public ConcertScheduleInfo(long id, String venue,
-		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul") LocalDate concertDate,
-		long totalCount) {
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul") LocalDate concertDate
+	) {
 		this.id = id;
 		this.venue = venue;
 		this.concertDate = concertDate;
-		this.totalCount = totalCount;
 	}
 
 	public static ConcertScheduleInfo from(ConcertSchedule concertSchedule) {
