@@ -44,3 +44,17 @@ spring:
     url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
     username: application
     password: application
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+    # 2) Redisson 전용 설정 파일 경로
+    redisson:
+      config: classpath:redisson.yml  # redisson.yaml 파일 사용 :contentReference[oaicite:8]{index=8}
+
+
+
+
+
