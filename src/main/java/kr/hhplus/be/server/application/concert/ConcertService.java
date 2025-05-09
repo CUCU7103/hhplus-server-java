@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.concert;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -9,17 +10,21 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.github.benmanes.caffeine.cache.Cache;
+
 import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
 import kr.hhplus.be.server.application.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.application.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.application.concert.info.ConcertSeatInfo;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
+import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleCashRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.global.support.page.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +37,8 @@ public class ConcertService {
 	 * 먼저 콘서트 서비스에  콘서트 스케줄, 콘서트 관련 로직들을 전부 몰아서 넣고 많은 것 같으면 분리 진행하기
 	 */
 	private final ConcertRepository concertRepository;
+	private final ConcertScheduleCashRepository cacheRepository;
+	private final Cache<String, List<ConcertScheduleInfo>> localCache;
 
 	/**
 	 * 	예약 가능 일자 조회 기능 <br/>
@@ -50,15 +57,74 @@ public class ConcertService {
 	 */
 	@Transactional(readOnly = true)
 	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
+		String key = concertId + "::schedule::" + command.startDate() + "::" + command.endDate();
 
+		// 1) L1: Caffeine 로컬 캐시 조회
+		List<ConcertScheduleInfo> fromLocal = localCache.getIfPresent(key);
+		if (fromLocal != null) {
+			log.info("[Local Cache HIT]");
+			log.info("[LocalCache] list size {}", fromLocal.size());
+			return PaginationUtils.getPage(fromLocal, command.page(), command.size());
+		}
+		log.info("[Cache MISS] REDIS 조회 실행");
+		// 2) L2: Redis 원격 캐시 조회
+		ConcertScheduleInfo[] fromRedis = cacheRepository.get(key, ConcertScheduleInfo[].class);
+		if (fromRedis != null) {
+			List<ConcertScheduleInfo> redisList = Arrays.asList(fromRedis);
+			log.info("[Redis Cache HIT]");
+			log.info("[Redis Cache] list size {}", redisList.size());
+			// 로컬 캐시에 워밍업
+			localCache.put(key, redisList);
+			return PaginationUtils.getPage(redisList, command.page(), command.size());
+		}
+		// 3) DB 조회
+		log.info("[Cache MISS] DB 조회 실행");
 		concertRepository.findByConcertId(concertId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
-		List<ConcertSchedule> concertSchedules = concertRepository.getConcertScheduleList(concertId,
-			command.startDate(), command.endDate(), ConcertScheduleStatus.AVAILABLE);
+		List<ConcertSchedule> concertSchedules = concertRepository
+			.getConcertScheduleListOrderByDate(
+				concertId,
+				command.startDate(), command.endDate(),
+				ConcertScheduleStatus.AVAILABLE,
+				Sort.by("concertDate").descending()
+			);
 
-		return concertSchedules.stream().map(ConcertScheduleInfo::from).toList();
+		List<ConcertScheduleInfo> allResults = concertSchedules.stream()
+			.map(ConcertScheduleInfo::from)
+			.toList();
+
+		// 4) L2: Redis에 저장 (직렬화 + TTL)
+		cacheRepository.put(key, allResults, 3L);
+		log.info("[Redis Cache SAVE] key={}", key);
+
+		// 5) L1: 로컬 캐시에 저장
+		localCache.put(key, allResults);
+		log.info("[Local Cache SAVE] key={}", key);
+
+		return PaginationUtils.getPage(allResults, command.page(), command.size());
 	}
+
+/*	@Transactional(readOnly = true)
+	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {
+		// DB 조회
+		concertRepository.findByConcertId(concertId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
+
+		List<ConcertSchedule> concertSchedules = concertRepository
+			.getConcertScheduleListOrderByDate(
+				concertId,
+				command.startDate(), command.endDate(),
+				ConcertScheduleStatus.AVAILABLE,
+				Sort.by("concertDate").descending()
+			);
+
+		List<ConcertScheduleInfo> allResults = concertSchedules.stream()
+			.map(ConcertScheduleInfo::from)
+			.toList();
+
+		return PaginationUtils.getPage(allResults, command.page(), command.size());
+	}*/
 
 	/**
 	 * 	예약가능 좌석 조회 기능 <br/>
@@ -75,8 +141,7 @@ public class ConcertService {
 	@Transactional(readOnly = true)
 	public List<ConcertSeatInfo> searchSeat(long concertScheduleId, ConcertSeatSearchCommand command) {
 
-		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(concertScheduleId,
-				command.concertDate())
+		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(concertScheduleId, command.concertDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 
 		concertRepository.findByConcertId(concertSchedule.getConcert().getId())
@@ -84,13 +149,10 @@ public class ConcertService {
 
 		Pageable pageable = PageRequest.of(command.page(), command.size(), Sort.by("section"));
 
-		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(
-			concertScheduleId,
+		Page<ConcertSeat> seats = concertRepository.findByConcertScheduleIdAndSeatStatusContaining(concertScheduleId,
 			ConcertSeatStatus.AVAILABLE, pageable);
 		log.info("test {} ", seats.stream().toList());
-		return seats.stream()
-			.map(ConcertSeatInfo::from)
-			.toList();
+		return seats.stream().map(ConcertSeatInfo::from).toList();
 
 	}
 

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import kr.hhplus.be.server.domain.concert.Concert;
@@ -34,6 +35,18 @@ public class ConcertRepositoryImpl implements ConcertRepository {
 		ConcertScheduleStatus concertStatus) {
 		return concertScheduleJpaRepository.findByConcertIdAndConcertDateBetweenAndStatus(concertId, start, end,
 			concertStatus);
+	}
+
+	@Override
+	public List<ConcertSchedule> getConcertScheduleListOrderByDate(long concertId, LocalDate start, LocalDate end,
+		ConcertScheduleStatus concertStatus, Sort sort) {
+		return concertScheduleJpaRepository.findByConcertIdAndConcertDateBetweenAndStatus(concertId, start, end,
+			concertStatus, sort);
+	}
+
+	@Override
+	public Optional<ConcertSchedule> getConcertScheduleId(long concertScheduleId) {
+		return concertScheduleJpaRepository.findById(concertScheduleId);
 	}
 
 	@Override

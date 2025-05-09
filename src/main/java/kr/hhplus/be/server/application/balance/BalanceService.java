@@ -3,7 +3,6 @@ package kr.hhplus.be.server.application.balance;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +14,14 @@ import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.global.support.lock.model.LockType;
+import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
-	private final ApplicationEventPublisher eventPublisher;
+
 	private final BalanceRepository balanceRepository;
 	private final UserRepository userRepository;
 
@@ -36,6 +37,11 @@ public class BalanceService {
 	}
 
 	// 유저의 포인트 충전 메서드
+	@WithLock(
+		key = "balance:charge",           // 락 키: balance:charge:123 과 같이 생성
+		type = LockType.REDIS_SIMPLE,                   // Redis Spin Lock 사용
+		expireMillis = 5000
+	)
 	@Transactional
 	public BalanceInfo chargePoint(long userId, ChargeBalanceCommand command) {
 		userRepository.findById(userId).orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_USER));
@@ -44,7 +50,7 @@ public class BalanceService {
 				.orElseGet(() -> Balance.create(MoneyVO.create(BigDecimal.ZERO), LocalDateTime.now(), userId));
 			MoneyVO previousPoint = balance.getMoneyVO();
 			Balance delta = balance.chargePoint(command.chargePoint());
-			balanceRepository.save(BalanceHistory.createdHistory(delta, previousPoint));
+			balanceRepository.saveAndFlush(BalanceHistory.createdHistory(delta, previousPoint));
 			return BalanceInfo.from(balance.getId(), delta.getMoneyVO(), userId);
 		} catch (OptimisticLockException e) {
 			throw new CustomException(CustomErrorCode.CHARGED_ERROR);

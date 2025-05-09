@@ -14,4 +14,6 @@ public interface BalanceRepository {
 	Optional<Balance> findByIdAndUserId(long balanceId, long userId);
 
 	BalanceHistory save(BalanceHistory history);
+
+	BalanceHistory saveAndFlush(BalanceHistory history);
 }
