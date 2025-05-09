@@ -48,14 +48,14 @@ public class RedisAndCacheTest {
 		// arrange
 		String redisKey = "test-key";
 		String redisValue = "test-value";
-		long expireTime = 10L;
+		long expireTime = 1L;
 		// act
 		concertScheduleCashRepository.put(redisKey, redisValue, expireTime);
 		String value = concertScheduleCashRepository.get(redisKey, String.class);
 		// assert
 		assertThat(value).isEqualTo(redisValue);
 
-		Thread.sleep((expireTime + 1) * 1000);
+		Thread.sleep(61000);
 		assertThat(concertScheduleCashRepository.get(redisKey, String.class))
 			.isNull();
 	}
