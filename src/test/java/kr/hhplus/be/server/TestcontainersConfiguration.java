@@ -5,6 +5,11 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
+
 import jakarta.annotation.PreDestroy;
 
 @Configuration
@@ -30,7 +35,18 @@ class TestcontainersConfiguration {
 
 	static {
 		REDIS_CONTAINER = new GenericContainer<>(DockerImageName.parse("redis:7.0.5-alpine"))
-			.withExposedPorts(6379);
+			.withExposedPorts(6379)
+			.withCreateContainerCmdModifier(cmd ->
+				cmd.withHostConfig(
+					new HostConfig()
+						.withPortBindings(
+							new PortBinding(
+								Ports.Binding.bindPort(6380),
+								new ExposedPort(6379)
+							)
+						)
+				)
+			);
 		REDIS_CONTAINER.start();
 
 		// Spring Data Redis

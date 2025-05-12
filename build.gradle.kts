@@ -47,7 +47,10 @@ dependencies {
 
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
     //redis, redission 사용
+    implementation("org.springframework.boot:spring-boot-starter-data-redis") // Lettuce 포함
     implementation("org.redisson:redisson-spring-boot-starter:3.46.0")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")

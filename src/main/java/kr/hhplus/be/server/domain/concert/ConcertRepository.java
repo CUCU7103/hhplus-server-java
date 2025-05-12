@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
@@ -23,6 +24,16 @@ public interface ConcertRepository {
 		LocalDate end,
 		ConcertScheduleStatus concertStatus
 	);
+
+	List<ConcertSchedule> getConcertScheduleListOrderByDate(
+		long concertId,
+		LocalDate start,
+		LocalDate end,
+		ConcertScheduleStatus concertStatus,
+		Sort sort
+	);
+
+	Optional<ConcertSchedule> getConcertScheduleId(long concertScheduleId);
 
 	// concert
 	Optional<Concert> findByConcertId(long concertId);
