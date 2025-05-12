@@ -13,6 +13,8 @@ import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.global.support.lock.model.LockType;
+import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,9 +36,15 @@ public class PaymentService {
 	 *  좌석의 결제 정보를 저장
 	 *  토큰의 상태를 만료 처리한다.
 	 */
+	@WithLock(
+		key = "payment:payment",
+		type = LockType.REDIS_PUBSUB, timeoutMillis = 4000,
+		retryIntervalMillis = 200,
+		expireMillis = 5000)
 	@Transactional
 	public PaymentInfo payment(long reservationId, long userId, PaymentCommand command) {
 		// 메서드를 누가 부를지 모른다!
+		// balance에 비관적 락 적용함
 		Balance balance = balanceRepository.findByUserId(userId).orElseThrow(
 			() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
 		Reservation reservation = reservationRepository.getByConcertReservationId(reservationId)

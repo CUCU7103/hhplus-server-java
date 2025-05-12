@@ -30,4 +30,9 @@ public class BalanceRepositoryImpl implements BalanceRepository {
 	public Optional<Balance> findByIdAndUserId(long balanceId, long userId) {
 		return balanceJpaRepository.findByIdAndUserId(balanceId, userId);
 	}
+
+	@Override
+	public BalanceHistory saveAndFlush(BalanceHistory history) {
+		return balanceHistoryJpaRepository.saveAndFlush(history);
+	}
 }

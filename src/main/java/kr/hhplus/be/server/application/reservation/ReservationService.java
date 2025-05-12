@@ -19,6 +19,8 @@ import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.global.support.lock.model.LockType;
+import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -42,6 +44,12 @@ public class ReservationService {
 	 * 낙관적 락을 걸거다
 	 *
 	 * */
+	@WithLock(
+		key = "seat:reserver",
+		type = LockType.REDIS_SPIN, timeoutMillis = 4000,
+		retryIntervalMillis = 200,
+		expireMillis = 5000
+	)
 	@Transactional
 	public ReservationInfo reserve(long seatId, long userId, ReservationCommand command) {
 		// 유효한 스케줄인지 확인

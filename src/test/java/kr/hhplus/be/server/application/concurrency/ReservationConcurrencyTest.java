@@ -31,9 +31,11 @@ import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
+import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Slf4j
 public class ReservationConcurrencyTest {
 
 	@Autowired
@@ -96,6 +98,7 @@ public class ReservationConcurrencyTest {
 					reservationService.reserve(seat.getId(), userIds.get(count), command);
 					successCount.incrementAndGet();
 				} catch (CustomException e) {
+					log.error("에러 확인용 {}", e.getMessage());
 					failCount.incrementAndGet(); // 도메인 예외 포함 (락 충돌 등)
 				} finally {
 					latch.countDown();
