@@ -67,16 +67,30 @@ public class ConcertService {
 			return PaginationUtils.getPage(fromLocal, command.page(), command.size());
 		}
 		log.info("[Cache MISS] REDIS 조회 실행");
-		// 2) L2: Redis 원격 캐시 조회
-		ConcertScheduleInfo[] fromRedis = cacheRepository.get(key, ConcertScheduleInfo[].class);
+
+		// 2) L2: Redis 원격 캐시 조회 - 예외 처리 추가
+		ConcertScheduleInfo[] fromRedis = null;
+		try {
+			fromRedis = cacheRepository.get(key, ConcertScheduleInfo[].class);
+		} catch (Exception e) {
+			// Redis 접근 과정에서 발생하는 모든 예외 로깅 후 진행 (circuit breaker 패턴)
+			log.error("[Redis Cache 조회 실패] key={}, 오류={}", key, e.getMessage(), e);
+			// Redis 실패 시 바로 DB 조회로 진행
+		}
+
 		if (fromRedis != null) {
 			List<ConcertScheduleInfo> redisList = Arrays.asList(fromRedis);
 			log.info("[Redis Cache HIT]");
 			log.info("[Redis Cache] list size {}", redisList.size());
 			// 로컬 캐시에 워밍업
-			localCache.put(key, redisList);
+			try {
+				localCache.put(key, redisList);
+			} catch (Exception e) {
+				log.error("[Local Cache 저장 실패] key={}, 오류={}", key, e.getMessage(), e);
+			}
 			return PaginationUtils.getPage(redisList, command.page(), command.size());
 		}
+
 		// 3) DB 조회
 		log.info("[Cache MISS] DB 조회 실행");
 		concertRepository.findByConcertId(concertId)
@@ -94,13 +108,23 @@ public class ConcertService {
 			.map(ConcertScheduleInfo::from)
 			.toList();
 
-		// 4) L2: Redis에 저장 (직렬화 + TTL)
-		cacheRepository.put(key, allResults, 3L);
-		log.info("[Redis Cache SAVE] key={}", key);
+		// 4) L2: Redis에 저장 - 예외 처리 추가
+		try {
+			cacheRepository.put(key, allResults, 3L);
+			log.info("[Redis Cache SAVE] key={}", key);
+		} catch (Exception e) {
+			// Redis 저장 실패 시에도 서비스는 계속 진행
+			log.error("[Redis Cache 저장 실패] key={}, 오류={}", key, e.getMessage(), e);
+		}
 
 		// 5) L1: 로컬 캐시에 저장
-		localCache.put(key, allResults);
-		log.info("[Local Cache SAVE] key={}", key);
+		try {
+			localCache.put(key, allResults);
+			log.info("[Local Cache SAVE] key={}", key);
+		} catch (Exception e) {
+			// 로컬 캐시 저장 실패 시에도 서비스는 계속 진행
+			log.error("[Local Cache 저장 실패] key={}, 오류={}", key, e.getMessage(), e);
+		}
 
 		return PaginationUtils.getPage(allResults, command.page(), command.size());
 	}
