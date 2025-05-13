@@ -45,7 +45,7 @@ public class ReservationService {
 	 *
 	 * */
 	@WithLock(
-		key = "seat:reserver",
+		key = "'seat:reserver' + #seatId + ':' + #userId",
 		type = LockType.REDIS_SPIN, timeoutMillis = 4000,
 		retryIntervalMillis = 200,
 		expireMillis = 5000

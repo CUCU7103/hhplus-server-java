@@ -37,7 +37,7 @@ public class PaymentService {
 	 *  토큰의 상태를 만료 처리한다.
 	 */
 	@WithLock(
-		key = "payment:payment",
+		key = "'payment:' + #userId + ':' + #reservationId",
 		type = LockType.REDIS_PUBSUB, timeoutMillis = 4000,
 		retryIntervalMillis = 200,
 		expireMillis = 5000)

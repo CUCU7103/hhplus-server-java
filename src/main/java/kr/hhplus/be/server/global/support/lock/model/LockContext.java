@@ -1,8 +1,10 @@
 package kr.hhplus.be.server.global.support.lock.model;
 
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class LockContext {
 
 	private final String key;  // 락을 식별하기 위한 고유 키
@@ -32,8 +34,10 @@ public class LockContext {
 	}
 
 	public static LockContext createPubSubLockContext(String key, long timeoutMillis, long expireMillis) {
-		long retryIntervalMillis = 0;
-		return new LockContext(key, timeoutMillis, retryIntervalMillis, expireMillis);
+		if (expireMillis <= timeoutMillis) {
+			throw new IllegalArgumentException("만료 시간(expireMillis)은 타임아웃 시간(timeoutMillis)보다 커야 합니다.");
+		}
+		return new LockContext(key, timeoutMillis, 0, expireMillis);
 	}
 
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import kr.hhplus.be.server.global.support.lock.model.LockContext;
 import kr.hhplus.be.server.global.support.lock.model.LockStrategy;
 import kr.hhplus.be.server.global.support.lock.model.TimeProvider;
+import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +61,12 @@ public class RedisSpinLockStrategy implements LockStrategy {
 
 	// 키별로 생성된 고유 토큰을 저장하여 해제 시 검증에 사용
 	private final Map<String, String> lockValues = new ConcurrentHashMap<>();
+
+	@Override
+	public LockContext createContext(String key, WithLock lockAnnotation) {
+		return LockContext.createSpinLockContext(key, lockAnnotation.timeoutMillis(),
+			lockAnnotation.retryIntervalMillis(), lockAnnotation.expireMillis());
+	}
 
 	@Override
 	public boolean lock(LockContext context) {

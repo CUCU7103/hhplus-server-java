@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import kr.hhplus.be.server.global.support.lock.model.LockContext;
 import kr.hhplus.be.server.global.support.lock.model.LockStrategy;
+import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,12 @@ public class RedisSimpleLockStrategy implements LockStrategy {
 	// 1회 정의 후 재사용
 	private static final DefaultRedisScript<Long> UNLOCK_SCRIPT =
 		new DefaultRedisScript<>(UNLOCK_LUA, Long.class);
+
+	//  해당 전략에 맞는 LockContext 생성 로직
+	@Override
+	public LockContext createContext(String key, WithLock lockAnnotation) {
+		return LockContext.createSimpleLockContext(key, lockAnnotation.expireMillis());
+	}
 
 	@Override
 	public boolean lock(LockContext context) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import kr.hhplus.be.server.global.support.lock.model.LockContext;
 import kr.hhplus.be.server.global.support.lock.model.LockStrategy;
+import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,6 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 public class RedisPubSubLockStrategy implements LockStrategy {
 
 	private final RedissonClient redissonClient; // Redis 서버와 통신하는 Redisson 라이브러리의 클라이언트 객체
+
+	@Override
+	public LockContext createContext(String key, WithLock lockAnnotation) {
+		return LockContext.createPubSubLockContext(key, lockAnnotation.timeoutMillis(), lockAnnotation.expireMillis());
+	}
 
 	@Override
 	public boolean lock(LockContext context) { // 락 획득 시도 메서드, 성공 여부를 불리언으로 반환
