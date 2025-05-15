@@ -26,7 +26,7 @@ public class ConcertController {
 	private final ConcertService concertService;
 
 	/**
-	 *  예약 가능 날짜 조회
+	 * 예약 가능 날짜 조회
 	 */
 	@GetMapping("/{concertId}/available-date")
 	public ResponseEntity<ConcertDateSearchResponse> searchDate(
@@ -38,8 +38,7 @@ public class ConcertController {
 	}
 
 	/**
-	 *  예약 가능 좌석 조회
-	 *
+	 * 예약 가능 좌석 조회
 	 */
 	@GetMapping("/{concertScheduleId}/seats")
 	public ResponseEntity<ConcertSeatSearchResponse> searchSeat(
@@ -48,4 +47,10 @@ public class ConcertController {
 		return ResponseEntity.ok()
 			.body(ConcertSeatSearchResponse.of(concertService.searchSeat(concertScheduleId, request.toCommand())));
 	}
+
+	@GetMapping("/leaderboards")
+	public ResponseEntity<Object> searchRank() {
+		return ResponseEntity.ok().body(concertService.top5ConcertSchedule());
+	}
+
 }

@@ -16,14 +16,7 @@ import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 public interface ConcertRepository {
 
 	// schedule
-	Optional<ConcertSchedule> getConcertSchedule(long concertScheduleId, LocalDate localDate);
-
-	List<ConcertSchedule> getConcertScheduleList(
-		long concertId,
-		LocalDate start,
-		LocalDate end,
-		ConcertScheduleStatus concertStatus
-	);
+	Optional<ConcertSchedule> getConcertScheduleWithDate(long concertScheduleId, LocalDate localDate);
 
 	List<ConcertSchedule> getConcertScheduleListOrderByDate(
 		long concertId,
@@ -33,7 +26,7 @@ public interface ConcertRepository {
 		Sort sort
 	);
 
-	Optional<ConcertSchedule> getConcertScheduleId(long concertScheduleId);
+	Optional<ConcertSchedule> findConcertSchedule(long concertScheduleId);
 
 	// concert
 	Optional<Concert> findByConcertId(long concertId);
@@ -47,5 +40,7 @@ public interface ConcertRepository {
 		ConcertSeatStatus available);
 
 	Optional<ConcertSeat> getByConcertSeatId(long seatId);
+
+	long getAvailableConcertSeat(long concertScheduleId);
 
 }
