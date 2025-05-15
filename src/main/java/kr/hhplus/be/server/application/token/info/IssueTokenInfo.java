@@ -1,27 +1,23 @@
 package kr.hhplus.be.server.application.token.info;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import kr.hhplus.be.server.domain.token.Token;
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import lombok.Builder;
 
-public record IssueTokenInfo(String tokenValue, TokenStatus status, LocalDateTime createdAt, long userId) {
+public record IssueTokenInfo(long userId, Instant issuedAt, double epochSeconds) {
 	@Builder
-	public IssueTokenInfo(String tokenValue, TokenStatus status, LocalDateTime createdAt, long userId) {
-		this.tokenValue = tokenValue;
-		this.status = status;
-		this.createdAt = createdAt;
+	public IssueTokenInfo(long userId, Instant issuedAt, double epochSeconds) {
 		this.userId = userId;
+		this.issuedAt = issuedAt;
+		this.epochSeconds = epochSeconds;
 	}
 
 	public static IssueTokenInfo from(Token token) {
 		return IssueTokenInfo.builder()
-			.tokenValue(token.getTokenValue())
-			.status(token.getStatus())
-			.createdAt(token.getCreatedAt())
-			.userId(token.getUser().getId())
+			.userId(token.getUserId())
+			.issuedAt(token.getIssuedAt())
+			.epochSeconds(token.getEpochSeconds())
 			.build();
 	}
-
 }

@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.token.info;
 
 import java.time.LocalDateTime;
 
-import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenStatus;
 import lombok.Builder;
 
@@ -18,7 +17,7 @@ public record ActiveTokenInfo(String tokenValue, TokenStatus status, LocalDateTi
 		this.waitingRank = waitingRank;
 	}
 
-	public static ActiveTokenInfo from(Token token, int waitingRank) {
+/*	public static ActiveTokenInfo from(Token token, int waitingRank) {
 		return ActiveTokenInfo.builder()
 			.tokenValue(token.getTokenValue())
 			.status(token.getStatus())
@@ -26,6 +25,6 @@ public record ActiveTokenInfo(String tokenValue, TokenStatus status, LocalDateTi
 			.userId(token.getUser().getId())
 			.waitingRank(waitingRank)
 			.build();
-	}
+	}*/
 
 }
