@@ -1,16 +1,10 @@
 package kr.hhplus.be.server.global.support.aop;
 
-import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +20,7 @@ public class TokenExpirationAspect {
 	private final TokenRepository tokenRepository;
 	private final PlatformTransactionManager transactionManager;
 
-	@AfterReturning(
+/*	@AfterReturning(
 		pointcut = "@annotation(ExpireTokenAfterCommit) && args(reservationId, userId, ..)",
 		returning = "ret",
 		argNames = "reservationId,userId,ret")
@@ -56,7 +50,7 @@ public class TokenExpirationAspect {
 				}
 			);
 		}
-	}
+	}*/
 
 }
 

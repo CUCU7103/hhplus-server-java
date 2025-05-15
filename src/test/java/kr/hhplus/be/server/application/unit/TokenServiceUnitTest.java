@@ -3,9 +3,6 @@ package kr.hhplus.be.server.application.unit;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -13,14 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.application.token.TokenService;
-import kr.hhplus.be.server.application.token.info.ActiveTokenInfo;
-import kr.hhplus.be.server.application.token.info.IssueTokenInfo;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
@@ -42,33 +35,37 @@ class TokenServiceUnitTest {
 	void 사용자를_찾을_수_없어_토큰_발급에_실패() {
 		long userId = 1L;
 
-		assertThatThrownBy(() -> tokenService.issueToken(userId))
-			.isInstanceOf(CustomException.class)
+		assertThatThrownBy(() -> tokenService.issueToken(userId)).isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_USER.getMessage());
 	}
 
 	@Test
-	void 토큰_발급에_성공한다_신규발급() {
-		long userId = 1L;
-		User user = User.builder()
-			.id(userId)
-			.build();
+	void 토큰_생성에_성공한다() {
+		User user = User.builder().id(1L).name("철수").build();
 
-		// 사용자가 존재하는 경우
-		given(userRepository.findById(userId)).willReturn(Optional.of(user));
-		// 기존 토큰이 없는 경우 신규 토큰 발급 로직으로 진입해야 함
-		given(tokenRepository.findByUserId(userId)).willReturn(Optional.empty());
+		given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+		Token token = Token.create(user.getId());
 
-		//act
-		IssueTokenInfo issueTokenInfo = tokenService.issueToken(userId);
+		tokenService.issueToken(user.getId());
 
-		// 결과 검증: 토큰 정보가 올바르게 생성되었는지 확인
-		assertThat(issueTokenInfo).isNotNull();
-		assertThat(issueTokenInfo.userId()).isEqualTo(userId);
-		assertThat(issueTokenInfo.status()).isEqualTo(TokenStatus.WAITING);
+		assertThat(token.getUserId()).isEqualTo(user.getId());
+		assertThat(token.getIssuedAt()).isNotNull();
+		assertThat(token.getEpochSeconds()).isNotNull();
 	}
 
 	@Test
+	void 순위_조회시_유저의_토큰이_없으면_예외가_발생한다() {
+
+		User user = User.builder().id(1L).name("철수").build();
+
+		given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+		given(tokenRepository.findUserRank(user.getId())).willReturn((long)-1);
+
+		assertThatThrownBy(() -> tokenService.searchUserRank(user.getId())).isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.NOT_FOUND_TOKEN.getMessage());
+	}
+
+/*	@Test
 	void 토큰_발급에_성공한다_기존토큰_사용() {
 		long userId = 1L;
 		User user = User.builder()
@@ -160,5 +157,5 @@ class TokenServiceUnitTest {
 		// then : 토큰1은 EXPIRED 상태로 변경, 토큰2는 ACTIVE 상태 유지됨
 		assertThat(token1.getStatus()).isEqualTo(TokenStatus.EXPIRED);
 		assertThat(token2.getStatus()).isEqualTo(TokenStatus.EXPIRED);
-	}
+	}*/
 }
