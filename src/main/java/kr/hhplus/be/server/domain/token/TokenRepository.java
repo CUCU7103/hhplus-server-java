@@ -1,20 +1,31 @@
 package kr.hhplus.be.server.domain.token;
 
-import java.util.List;
+import java.time.Duration;
 import java.util.Optional;
+import java.util.Set;
 
 public interface TokenRepository {
 
-	Optional<Token> findByUserIdAndWaitingToken(long userId);
+	boolean issueTokenNotExist(Token token);
 
 	Optional<Token> findByUserId(long userId);
 
-	long countByStatus(TokenStatus tokenStatus);
-
-	List<Token> findAllByStatus(TokenStatus tokenStatus);
-
-	Optional<Token> findTokenWithWriteLock(long tokenId);
-
 	Token save(Token token);
+	
+	// redis 전용 메서드 추가
+	long findUserRank(long userId);
 
+	Set<String> top1000WaitingTokens();
+
+	void activeQueue(String userId);
+
+	void pushActiveQueue(String userId, String expireMillis, Duration ttl);
+
+	void removeWaitingTokens(Object topTokens);
+
+	Set<String> scanActiveQueue();
+
+	boolean hasKey(String userId);
+
+	void removeActiveTokens(String userId);
 }
