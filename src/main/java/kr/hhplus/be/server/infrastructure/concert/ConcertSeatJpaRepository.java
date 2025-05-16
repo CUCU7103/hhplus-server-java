@@ -26,4 +26,5 @@ public interface ConcertSeatJpaRepository extends JpaRepository<ConcertSeat, Lon
 		@Param("localDate") LocalDate concertDate,
 		@Param("available") ConcertSeatStatus available);
 
+	long countByIdAndStatus(long concertId, ConcertSeatStatus concertSeatStatus);
 }

@@ -69,7 +69,7 @@ public class ReservationServiceUnitTest {
 
 		// stub
 		// repository가 Optional.empty()를 반환하도록 설정
-		given(concertRepository.getConcertSchedule(request.toCommand().concertScheduleId(),
+		given(concertRepository.getConcertScheduleWithDate(request.toCommand().concertScheduleId(),
 			request.toCommand().concertScheduleDate())).willReturn(Optional.of(concertSchedule));
 		given(concertRepository.getConcertSeatWhere(seatId, request.toCommand().concertScheduleId(),
 			request.toCommand()
@@ -109,7 +109,7 @@ public class ReservationServiceUnitTest {
 		ReservationCommand command = new ReservationCommand(concertScheduleId, concertScheduleDate);
 
 		// Repository 스터빙
-		given(concertRepository.getConcertSchedule(concertScheduleId, concertScheduleDate))
+		given(concertRepository.getConcertScheduleWithDate(concertScheduleId, concertScheduleDate))
 			.willReturn(Optional.of(concertSchedule));
 		given(concertRepository.getConcertSeatWhere(seatId, concertScheduleId, concertScheduleDate,
 			ConcertSeatStatus.AVAILABLE))
@@ -170,7 +170,7 @@ public class ReservationServiceUnitTest {
 
 		ReservationCommand command = new ReservationCommand(concertScheduleId, concertScheduleDate);
 
-		given(concertRepository.getConcertSchedule(concertScheduleId, concertScheduleDate)).willReturn(
+		given(concertRepository.getConcertScheduleWithDate(concertScheduleId, concertScheduleDate)).willReturn(
 			Optional.of(concertSchedule));
 		given(concertRepository.getConcertSeatWhere(seatId, concertScheduleId, concertScheduleDate,
 			ConcertSeatStatus.AVAILABLE)).willReturn(Optional.of(seat));

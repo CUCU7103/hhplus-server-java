@@ -34,4 +34,5 @@ public interface ConcertScheduleJpaRepository extends JpaRepository<ConcertSched
 	List<ConcertSchedule> findByConcertIdAndConcertDateBetweenAndStatus(long concertId, LocalDate start, LocalDate end,
 		ConcertScheduleStatus status, Sort sort);
 
+	long countByIdAndStatus(long concertScheduleId, ConcertScheduleStatus concertScheduleStatus);
 }
