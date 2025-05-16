@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.presentation.token;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +25,12 @@ public class TokenController {
 	public ResponseEntity<TokenResponse> issueToken(@CurrentUserId Long userId) {
 		return ResponseEntity.ok()
 			.body(TokenResponse.from("토큰 발급 성공", tokenService.issueToken(userId)));
+	}
+
+	@GetMapping("/rank")
+	public ResponseEntity<TokenSearchResponse> searchTokenRank(@CurrentUserId Long userId) {
+		return ResponseEntity.ok()
+			.body(TokenSearchResponse.from("토큰 발급 성공", tokenService.searchTokenRank(userId)));
 	}
 
 }
