@@ -15,7 +15,7 @@ public record IssueTokenInfo(long userId, Instant issuedAt, double epochSeconds)
 
 	public static IssueTokenInfo from(Token token) {
 		return IssueTokenInfo.builder()
-			.userId(token.getUserId())
+			.userId(Long.parseLong(token.getUserId()))
 			.issuedAt(token.getIssuedAt())
 			.epochSeconds(token.getEpochSeconds())
 			.build();

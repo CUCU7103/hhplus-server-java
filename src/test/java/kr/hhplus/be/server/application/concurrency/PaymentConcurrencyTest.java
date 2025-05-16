@@ -29,7 +29,6 @@ import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
-import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.infrastructure.balance.BalanceJpaRepository;
@@ -38,7 +37,6 @@ import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 import kr.hhplus.be.server.infrastructure.payment.PaymentJpaRepository;
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository;
-import kr.hhplus.be.server.infrastructure.token.TokenJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,8 +61,6 @@ public class PaymentConcurrencyTest {
 	private PaymentService paymentService;
 	@Autowired
 	private PaymentJpaRepository paymentJpaRepository;
-	@Autowired
-	private TokenJpaRepository tokenJpaRepository;
 
 	@BeforeEach
 	void clear() {
@@ -74,7 +70,6 @@ public class PaymentConcurrencyTest {
 		concertSeatJpaRepository.deleteAll();
 		concertScheduleJpaRepository.deleteAll();
 		concertJpaRepository.deleteAll();
-		tokenJpaRepository.deleteAll();
 		balanceJpaRepository.deleteAll();
 		userJpaRepository.deleteAll();
 
@@ -240,7 +235,6 @@ public class PaymentConcurrencyTest {
 
 		List<Balance> balanceList = balanceJpaRepository.findAll();
 		List<Payment> paymentList = paymentJpaRepository.findAll();
-		List<Token> tokenList = tokenJpaRepository.findAll();
 
 		assertThat(successCount.get()).isEqualTo(2);
 		assertThat(balanceList.get(0).getMoneyVO().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(5000L));
