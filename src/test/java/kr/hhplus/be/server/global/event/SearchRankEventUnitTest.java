@@ -63,6 +63,8 @@ public class SearchRankEventUnitTest {
 
 		given(concertRepository.getAvailableConcertSeat(schedule.getId())).willReturn(0L);
 		given(concertRepository.findConcertSchedule(schedule.getId())).willReturn(Optional.of(schedule));
+		given(concertRepository.findByConcertId(schedule.getConcert().getId())).willReturn(
+			Optional.ofNullable(concert));
 
 		Instant start = schedule.getConcertDate()
 			.atStartOfDay(zone)   // ZonedDateTime 생성
