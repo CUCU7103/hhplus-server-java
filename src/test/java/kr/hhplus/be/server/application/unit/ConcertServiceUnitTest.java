@@ -176,7 +176,7 @@ class ConcertServiceUnitTest {
 
 		// stub
 		// repository가 Optional.empty()를 반환하도록 설정
-		given(concertRepository.getConcertSchedule(concertScheduleId,
+		given(concertRepository.getConcertScheduleWithDate(concertScheduleId,
 			request.toCommand().concertDate())).willReturn(Optional.empty());
 
 		// act & assert
@@ -216,7 +216,7 @@ class ConcertServiceUnitTest {
 		Page<ConcertSeat> seatPage = new PageImpl<>(seatList, pageable, seatList.size());
 
 		// stub repository
-		given(concertRepository.getConcertSchedule(
+		given(concertRepository.getConcertScheduleWithDate(
 			concertScheduleId,
 			request.toCommand().concertDate()))
 			.willReturn(Optional.of(schedule));

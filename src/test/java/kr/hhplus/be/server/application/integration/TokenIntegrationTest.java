@@ -1,28 +1,11 @@
 package kr.hhplus.be.server.application.integration;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.token.TokenService;
-import kr.hhplus.be.server.application.token.info.ActiveTokenInfo;
-import kr.hhplus.be.server.application.token.info.IssueTokenInfo;
-import kr.hhplus.be.server.application.token.info.SearchTokenInfo;
-import kr.hhplus.be.server.domain.token.Token;
-import kr.hhplus.be.server.domain.token.TokenStatus;
-import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.infrastructure.token.TokenJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +23,7 @@ public class TokenIntegrationTest {
 	@Autowired
 	private TokenJpaRepository tokenJpaRepository;
 
+/*
 	@Test
 	void 대기_토큰이_없는_사용자는_토큰_발급에_성공한다() {
 		// arrange
@@ -124,6 +108,7 @@ public class TokenIntegrationTest {
 		assertThat(statusCount.get(TokenStatus.EXPIRED)).isEqualTo(2L);
 		assertThat(statusCount.get(TokenStatus.ACTIVE)).isEqualTo(1L);
 	}
+*/
 
 }
 

@@ -21,3 +21,7 @@
 <br>
 
 ## [캐시 적용 보고서](https://tame-board-bb2.notion.site/6-1ed9bafd176180449371db0c51b6c7d3?pvs=4)
+
+<br>
+
+## [📋 Redis - 빠른 매진 랭킹 구하기  및 대기열 토큰 로직 개선 보고서](https://tame-board-bb2.notion.site/7-1f49bafd176180f89a91de4df776349b?pvs=4)

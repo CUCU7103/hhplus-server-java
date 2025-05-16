@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.application.payment.PaymentCommand;
@@ -25,8 +24,6 @@ import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
-import kr.hhplus.be.server.domain.token.Token;
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
@@ -94,8 +91,8 @@ public class PaymentIntegrationTest {
 			Reservation.createPendingReservation(
 				user, seat, schedule, ReservationStatus.HELD));
 		// 4) 토큰
-		Token token = tokenJpaRepository.save(Token.createToken(user));
-		ReflectionTestUtils.setField(token, "status", TokenStatus.ACTIVE);
+	/*	Token token = tokenJpaRepository.save(Token.createToken(user));
+		ReflectionTestUtils.setField(token, "status", TokenStatus.ACTIVE);*/
 		// 5) 결제 명령
 		PaymentCommand command = new PaymentCommand(reservation.getId(), BigDecimal.valueOf(5000));
 		/* -------- act -------- */
@@ -135,7 +132,7 @@ public class PaymentIntegrationTest {
 		Reservation reservation = reservationJpaRepository.save(
 			Reservation.createPendingReservation(
 				user, seat, schedule, ReservationStatus.HELD));
-		tokenJpaRepository.save(Token.createToken(user));
+		/*tokenJpaRepository.save(Token.createToken(user));*/
 
 		PaymentCommand command = new PaymentCommand(seat.getId(), new BigDecimal("5000")); // 부족
 
