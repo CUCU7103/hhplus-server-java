@@ -17,7 +17,6 @@ import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SearchRankListener {
 	private final ConcertRankRepository concertRankRepository;
 	private final ConcertRepository concertRepository;
-	private final ConcertJpaRepository concertJpaRepository;
 	private final ObjectMapper objectMapper;
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -46,7 +44,7 @@ public class SearchRankListener {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 
 		// Concert 엔티티를 직접 로드하여 초기화
-		Concert concert = concertJpaRepository.findById(schedule.getConcert().getId())
+		Concert concert = concertRepository.findByConcertId(schedule.getConcert().getId())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_CONCERT));
 
 		SearchRankListenerContext context = new SearchRankListenerContext(concert.getConcertTitle(),

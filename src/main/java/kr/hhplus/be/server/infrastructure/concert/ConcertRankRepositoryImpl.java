@@ -28,7 +28,7 @@ public class ConcertRankRepositoryImpl implements ConcertRankRepository {
 	}
 
 	@Override
-	public Long resetRanking() {
-		return redis.opsForZSet().removeRange(key, 0, -1);
+	public void resetRank() {
+		redis.delete(key);
 	}
 }

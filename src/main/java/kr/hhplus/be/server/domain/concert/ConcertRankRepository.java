@@ -7,5 +7,5 @@ public interface ConcertRankRepository {
 
 	Set<String> top5ConcertSchedule();
 
-	Long resetRanking();
+	void resetRank();
 }

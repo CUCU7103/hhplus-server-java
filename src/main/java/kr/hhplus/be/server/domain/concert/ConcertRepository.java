@@ -42,5 +42,4 @@ public interface ConcertRepository {
 	Optional<ConcertSeat> getByConcertSeatId(long seatId);
 
 	long getAvailableConcertSeat(long concertScheduleId);
-
 }
