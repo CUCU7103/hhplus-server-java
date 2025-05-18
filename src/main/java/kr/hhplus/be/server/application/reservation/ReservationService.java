@@ -40,10 +40,6 @@ public class ReservationService {
 	 * 예외를 발생시킨다.
 	 */
 
-	/**
-	 * 낙관적 락을 걸거다
-	 *
-	 * */
 	@WithLock(
 		key = "'seat:reserver' + #seatId + ':' + #userId",
 		type = LockType.REDIS_SPIN, timeoutMillis = 4000,
@@ -53,7 +49,7 @@ public class ReservationService {
 	@Transactional
 	public ReservationInfo reserve(long seatId, long userId, ReservationCommand command) {
 		// 유효한 스케줄인지 확인
-		ConcertSchedule concertSchedule = concertRepository.getConcertSchedule(command.concertScheduleId(),
+		ConcertSchedule concertSchedule = concertRepository.getConcertScheduleWithDate(command.concertScheduleId(),
 				command.concertScheduleDate())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 		// 좌석 조회

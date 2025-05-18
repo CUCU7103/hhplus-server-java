@@ -40,7 +40,9 @@ public enum CustomErrorCode {
 	PAYMENT_ERROR(HttpStatus.BAD_REQUEST, "400", "결제에 실패 했습니다"),
 	BEFORE_DATE(HttpStatus.BAD_REQUEST, "400", "현재 날짜 보다 이전 날짜를 입력하여 오류가 발생하였습니다"),
 	NOT_FOUND_HEADER(HttpStatus.BAD_REQUEST, "400", "헤더를 찾을 수 없습니다."),
-	FAILED_ACQUIRE_LOCK(HttpStatus.BAD_REQUEST, "400", "락 획득에 실패하였습니다");
+	FAILED_ACQUIRE_LOCK(HttpStatus.BAD_REQUEST, "400", "락 획득에 실패하였습니다"),
+	RANK_RESET_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "500", "랭킹 리셋에 실패하였습니다"),
+	RANK_SAVE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "500", "랭킹 저장에 실패하였습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
