@@ -169,7 +169,7 @@ public class PaymentServiceUnitTest {
 		given(user.getId()).willReturn(userId);
 		given(balanceRepository.findByUserId(userId)).willReturn(Optional.of(balance));
 		given(reservationRepository.getByConcertReservationId(reservationId)).willReturn(Optional.of(reservation));
-		given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
+		// given(tokenRepository.findByUserId(userId)).willReturn(Optional.of(token));
 		given(paymentRepository.save(any(Payment.class))).willReturn(payment);
 
 		// mock 반환값 설정 (Optional)
@@ -184,7 +184,7 @@ public class PaymentServiceUnitTest {
 		// then
 		verify(balance, timeout(1)).usePoint(amount);
 		verify(paymentRepository, timeout(1)).save(any(Payment.class));
-		verify(token, timeout(1)).expiredToken();
+		// verify(token, timeout(1)).expiredToken();
 
 		assertThat(reservation.getReservationStatus()).isEqualTo(ReservationStatus.BOOKED);
 		assertThat(result).isNotNull();

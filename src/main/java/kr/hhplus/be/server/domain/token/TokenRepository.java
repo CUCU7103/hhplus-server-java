@@ -1,20 +1,25 @@
 package kr.hhplus.be.server.domain.token;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.Set;
 
 public interface TokenRepository {
 
-	Optional<Token> findByUserIdAndWaitingToken(long userId);
+	boolean issueTokenNotExist(Token token);
 
-	Optional<Token> findByUserId(long userId);
+	long findUserRank(long userId);
 
-	long countByStatus(TokenStatus tokenStatus);
+	Set<String> top1000WaitingTokens();
 
-	List<Token> findAllByStatus(TokenStatus tokenStatus);
+	void activeQueue(String userId);
 
-	Optional<Token> findTokenWithWriteLock(long tokenId);
+	void pushActiveQueue(String userId, String expireMillis, Duration ttl);
 
-	Token save(Token token);
+	void removeWaitingTokens(String[] topTokens);
 
+	Set<String> scanActiveQueue();
+
+	boolean hasKey(String userId);
+
+	void removeActiveTokens(String userId);
 }

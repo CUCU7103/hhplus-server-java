@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import kr.hhplus.be.server.application.payment.PaymentCommand;
 import kr.hhplus.be.server.application.payment.PaymentService;
@@ -30,8 +29,6 @@ import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
-import kr.hhplus.be.server.domain.token.Token;
-import kr.hhplus.be.server.domain.token.TokenStatus;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.infrastructure.balance.BalanceJpaRepository;
@@ -40,7 +37,6 @@ import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 import kr.hhplus.be.server.infrastructure.payment.PaymentJpaRepository;
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository;
-import kr.hhplus.be.server.infrastructure.token.TokenJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,8 +61,6 @@ public class PaymentConcurrencyTest {
 	private PaymentService paymentService;
 	@Autowired
 	private PaymentJpaRepository paymentJpaRepository;
-	@Autowired
-	private TokenJpaRepository tokenJpaRepository;
 
 	@BeforeEach
 	void clear() {
@@ -76,7 +70,6 @@ public class PaymentConcurrencyTest {
 		concertSeatJpaRepository.deleteAll();
 		concertScheduleJpaRepository.deleteAll();
 		concertJpaRepository.deleteAll();
-		tokenJpaRepository.deleteAll();
 		balanceJpaRepository.deleteAll();
 		userJpaRepository.deleteAll();
 
@@ -92,9 +85,9 @@ public class PaymentConcurrencyTest {
 		balanceJpaRepository.saveAndFlush(
 			Balance.create(MoneyVO.create(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
 
-		Token token = tokenJpaRepository.save(Token.createToken(user));
+	/*	Token token = tokenJpaRepository.save(Token.createToken(user));
 		ReflectionTestUtils.setField(token, "status", TokenStatus.ACTIVE);
-		tokenJpaRepository.saveAndFlush(token);
+		tokenJpaRepository.saveAndFlush(token);*/
 
 		Concert concert = concertJpaRepository.saveAndFlush(
 			Concert.builder().concertTitle("윤하 콘서트").artistName("윤하").build());
@@ -164,9 +157,9 @@ public class PaymentConcurrencyTest {
 		balanceJpaRepository.saveAndFlush(
 			Balance.create(MoneyVO.create(BigDecimal.valueOf(15000)), LocalDateTime.now(), user.getId()));
 
-		Token token = tokenJpaRepository.save(Token.createToken(user));
+	/*	Token token = tokenJpaRepository.save(Token.createToken(user));
 		ReflectionTestUtils.setField(token, "status", TokenStatus.ACTIVE);
-		tokenJpaRepository.saveAndFlush(token);
+		tokenJpaRepository.saveAndFlush(token);*/
 
 		Concert concert = concertJpaRepository.save(
 			Concert.builder().concertTitle("아이유 콘서트").artistName("아이유").build());
@@ -242,7 +235,6 @@ public class PaymentConcurrencyTest {
 
 		List<Balance> balanceList = balanceJpaRepository.findAll();
 		List<Payment> paymentList = paymentJpaRepository.findAll();
-		List<Token> tokenList = tokenJpaRepository.findAll();
 
 		assertThat(successCount.get()).isEqualTo(2);
 		assertThat(balanceList.get(0).getMoneyVO().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(5000L));
