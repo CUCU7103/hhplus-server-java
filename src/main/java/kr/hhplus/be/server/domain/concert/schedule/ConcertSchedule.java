@@ -51,9 +51,9 @@ public class ConcertSchedule {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at")
+	@Column(name = "concert_open_date")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-	private LocalDateTime modifiedAt;
+	private LocalDateTime concertOpenDate;
 
 	@Column(name = "concert_schedule_status")
 	@Enumerated(EnumType.STRING)
