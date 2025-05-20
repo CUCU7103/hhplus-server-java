@@ -14,7 +14,6 @@ import kr.hhplus.be.server.domain.reservation.ReservationRepository;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.global.support.event.SearchRankEvent;
 import kr.hhplus.be.server.global.support.lock.model.LockType;
 import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +58,7 @@ public class PaymentService {
 		Payment payment = paymentRepository.saveAndFlush(Payment
 			.createPayment(reservation, command.amount(), balance));
 		// 이벤트 발행
-		publisher.publishEvent(new SearchRankEvent(this, reservation.getConcertSchedule().getId()));
+		publisher.publishEvent(reservation.getConcertSchedule().getId());
 		return PaymentInfo.from(payment);
 	}
 

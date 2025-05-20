@@ -79,6 +79,9 @@ public class TokenService {
 		// 대기열에서 상위 1000개 조회
 		Set<String> topTokens = tokenRepository.top1000WaitingTokens();
 		String[] tokens = topTokens.toArray(new String[0]);
+		if (tokens.length == 0) {
+			return;
+		}
 		// 입장렬에 대기열 상위 1000개 토큰 저장 이때 입장렬의 score는 만료 처리를 진행하기 위해 현재시간 + 10분으로 지정
 		// 2) 만료 시각 계산 및 TTL 정의
 		long expireAtMillis = Instant.now()

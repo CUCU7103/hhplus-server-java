@@ -18,4 +18,9 @@ public class RankingHistoryRepositoryImpl implements RankingHistoryRepository {
 	public List<RankingHistory> saveAll(List<RankingHistory> rankingHistories) {
 		return rankingHistoryJpaRepository.saveAll(rankingHistories);
 	}
+
+	@Override
+	public RankingHistory saveBackup(RankingHistory rankingHistory) {
+		return rankingHistoryJpaRepository.save(rankingHistory);
+	}
 }
