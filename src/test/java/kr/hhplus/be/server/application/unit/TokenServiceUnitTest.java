@@ -52,12 +52,13 @@ class TokenServiceUnitTest {
 	void 토큰_생성에_성공한다() {
 		User user = User.builder().id(1L).name("철수").build();
 
+		given(tokenRepository.existInWaitingQueue(String.valueOf(user.getId()))).willReturn(false);
 		given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 		Token token = Token.create(user.getId());
 
 		tokenService.issueToken(user.getId());
 
-		assertThat(token.getUserId()).isEqualTo(user.getId());
+		assertThat(token.getUserId()).isEqualTo(user.getId().toString());
 		assertThat(token.getIssuedAt()).isNotNull();
 		assertThat(token.getEpochSeconds()).isNotNull();
 	}
@@ -118,7 +119,7 @@ class TokenServiceUnitTest {
 	}
 
 	@Test
-	void 대기열이_비어있을_때_처리가_정상적으로_진행되는지_검증() {
+	void 대기열이_비어있을_때_호출이_되지_않습니다() {
 		// given
 		given(tokenRepository.top1000WaitingTokens()).willReturn(new HashSet<>());
 
@@ -127,10 +128,9 @@ class TokenServiceUnitTest {
 			.doesNotThrowAnyException();
 
 		// 빈 배열로 removeWaitingTokens가 호출되는지 확인
-		verify(tokenRepository).removeWaitingTokens(tokensCaptor.capture());
-		assertThat(tokensCaptor.getValue())
-			.as("빈 대기열일 경우 빈 배열이 전달되어야 합니다")
-			.isEmpty();
+		// then – 호출되지 않아야 한다
+		verify(tokenRepository, never()).removeWaitingTokens(any());
+
 	}
 
 	@Test
@@ -162,6 +162,20 @@ class TokenServiceUnitTest {
 		// t2에 대해서는 호출이 없어야 함
 		verify(tokenRepository, never()).removeActiveTokens("token2");
 
+	}
+
+	@Test
+	void 활성토큰이_존재하는지_확인한다() {
+		// arrange
+		long userId = 1L;
+		given(tokenRepository.hasKey(String.valueOf(userId))).willReturn(true);
+
+		// act
+		tokenService.validateTokenByUserId(userId);
+
+		// assert
+		verify(tokenRepository).hasKey(String.valueOf(userId)); // tokenRepository.hasKey 메소드가 호출되었는지 확인
+		// 예외가 발생하지 않으면 테스트는 성공합니다
 	}
 
 }

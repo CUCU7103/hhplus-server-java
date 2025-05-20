@@ -2,19 +2,22 @@ package kr.hhplus.be.server.presentation.interceptor;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.hhplus.be.server.application.token.TokenService;
+import kr.hhplus.be.server.global.error.CustomErrorCode;
+import kr.hhplus.be.server.global.error.CustomException;
 import kr.hhplus.be.server.global.support.interceptor.TokenInterceptor;
 
+@ExtendWith(MockitoExtension.class)
 class TokenInterceptorUnitTest {
 
 	@Mock
@@ -29,11 +32,6 @@ class TokenInterceptorUnitTest {
 	@InjectMocks
 	private TokenInterceptor tokenInterceptor;
 
-	@BeforeEach
-	void setUp() {
-		MockitoAnnotations.openMocks(this);
-	}
-
 	/**
 	 * 정상 케이스:
 	 * - 요청 파라미터 userId가 올바르게 전달되고,
@@ -43,14 +41,15 @@ class TokenInterceptorUnitTest {
 	@Test
 	void 정상적인_유저아이디_전달시_인터셉터_통과() throws Exception {
 		// given
-		when(request.getParameter("userId")).thenReturn("123");
-		// tokenService.validateTokenByUserId(123L)가 정상 동작한다고 가정
+		given(request.getHeader("userId")).willReturn("123");
+		doNothing().when(tokenService).validateTokenByUserId(123L);
 
 		// when
 		boolean result = tokenInterceptor.preHandle(request, response, new Object());
 
 		// then
 		assertThat(result).isTrue();
+		verify(tokenService, times(1)).validateTokenByUserId(123L);
 		verify(response, never()).sendError(anyInt(), anyString());
 	}
 
@@ -62,14 +61,12 @@ class TokenInterceptorUnitTest {
 	@Test
 	void 유저아이디_누락시_400응답() throws Exception {
 		// given
-		when(request.getParameter("userId")).thenReturn(null);
-
-		// when
-		boolean result = tokenInterceptor.preHandle(request, response, new Object());
+		when(request.getHeader("userId")).thenReturn(null);
 
 		// then
-		assertThat(result).isFalse();
-		verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, "유저 아이디가 전달되지 않았습니다.");
+		assertThatThrownBy(() -> tokenInterceptor.preHandle(request, response, new Object()))
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.NOT_FOUND_HEADER.getMessage());
 	}
 
 	/**
@@ -80,14 +77,12 @@ class TokenInterceptorUnitTest {
 	@Test
 	void 잘못된형식의_유저아이디_전달시_400응답() throws Exception {
 		// given
-		when(request.getParameter("userId")).thenReturn("abc");
+		given(request.getHeader("userId")).willReturn("abc");
 
-		// when
-		boolean result = tokenInterceptor.preHandle(request, response, new Object());
-
-		// then
-		assertThat(result).isFalse();
-		verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, "유효하지 않은 유저 아이디입니다.");
+		// when & then
+		assertThatThrownBy(() -> tokenInterceptor.preHandle(request, response, new Object()))
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.INVALID_USER_ID.getMessage());
 	}
-	
+
 }

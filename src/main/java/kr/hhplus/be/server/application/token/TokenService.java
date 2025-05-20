@@ -16,6 +16,7 @@ import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
+import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,10 +35,14 @@ public class TokenService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(NOT_FOUND_USER));
 		// 2) Redis에서 요소가 있는지 확인하고 추가
-		// 토큰을 먼저 생성
+		boolean result = tokenRepository.existInWaitingQueue(String.valueOf(userId));
+		if (result) {
+			log.info("이미 사용자의 토큰이 존재합니다");
+			throw new CustomException(CustomErrorCode.TOKEN_EXIST);
+		}
 		// Sorted Set 스코어에 넣기 위해서 값 변환
 		Token token = Token.create(userId);
-		// 토큰이 없으면 추가, 있으면 유지
+		// 토큰 추가
 		tokenRepository.issueTokenNotExist(token);
 		// 완성한 토큰 정보를 객체에 담아서 전달
 		return IssueTokenInfo.from(token);
@@ -72,6 +77,11 @@ public class TokenService {
 	 * 이 구조 덕분에<br>
 	 * 개별 만료 시각을 키 단위로 관리하면서도,<br>
 	 * 활성 사용자 목록(Set) 은 일관성 있게 유지할 수 있습니다.
+	 * <br>
+	 * | 역할           | Redis 키 예시              | 자료구조   | 만료 대상            | 삭제 시점       |
+	 * | ------------ | ----------------------- | ------ | ---------------- | ----------- |
+	 * | 전체 활성 대기열 관리 | `ACTIVE_QUEUE`          | Set    | 없음 (영구 보관)       | —           |
+	 * | 개별 만료 관리     | `ACTIVE_QUEUE:{userId}` | String | `userId` 단위 만료정보 | 등록 시점 + TTL |
 	 */
 	@Scheduled(cron = "0 0/5 * * * ?")
 	@Transactional
@@ -90,8 +100,10 @@ public class TokenService {
 		Duration ttl = Duration.ofMinutes(10);
 		// 3) 하나씩 Set 추가 + 개별 키에 TTL 설정
 		for (String userId : topTokens) {
+			// Set
 			// (A) 입장열 Set에 추가 (SADD)
 			tokenRepository.activeQueue(userId);
+			// String
 			// (B) 개별 키에 만료 타임스탬프 저장 + TTL
 			tokenRepository.pushActiveQueue(userId, String.valueOf(expireAtMillis), ttl);
 		}
@@ -107,7 +119,7 @@ public class TokenService {
 		if (activeTokens == null || activeTokens.isEmpty()) {
 			return;
 		}
-		// 2) 순회하며 키 존재 여부 확인 → 없으면 Set 에서 제거
+		// 2) 개별 만료관리 String 자료구조 순회하며 키 존재 여부 확인 → 없으면 Set 에서 제거
 		for (String userId : activeTokens) {
 			boolean stillActive = tokenRepository.hasKey(userId);
 			if (!stillActive) {
@@ -116,4 +128,12 @@ public class TokenService {
 		}
 	}
 
+	// 키가 존재하는지 하지 않는지 확인
+	public void validateTokenByUserId(long userId) {
+		boolean stillActive = tokenRepository.hasKey(String.valueOf(userId));
+		if (!stillActive) {
+			throw new CustomException(NOT_FOUND_TOKEN);
+		}
+		log.info("토큰이 존재하는 사용자 입니다 {}", userId);
+	}
 }

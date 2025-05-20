@@ -21,7 +21,7 @@ public class TokenRedisRepository {
 		// 값이 있으면 추가하지 않고 없으면 추가함.
 		// 추가하면 true 실패하면 false
 		return Boolean.TRUE.equals(
-			redisTemplate.opsForZSet().addIfAbsent(WAITING_KEY, token.getUserId(), token.getEpochSeconds()));
+			redisTemplate.opsForZSet().add(WAITING_KEY, token.getUserId(), token.getEpochSeconds()));
 	}
 
 	public long findUserRank(long userId) {
@@ -54,6 +54,15 @@ public class TokenRedisRepository {
 	}
 
 	public void removeActiveTokens(String userId) {
-		redisTemplate.opsForSet().remove(WAITING_KEY, userId);
+		redisTemplate.opsForSet().remove(ACTIVE_KEY, userId);
+	}
+
+	public boolean existsInSortedSet(String userId) {
+		// 점수 조회
+		Double score = redisTemplate.opsForZSet().score(WAITING_KEY, userId);
+		if (score != null) {
+			return true;      // 멤버 존재
+		}
+		return false;
 	}
 }

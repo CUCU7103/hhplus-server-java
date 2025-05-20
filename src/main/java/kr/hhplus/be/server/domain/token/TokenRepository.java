@@ -22,4 +22,6 @@ public interface TokenRepository {
 	boolean hasKey(String userId);
 
 	void removeActiveTokens(String userId);
+
+	boolean existInWaitingQueue(String userId);
 }

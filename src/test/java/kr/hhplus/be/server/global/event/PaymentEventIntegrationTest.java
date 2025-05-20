@@ -92,9 +92,7 @@ public class PaymentEventIntegrationTest {
 		Reservation reservation = reservationJpaRepository.save(
 			Reservation.createPendingReservation(
 				user, seat, schedule, ReservationStatus.HELD));
-		// 4) 토큰
-	/*	Token token = tokenJpaRepository.save(Token.createToken(user));
-		ReflectionTestUtils.setField(token, "status", TokenStatus.ACTIVE);*/
+
 		// 5) 결제 명령
 		PaymentCommand command = new PaymentCommand(reservation.getId(), BigDecimal.valueOf(5000));
 		/* -------- act -------- */
@@ -111,7 +109,7 @@ public class PaymentEventIntegrationTest {
 		assertThat(event.getScheduleId()).isEqualTo(schedule.getId());
 
 		// 4. 이벤트 소스(발행자) 확인
-		assertThat(event).isInstanceOf(
+		assertThat(event.getSource()).isInstanceOf(
 			PaymentService.class); // 이벤트 발행자가 PaymentService 타입인지 확인합니다. (프록시 객체 문제를 해결한 방식)
 
 		// 5. 결제 결과 확인 (부수 효과)

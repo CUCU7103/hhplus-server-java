@@ -35,7 +35,7 @@ public class TokenInterceptor implements HandlerInterceptor {
 			throw new CustomException(CustomErrorCode.INVALID_USER_ID);
 		}
 		log.debug("[TokenInterceptor] validating token for userId={}", userId);
-		// tokenService.validateTokenByUserId(userId);
+		tokenService.validateTokenByUserId(userId);
 		return true;
 	}
 }
