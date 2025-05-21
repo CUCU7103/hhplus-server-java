@@ -11,7 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
-import kr.hhplus.be.server.global.support.event.SearchRankListenerContext;
+import kr.hhplus.be.server.domain.payment.event.RankContext;
 
 // TestcontainersConfiguration 를 스프링 컨텍스트에 등록
 @SpringBootTest
@@ -23,7 +23,7 @@ public class RedisContainerIntegrationTest {
 
 	@Autowired
 	@Qualifier("searchRankRedisTemplate")
-	private RedisTemplate<String, SearchRankListenerContext> redisTemplate;
+	private RedisTemplate<String, RankContext> redisTemplate;
 
 	@Autowired
 	private ConcertRankRepository concertRankRepository;
@@ -45,7 +45,7 @@ public class RedisContainerIntegrationTest {
 	@Test
 	void redis_saveSelloutTime가_값을_성공적으로_저장한다() {
 		String key = "concert:selloutTime";
-		SearchRankListenerContext context = new SearchRankListenerContext("윤하 콘서트", "2025-10-25");
+		RankContext context = new RankContext("윤하 콘서트", "2025-10-25");
 		long millis = 100L;
 
 		redisTemplate.opsForZSet().add(key, context, millis);
@@ -53,7 +53,7 @@ public class RedisContainerIntegrationTest {
 
 	@Test
 	void saveSelloutTime가_값을_성공적으로_저장한다() {
-		SearchRankListenerContext context = new SearchRankListenerContext("윤하 콘서트", "2025-10-25");
+		RankContext context = new RankContext("윤하 콘서트", "2025-10-25");
 		long millis = 100L;
 		concertRankRepository.saveSelloutTime(context, millis);
 	}

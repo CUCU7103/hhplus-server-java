@@ -2,6 +2,7 @@ package kr.hhplus.be.server.global.event;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,13 +31,13 @@ import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
-import kr.hhplus.be.server.global.support.event.PaymentEventPublisher;
-import kr.hhplus.be.server.global.support.event.PaymentListener;
-import kr.hhplus.be.server.global.support.event.SearchRankListenerContext;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
+import kr.hhplus.be.server.domain.payment.event.RankContext;
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 import kr.hhplus.be.server.infrastructure.rank.RankingHistoryJpaRepository;
+import kr.hhplus.be.server.presentation.payment.PaymentListener;
 import lombok.extern.slf4j.Slf4j;
 
 @Transactional
@@ -45,9 +45,6 @@ import lombok.extern.slf4j.Slf4j;
 @ActiveProfiles("test")
 @Slf4j
 public class PaymentListenerIntegrationTest {
-
-	@Autowired
-	private ApplicationEventPublisher publisher;
 
 	@Autowired
 	private PaymentListener paymentListener; // 주입 시도
@@ -66,7 +63,7 @@ public class PaymentListenerIntegrationTest {
 
 	@Autowired
 	@Qualifier("searchRankRedisTemplate")
-	private RedisTemplate<String, SearchRankListenerContext> redisTemplate;
+	private RedisTemplate<String, RankContext> redisTemplate;
 
 	@Autowired
 	private ConcertJpaRepository concertJpaRepository;
@@ -98,6 +95,7 @@ public class PaymentListenerIntegrationTest {
 		assertThat(paymentListener).isNotNull(); // 리스너가 등록되었는지 확인
 	}
 
+	// 리스너 자체를 통합 테스트
 	@Test
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	void 좌석_매진인_경우_이벤트_실행시_정상적으로_레디스에_값이_저장되어진다() throws InterruptedException {
@@ -132,7 +130,9 @@ public class PaymentListenerIntegrationTest {
 
 		// act
 		// 리스너 메소드 직접 호출
-		paymentListener.checkedSellout(new PaymentEventPublisher(this, schedule.getId()));
+		paymentListener.rankingUpdateListener(
+			PaymentCompletedEvent.create(schedule.getId(), concert.getConcertTitle(), schedule.getConcertDate(),
+				schedule.getConcertOpenDate(), 1L, 1L, BigDecimal.valueOf(1000L), LocalDateTime.now()));
 
 		// assert - 비동기 작업 완료를 기다립니다 (Awaitility 라이브러리 사용)
 		Awaitility.await()
@@ -145,7 +145,7 @@ public class PaymentListenerIntegrationTest {
 				assertThat(hasKey).isTrue();
 
 				// 저장된 값이 있는지 확인
-				Set<SearchRankListenerContext> rangeResult = redisTemplate.opsForZSet()
+				Set<RankContext> rangeResult = redisTemplate.opsForZSet()
 					.range("concert:selloutTime", 0, -1);
 				log.info("redis에 저장된 값 확인 {}", rangeResult);
 				assertThat(rangeResult).isNotEmpty();

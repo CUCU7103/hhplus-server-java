@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.presentation.event;
+package kr.hhplus.be.server.presentation.payment;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
