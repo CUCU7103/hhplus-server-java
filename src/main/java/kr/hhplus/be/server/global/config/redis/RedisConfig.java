@@ -11,7 +11,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import kr.hhplus.be.server.global.support.event.SearchRankListenerContext;
+import kr.hhplus.be.server.domain.payment.event.RankContext;
 
 @Configuration
 public class RedisConfig {
@@ -33,10 +33,10 @@ public class RedisConfig {
 
 	// 커스텀을 위해서 개별적인 탬플릿 사용
 	@Bean(name = "searchRankRedisTemplate")
-	public RedisTemplate<String, SearchRankListenerContext> searchRankRedisTemplate(
+	public RedisTemplate<String, RankContext> searchRankRedisTemplate(
 		RedisConnectionFactory connectionFactory,
 		ObjectMapper objectMapper) {
-		RedisTemplate<String, SearchRankListenerContext> template = new RedisTemplate<>();
+		RedisTemplate<String, RankContext> template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);
 
 		// 키는 String
@@ -44,8 +44,8 @@ public class RedisConfig {
 
 		// 값은 Jackson2JsonRedisSerializer 사용
 		JavaType javaType = objectMapper.getTypeFactory()
-			.constructType(SearchRankListenerContext.class);
-		Jackson2JsonRedisSerializer<SearchRankListenerContext> serializer =
+			.constructType(RankContext.class);
+		Jackson2JsonRedisSerializer<RankContext> serializer =
 			new Jackson2JsonRedisSerializer<>(objectMapper, javaType);
 
 		template.setValueSerializer(serializer);
