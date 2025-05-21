@@ -1,8 +1,10 @@
 package kr.hhplus.be.server.global.config.event;
 
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -12,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @EnableAsync
 @Slf4j
-public class AsyncConfig {
+public class AsyncConfig implements AsyncConfigurer {
 
 	@Bean
 	public TaskExecutor taskExecutor() {
@@ -23,5 +25,10 @@ public class AsyncConfig {
 		executor.setThreadNamePrefix("payment-async-");
 		executor.initialize();
 		return executor;
+	}
+
+	@Override
+	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+		return new MyAsyncExceptionHandler();
 	}
 }
