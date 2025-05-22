@@ -1,20 +1,20 @@
 package kr.hhplus.be.server.application.payment;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.balance.balance.BalanceRepository;
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
+import kr.hhplus.be.server.domain.concert.ConcertRepository;
+import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
+import kr.hhplus.be.server.domain.payment.event.PaymentEventPublisher;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationRepository;
-import kr.hhplus.be.server.domain.token.TokenRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
-import kr.hhplus.be.server.global.support.event.PaymentEventPublisher;
 import kr.hhplus.be.server.global.support.lock.model.LockType;
 import kr.hhplus.be.server.global.support.lock.model.WithLock;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +22,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
-	private final ApplicationEventPublisher publisher;
 	private final BalanceRepository balanceRepository;
 	private final PaymentRepository paymentRepository;
 	private final ReservationRepository reservationRepository;
-	private final TokenRepository tokenRepository;
-	private final ConcertRankRepository rankRepository;
+	private final ConcertRepository concertRepository;
+	private final PaymentEventPublisher paymentEventPublisher;
 
 	/**
 	 * 사용자의 잔여 포인트를 조회한다.
@@ -52,6 +51,9 @@ public class PaymentService {
 			() -> new CustomException(CustomErrorCode.NOT_FOUND_BALANCE));
 		Reservation reservation = reservationRepository.getByConcertReservationId(reservationId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_RESERVATION));
+		ConcertSchedule concertSchedule = concertRepository.findConcertSchedule(
+				reservation.getConcertSchedule().getId())
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SCHEDULE));
 		// 결제 수행
 		// 결제 수행시, 포인트 차감 진행, 예약의 상태 변경, 좌석의 상태 변경, 결제 내역을 기록한다.
 		// 결제가 가지는 책임은 협력 객체인 좌석, 포인트에게 각각 상태와 차감을 지시함.
@@ -59,7 +61,15 @@ public class PaymentService {
 		Payment payment = paymentRepository.saveAndFlush(Payment
 			.createPayment(reservation, command.amount(), balance));
 		// 이벤트 발행
-		publisher.publishEvent(new PaymentEventPublisher(this, reservation.getConcertSchedule().getId()));
+		paymentEventPublisher.publish(
+			PaymentCompletedEvent.create(concertSchedule.getId(),
+				concertSchedule.getConcert().getConcertTitle(),
+				concertSchedule.getConcertDate(),
+				concertSchedule.getConcertOpenDate(),
+				payment.getId(),
+				userId, payment.getAmount(),
+				payment.getCreatedAt()));
+
 		return PaymentInfo.from(payment);
 	}
 

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.rank;
+package kr.hhplus.be.server.domain.concert.rank;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "ranking_history")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class RankingHistory {
+public class ConcertRankingHistory {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,7 +51,7 @@ public class RankingHistory {
 	private LocalDateTime createdAt;
 
 	@Builder
-	public RankingHistory(Integer ranking, String concertName, LocalDate concertDate,
+	public ConcertRankingHistory(Integer ranking, String concertName, LocalDate concertDate,
 		LocalDate rankingDate, long score) {
 		this.ranking = ranking;
 		this.concertName = concertName;
@@ -61,9 +61,9 @@ public class RankingHistory {
 
 	}
 
-	public static RankingHistory create(Integer ranking, String concertName, LocalDate concertDate,
+	public static ConcertRankingHistory create(Integer ranking, String concertName, LocalDate concertDate,
 		LocalDate rankingDate) {
-		return RankingHistory.builder()
+		return ConcertRankingHistory.builder()
 			.ranking(ranking)
 			.concertName(concertName)
 			.concertDate(concertDate)
@@ -72,8 +72,8 @@ public class RankingHistory {
 
 	}
 
-	public static RankingHistory createBackup(String concertName, LocalDate concertDate, long score) {
-		return RankingHistory.builder()
+	public static ConcertRankingHistory createBackup(String concertName, LocalDate concertDate, long score) {
+		return ConcertRankingHistory.builder()
 			.concertName(concertName)
 			.concertDate(concertDate)
 			.score(score)

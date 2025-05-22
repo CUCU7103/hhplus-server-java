@@ -15,6 +15,9 @@ public class Token {
 	private double epochSeconds; // Score에 저장하기 위해 double로 변경할 값을 담을 변수
 	private long rank;
 
+	protected static final String WAITING_KEY = "waiting:tokens";
+	protected static final String ACTIVE_KEY = "active:tokens";
+
 	public Token(Long userId) {
 		this.userId = String.valueOf(userId);
 		this.issuedAt = Instant.now();
@@ -33,5 +36,18 @@ public class Token {
 	public static Token createIncludeRank(long userId, long rank) {
 		return new Token(userId, rank);
 	}
+
+	public static String getWaitingQueueKey() {
+		return WAITING_KEY;
+	}
+
+	public static String getActiveQueueKey() {
+		return ACTIVE_KEY;
+	}
+
+	public static String getActiveQueueSpecificKey(String userId) {
+		return ACTIVE_KEY + ":" + userId;
+	}
+
 }
 
