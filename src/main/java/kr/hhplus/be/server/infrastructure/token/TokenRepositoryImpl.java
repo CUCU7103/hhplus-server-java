@@ -16,51 +16,51 @@ public class TokenRepositoryImpl implements TokenRepository {
 
 	@Override
 	public boolean issueTokenNotExist(Token token) {
-		return tokenRedisRepository.issueTokenNotExist(token);
+		return tokenRedisRepository.issueTokenNotExist(token, Token.getWaitingQueueKey());
 	}
 
 	@Override
 	public long findUserRank(long userId) {
-		return tokenRedisRepository.findUserRank(userId);
+		return tokenRedisRepository.findUserRank(userId, Token.getWaitingQueueKey());
 	}
 
 	@Override
 	public Set<String> top1000WaitingTokens() {
-		return tokenRedisRepository.top1000WaitingTokens();
+		return tokenRedisRepository.top1000WaitingTokens(Token.getWaitingQueueKey());
 	}
 
 	@Override
 	public void activeQueue(String userId) {
-		tokenRedisRepository.activeQueue(userId);
+		tokenRedisRepository.activeQueue(userId, Token.getActiveQueueKey());
 	}
 
 	@Override
 	public void pushActiveQueue(String userId, String expireMillis, Duration ttl) {
-		tokenRedisRepository.pushActiveQueue(userId, expireMillis, ttl);
+		tokenRedisRepository.pushActiveQueue(expireMillis, ttl, Token.getActiveQueueSpecificKey(userId));
 	}
 
 	@Override
 	public void removeWaitingTokens(String[] topTokens) {
-		tokenRedisRepository.removeWaitingTokens(topTokens);
+		tokenRedisRepository.removeWaitingTokens(topTokens, Token.getWaitingQueueKey());
 	}
 
 	@Override
 	public Set<String> scanActiveQueue() {
-		return tokenRedisRepository.scanActiveQueue();
+		return tokenRedisRepository.scanActiveQueue(Token.getActiveQueueKey());
 	}
 
 	@Override
 	public boolean hasKey(String userId) {
-		return tokenRedisRepository.hasKey(userId);
+		return tokenRedisRepository.hasKey(Token.getActiveQueueSpecificKey(userId));
 	}
 
 	@Override
 	public void removeActiveTokens(String userId) {
-		tokenRedisRepository.removeActiveTokens(userId);
+		tokenRedisRepository.removeActiveTokens(userId, Token.getActiveQueueKey());
 	}
 
 	@Override
 	public boolean existInWaitingQueue(String userId) {
-		return tokenRedisRepository.existsInSortedSet(userId);
+		return tokenRedisRepository.existsInSortedSet(userId, Token.getWaitingQueueKey());
 	}
 }

@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import kr.hhplus.be.server.application.rank.RankingHistoryService;
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
-import kr.hhplus.be.server.domain.rank.RankingHistory;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistory;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RankScheduler {
 
 	// redis에서 하루동안 저장된 1~5위 랭킹을 db에 저장하면서 redis에서 지운다.
-	private final ConcertRankRepository rankRepository;
+	private final ConcertRankingRepository rankRepository;
 	private final RankingHistoryService rankingHistoryService;
 
 	@Scheduled(cron = "0 5 0 * * *", zone = "Asia/Seoul")
@@ -38,7 +38,7 @@ public class RankScheduler {
 	public void saveDailyRank() {
 		log.info("[스케줄러] 자정 랭킹 저장 시작 – {}", LocalDateTime.now());
 		try {
-			List<RankingHistory> saved = rankingHistoryService.persistTopRankingsToDB();
+			List<ConcertRankingHistory> saved = rankingHistoryService.persistTopRankingsToDB();
 			log.info("[스케줄러] 자정 랭킹 저장 완료 – 총 {}건", saved.size());
 		} catch (Exception ex) {
 			log.error("[스케줄러] 랭킹 저장 중 오류 발생", ex);

@@ -1,12 +1,25 @@
 package kr.hhplus.be.server.application.integration;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.time.Duration;
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.token.TokenService;
-import kr.hhplus.be.server.infrastructure.token.TokenJpaRepository;
+import kr.hhplus.be.server.application.token.info.IssueTokenInfo;
+import kr.hhplus.be.server.application.token.info.SearchTokenInfo;
+import kr.hhplus.be.server.domain.token.Token;
+import kr.hhplus.be.server.domain.token.TokenRepository;
+import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.global.support.resolver.CurrentUserIdArgumentResolver;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,94 +34,92 @@ public class TokenIntegrationTest {
 	@Autowired
 	private UserJpaRepository userJpaRepository;
 	@Autowired
-	private TokenJpaRepository tokenJpaRepository;
+	private TokenRepository tokenRepository;
+	@Autowired
+	private CurrentUserIdArgumentResolver currentUserIdArgumentResolver;
+	@Autowired
+	private StringRedisTemplate redisTemplate;
 
-/*
+	@BeforeEach
+	void setUp() {
+		log.info("기존 데이터 초기화");
+		redisTemplate.delete("concert:selloutTime");
+	}
+
 	@Test
 	void 대기_토큰이_없는_사용자는_토큰_발급에_성공한다() {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("김씨").build());
 		// act
 		IssueTokenInfo info = tokenService.issueToken(user.getId());
-
 		// assert
 		assertThat(info).isNotNull();
 		assertThat(info.userId()).isEqualTo(user.getId());
-		assertThat(info.status()).isEqualTo(TokenStatus.WAITING);
-		assertDoesNotThrow(() -> UUID.fromString(info.tokenValue()));
 	}
 
 	@Test
-	void 대기_토큰을_보유한_사용자에게는_보유한_토큰을_반환한다() {
-		// arrange
-		User user = userJpaRepository.save(User.builder().name("창씨").build());
-		Token token = tokenJpaRepository.save(Token.createToken(user));
-		// act
-		IssueTokenInfo info = tokenService.issueToken(user.getId());
-
-		// assert
-		assertThat(info).isNotNull();
-		assertThat(info.tokenValue()).isEqualTo(token.getTokenValue());
-		assertThat(info.userId()).isEqualTo(token.getUser().getId());
-		assertThat(info.status()).isEqualTo(token.getStatus());
-
-	}
-
-	@Test
-	void 존재하는_사용자의_대기열_토큰_조회에_성공한다() {
+	void 대기열_토큰_순위_조회에_성공한다() {
 		// arrange
 		User user = userJpaRepository.save(User.builder().name("박씨").build());
-		Token token = tokenJpaRepository.save(Token.createToken(user));
-		log.error("token: {}", token);
 		// act
-		SearchTokenInfo info = tokenService.searchToken(user.getId());
+		SearchTokenInfo info = tokenService.searchTokenRank(user.getId());
 		// assert
 		assertThat(info).isNotNull();
 		assertThat(info.userId()).isEqualTo(user.getId());
-		assertThat(info.status()).isEqualTo(TokenStatus.WAITING);
-		assertDoesNotThrow(() -> UUID.fromString(info.tokenValue()));
+		assertThat(info.rank()).isEqualTo(0);
 	}
 
 	@Test
-	void 토큰의_우선순위가_1순위이고_최대활성토큰_수를_초과하지_않으면_토큰_활성화에_성공한다() {
+	void 대기열에서_토큰_활성화에_성공한다() {
+		// 1. given: 대기열에 토큰 2개 삽입
+		String user1 = "1001";
+		String user2 = "1002";
+		redisTemplate.opsForZSet().add(Token.getWaitingQueueKey(), user1, 1);
+		redisTemplate.opsForZSet().add(Token.getWaitingQueueKey(), user2, 2);
+
+		// 2. when: activeToken() 실행
+		tokenService.activeToken();
+
+		// 3. then: 대기열에서 제거됐는지
+		Set<String> waitingNow = redisTemplate.opsForZSet().range(Token.getWaitingQueueKey(), 0, -1);
+		assertThat(waitingNow).doesNotContain(user1, user2);
+
+		// 4. then: 입장열(SET)에 포함됐는지
+		Boolean isMember1 = redisTemplate.opsForSet().isMember(Token.getActiveQueueKey(), user1);
+		Boolean isMember2 = redisTemplate.opsForSet().isMember(Token.getActiveQueueKey(), user2);
+		assertThat(isMember1).isTrue();
+		assertThat(isMember2).isTrue();
+
+		// 5. then: 개별 토큰 만료 값/TTL 확인
+		String expireKey1 = Token.getActiveQueueSpecificKey(user1);
+		String expireKey2 = Token.getActiveQueueSpecificKey(user2);
+		Long ttl1 = redisTemplate.getExpire(expireKey1);
+		Long ttl2 = redisTemplate.getExpire(expireKey2);
+
+		log.info("info1 {} ", ttl1);
+		log.info("info2 {} ", ttl2);
+
+		// 10분(600초) 이내면 정상
+		assertThat(ttl1).isGreaterThan(590); // 10초 정도 여유
+		assertThat(ttl2).isGreaterThan(590);
+	}
+
+	@Test
+	void 활성화_토큰_만료처리_진행() {
 		// arrange
-		User user = userJpaRepository.save(User.builder().name("김씨").build());
-		Token token = tokenJpaRepository.save(Token.createToken(user));
+		String user1 = "1001";
+		String user2 = "1002";
+		redisTemplate.opsForSet().add(Token.getActiveQueueKey(), user1);
+		redisTemplate.opsForSet().add(Token.getActiveQueueKey(), user2);
+
+		redisTemplate.opsForValue().set(Token.getActiveQueueSpecificKey(user1), "dummy", Duration.ofMinutes(10));
 		// act
-		ActiveTokenInfo info = tokenService.activateToken(token.getId());
+		tokenService.cleanupExpiredActiveTokens();
 		// assert
-		assertThat(info).isNotNull();
-		assertThat(info.userId()).isEqualTo(user.getId());
-		assertThat(info.waitingRank() + 1).isEqualTo(1);
-		assertThat(info.status()).isEqualTo(TokenStatus.ACTIVE);
+		Set<String> stillActive = redisTemplate.opsForSet().members(Token.getActiveQueueKey());
+		assertThat(stillActive).contains(user1);
+		assertThat(stillActive).doesNotContain(user2);
 	}
-
-	@Test
-	void 스케줄러가_동작하면_만료된_토큰만_EXPIRED로_변경된다() {
-
-		User user = userJpaRepository.save(User.builder().name("김씨").build());
-		Token token1 = tokenJpaRepository.save(Token.createToken(user));
-		Token token2 = tokenJpaRepository.save(Token.createToken(user));
-		Token token3 = tokenJpaRepository.save(Token.createToken(user));
-		ReflectionTestUtils.setField(token1, "status", TokenStatus.ACTIVE);
-		ReflectionTestUtils.setField(token1, "expirationAt", LocalDateTime.now().minusMinutes(10));
-		ReflectionTestUtils.setField(token2, "status", TokenStatus.ACTIVE);
-		ReflectionTestUtils.setField(token2, "expirationAt", LocalDateTime.now().minusMinutes(10));
-		ReflectionTestUtils.setField(token3, "status", TokenStatus.ACTIVE);
-		ReflectionTestUtils.setField(token3, "expirationAt", LocalDateTime.now().plusMinutes(10));
-		// 2. 메서드 직접 호출 (스케줄러 대신)
-		tokenService.expireTokensScheduler();
-
-		// 3. DB에서 재조회
-		List<Token> all = tokenJpaRepository.findAll();
-		Map<TokenStatus, Long> statusCount = all.stream()
-			.collect(Collectors.groupingBy(Token::getStatus, Collectors.counting()));
-
-		// 4. 검증
-		assertThat(statusCount.get(TokenStatus.EXPIRED)).isEqualTo(2L);
-		assertThat(statusCount.get(TokenStatus.ACTIVE)).isEqualTo(1L);
-	}
-*/
 
 }
 
