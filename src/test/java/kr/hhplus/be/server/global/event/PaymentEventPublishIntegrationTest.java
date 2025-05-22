@@ -20,7 +20,7 @@ import kr.hhplus.be.server.application.payment.PaymentInfo;
 import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.domain.balance.balance.Balance;
 import kr.hhplus.be.server.domain.concert.Concert;
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -60,7 +60,7 @@ public class PaymentEventPublishIntegrationTest {
 	@Autowired
 	private ReservationJpaRepository reservationJpaRepository;
 	@Autowired
-	private ConcertRankRepository concertRankRepository;
+	private ConcertRankingRepository concertRankingRepository;
 
 	// 이벤트가 정상적으로 발행되어지는지를 @RecordApplicationEvents를 사용해서 테스트한다.
 	@Test

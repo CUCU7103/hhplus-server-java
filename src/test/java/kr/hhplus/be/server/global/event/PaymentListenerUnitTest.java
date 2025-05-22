@@ -16,27 +16,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistory;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistoryRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.domain.payment.event.CalculateTime;
 import kr.hhplus.be.server.domain.payment.event.MessageContext;
 import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
 import kr.hhplus.be.server.domain.payment.event.RankContext;
-import kr.hhplus.be.server.domain.rank.RankingHistory;
-import kr.hhplus.be.server.domain.rank.RankingHistoryRepository;
 import kr.hhplus.be.server.presentation.payment.PaymentListener;
 
 @ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 public class PaymentListenerUnitTest {
 
 	@Mock
-	private ConcertRankRepository concertRankRepository;
+	private ConcertRankingRepository concertRankingRepository;
 
 	@Mock
 	private ConcertRepository concertRepository;
 
 	@Mock
-	private RankingHistoryRepository rankingHistoryRepository;
+	private ConcertRankingHistoryRepository concertRankingHistoryRepository;
 
 	@Mock
 	private CalculateTime processor;
@@ -58,8 +58,8 @@ public class PaymentListenerUnitTest {
 		paymentListener.rankingUpdateListener(event);
 
 		// assert
-		then(concertRankRepository).shouldHaveNoInteractions();
-		then(rankingHistoryRepository).shouldHaveNoInteractions();
+		then(concertRankingRepository).shouldHaveNoInteractions();
+		then(concertRankingHistoryRepository).shouldHaveNoInteractions();
 		then(processor).shouldHaveNoInteractions();
 	}
 
@@ -75,7 +75,7 @@ public class PaymentListenerUnitTest {
 		PaymentCompletedEvent event = PaymentCompletedEvent.createRankingRecordedEventWithTest(scheduleId, "윤하 콘서트",
 			concertDate, concertOpenDate);
 		RankContext context = RankContext.of(event.concertTitle(), event.concertDate());
-		RankingHistory expectedBackupData = RankingHistory.createBackup(
+		ConcertRankingHistory expectedBackupData = ConcertRankingHistory.createBackup(
 			context.concertName(),
 			LocalDate.parse(context.concertDate()),
 			millis
@@ -83,26 +83,26 @@ public class PaymentListenerUnitTest {
 
 		given(concertRepository.getAvailableConcertSeat(scheduleId)).willReturn(0L); // 매진됨
 		given(processor.calculateMillis(concertOpenDate)).willReturn(millis);
-		given(concertRankRepository.saveSelloutTime(context, millis)).willReturn(false); // Redis 저장 실패
+		given(concertRankingRepository.saveSelloutTime(context, millis)).willReturn(false); // Redis 저장 실패
 
 		// when
 		paymentListener.rankingUpdateListener(event);
 
 		// then
 		verify(processor, times(1)).calculateMillis(concertOpenDate);
-		verify(concertRankRepository, times(1)).saveSelloutTime(context, millis);
+		verify(concertRankingRepository, times(1)).saveSelloutTime(context, millis);
 
 		// RankingHistory 객체의 생성 및 저장 검증
 		// Mockito의 ArgumentCaptor를 사용하여 실제 저장된 객체 캡처 및 검증
-		ArgumentCaptor<RankingHistory> historyCaptor = ArgumentCaptor.forClass(RankingHistory.class);
-		verify(rankingHistoryRepository, times(1)).saveBackup(historyCaptor.capture());
+		ArgumentCaptor<ConcertRankingHistory> historyCaptor = ArgumentCaptor.forClass(ConcertRankingHistory.class);
+		verify(concertRankingHistoryRepository, times(1)).saveBackup(historyCaptor.capture());
 
 		// then
 		then(processor).should(times(1)).calculateMillis(concertOpenDate);
-		then(concertRankRepository).should(times(1)).saveSelloutTime(context, millis);
+		then(concertRankingRepository).should(times(1)).saveSelloutTime(context, millis);
 
 		// 캡처된 객체 검증
-		RankingHistory capturedHistory = historyCaptor.getValue();
+		ConcertRankingHistory capturedHistory = historyCaptor.getValue();
 		assertThat(capturedHistory).isNotNull();
 		// 필요시 추가 필드 검증 (equals 메소드 구현 여부에 따라 달라질 수 있음)
 		// assertThat(capturedHistory).isEqualToComparingFieldByField(expectedBackupData);

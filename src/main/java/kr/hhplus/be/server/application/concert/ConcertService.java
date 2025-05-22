@@ -16,8 +16,8 @@ import kr.hhplus.be.server.application.concert.command.ConcertDateSearchCommand;
 import kr.hhplus.be.server.application.concert.command.ConcertSeatSearchCommand;
 import kr.hhplus.be.server.application.concert.info.ConcertScheduleInfo;
 import kr.hhplus.be.server.application.concert.info.ConcertSeatInfo;
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleCashRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
@@ -41,7 +41,7 @@ public class ConcertService {
 	private final ConcertRepository concertRepository;
 	private final ConcertScheduleCashRepository cacheRepository;
 	private final Cache<String, List<ConcertScheduleInfo>> localCache;
-	private final ConcertRankRepository rankRepository;
+	private final ConcertRankingRepository rankRepository;
 
 	@Transactional(readOnly = true)
 	public List<ConcertScheduleInfo> searchDate(long concertId, ConcertDateSearchCommand command) {

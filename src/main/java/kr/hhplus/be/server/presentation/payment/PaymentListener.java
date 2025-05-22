@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistory;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistoryRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.domain.payment.event.CalculateTime;
 import kr.hhplus.be.server.domain.payment.event.MessageContext;
 import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
 import kr.hhplus.be.server.domain.payment.event.RankContext;
-import kr.hhplus.be.server.domain.rank.RankingHistory;
-import kr.hhplus.be.server.domain.rank.RankingHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentListener {
-	private final ConcertRankRepository concertRankRepository;
+	private final ConcertRankingRepository concertRankingRepository;
 	private final ConcertRepository concertRepository;
-	private final RankingHistoryRepository rankingHistoryRepository;
+	private final ConcertRankingHistoryRepository concertRankingHistoryRepository;
 	private final CalculateTime processor;
 
 	@Async  // 비동기 처리를 위한 어노테이션 추가
@@ -44,11 +44,11 @@ public class PaymentListener {
 		RankContext context = RankContext.of(event.concertTitle(), event.concertDate());
 		// redis 저장 수행
 		log.info("Redis에 랭킹 저장 로직 수행");
-		boolean result = concertRankRepository.saveSelloutTime(context, millis);
+		boolean result = concertRankingRepository.saveSelloutTime(context, millis);
 		// 저장 실패시 백업 진행
 		if (!result) {
 			log.info("DB 저장로직 수행");
-			rankingHistoryRepository.saveBackup(RankingHistory.createBackup(
+			concertRankingHistoryRepository.saveBackup(ConcertRankingHistory.createBackup(
 				context.concertName(),
 				LocalDate.parse(context.concertDate()),
 				millis

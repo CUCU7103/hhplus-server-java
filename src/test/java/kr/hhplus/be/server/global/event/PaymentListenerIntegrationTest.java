@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import kr.hhplus.be.server.domain.concert.Concert;
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
@@ -36,7 +36,7 @@ import kr.hhplus.be.server.domain.payment.event.RankContext;
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
-import kr.hhplus.be.server.infrastructure.rank.RankingHistoryJpaRepository;
+import kr.hhplus.be.server.infrastructure.concert.rank.ConcertRankingHistoryJpaRepository;
 import kr.hhplus.be.server.presentation.payment.PaymentListener;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,13 +53,13 @@ public class PaymentListenerIntegrationTest {
 	private ConcertScheduleJpaRepository concertScheduleJpaRepository;
 
 	@Autowired
-	private RankingHistoryJpaRepository rankingHistoryJpaRepository;
+	private ConcertRankingHistoryJpaRepository concertRankingHistoryJpaRepository;
 
 	@Autowired
 	private ConcertSeatJpaRepository concertSeatJpaRepository;
 
 	@Autowired
-	private ConcertRankRepository rankRepository;
+	private ConcertRankingRepository rankRepository;
 
 	@Autowired
 	@Qualifier("searchRankRedisTemplate")

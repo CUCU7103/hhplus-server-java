@@ -1,11 +1,11 @@
-package kr.hhplus.be.server.infrastructure.concert;
+package kr.hhplus.be.server.infrastructure.concert.rank;
 
 import java.util.Set;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 import kr.hhplus.be.server.domain.payment.event.RankContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Repository
 @Slf4j
-public class ConcertRankRepositoryImpl implements ConcertRankRepository {
+public class ConcertRankingRedisRepositoryImpl implements ConcertRankingRepository {
 	private final RedisTemplate<String, RankContext> redisTemplate;
 	private final String key = "concert:selloutTime";
 

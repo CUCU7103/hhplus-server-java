@@ -15,17 +15,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import kr.hhplus.be.server.application.rank.RankingHistoryService;
-import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
-import kr.hhplus.be.server.domain.rank.RankingHistory;
-import kr.hhplus.be.server.domain.rank.RankingHistoryRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistory;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistoryRepository;
+import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class RankHistoryUnitTest {
 
 	@Mock
-	private RankingHistoryRepository rankingHistoryRepository;
+	private ConcertRankingHistoryRepository concertRankingHistoryRepository;
 	@Mock
-	private ConcertRankRepository concertRankRepository;
+	private ConcertRankingRepository concertRankingRepository;
 	@Mock
 	private ObjectMapper objectMapper; // Jackson JSON 라이브러리
 	@InjectMocks
@@ -34,13 +34,13 @@ public class RankHistoryUnitTest {
 	@Test
 	void persistTopRankingsToDB_랭킹없을때_빈리스트반환() {
 		// given
-		given(concertRankRepository.top5ConcertSchedule()).willReturn(Collections.emptySet());
+		given(concertRankingRepository.top5ConcertSchedule()).willReturn(Collections.emptySet());
 		// when
-		List<RankingHistory> result = rankingHistoryService.persistTopRankingsToDB();
+		List<ConcertRankingHistory> result = rankingHistoryService.persistTopRankingsToDB();
 
 		// then
 		assertThat(result).isEmpty();
-		verify(rankingHistoryRepository, times(0)).saveAll(anyList());
+		verify(concertRankingHistoryRepository, times(0)).saveAll(anyList());
 	}
 
 	/*@Test
