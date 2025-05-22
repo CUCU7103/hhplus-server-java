@@ -25,6 +25,7 @@ import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.global.error.CustomErrorCode;
 import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.global.support.event.SearchRankListenerContext;
 import kr.hhplus.be.server.global.support.page.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -157,7 +158,7 @@ public class ConcertService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<String> top5ConcertSchedule() {
+	public List<SearchRankListenerContext> top5ConcertSchedule() {
 		return rankRepository.top5ConcertSchedule().stream().toList();
 	}
 

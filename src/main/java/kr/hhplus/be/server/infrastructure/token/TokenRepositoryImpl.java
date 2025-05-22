@@ -58,4 +58,9 @@ public class TokenRepositoryImpl implements TokenRepository {
 	public void removeActiveTokens(String userId) {
 		tokenRedisRepository.removeActiveTokens(userId);
 	}
+
+	@Override
+	public boolean existInWaitingQueue(String userId) {
+		return tokenRedisRepository.existsInSortedSet(userId);
+	}
 }

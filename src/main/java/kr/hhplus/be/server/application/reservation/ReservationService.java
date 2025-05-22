@@ -82,6 +82,9 @@ public class ReservationService {
 	public void concertReservationCancel() {
 		List<Reservation> reservations = reservationRepository
 			.getConcertReservationStatus(ReservationStatus.HELD);
+		if(reservations.isEmpty()) {
+			return;
+		}
 		for (Reservation reservation : reservations) {
 			reservation.cancelDueToTimeout(LocalDateTime.now());
 		}

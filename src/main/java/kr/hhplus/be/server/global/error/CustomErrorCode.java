@@ -42,7 +42,8 @@ public enum CustomErrorCode {
 	NOT_FOUND_HEADER(HttpStatus.BAD_REQUEST, "400", "헤더를 찾을 수 없습니다."),
 	FAILED_ACQUIRE_LOCK(HttpStatus.BAD_REQUEST, "400", "락 획득에 실패하였습니다"),
 	RANK_RESET_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "500", "랭킹 리셋에 실패하였습니다"),
-	RANK_SAVE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "500", "랭킹 저장에 실패하였습니다.");
+	RANK_SAVE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "500", "랭킹 저장에 실패하였습니다."),
+	TOKEN_EXIST(HttpStatus.BAD_REQUEST, "400", "이미 토큰이 존재합니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;

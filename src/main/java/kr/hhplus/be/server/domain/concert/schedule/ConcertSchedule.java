@@ -51,9 +51,9 @@ public class ConcertSchedule {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at")
+	@Column(name = "concert_open_date")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-	private LocalDateTime modifiedAt;
+	private LocalDateTime concertOpenDate;
 
 	@Column(name = "concert_schedule_status")
 	@Enumerated(EnumType.STRING)
@@ -66,16 +66,17 @@ public class ConcertSchedule {
 
 	@Builder
 	public ConcertSchedule(String venue, LocalDate concertDate, ConcertScheduleStatus status,
-		LocalDateTime createdAt, Concert concert) {
+		LocalDateTime createdAt, Concert concert, LocalDateTime concertOpenDate) {
 		this.venue = venue;
 		this.concertDate = concertDate;
 		this.status = status;
 		this.createdAt = (createdAt != null) ? createdAt : LocalDateTime.now();
 		this.concert = concert;
+		this.concertOpenDate = concertOpenDate;
 		validateField();
 	}
 
-	public static ConcertSchedule of(String venue, LocalDate concertDate, ConcertScheduleStatus status,
+	public static ConcertSchedule create(String venue, LocalDate concertDate, ConcertScheduleStatus status,
 		LocalDateTime createdAt, Concert concert) {
 		return ConcertSchedule.builder()
 			.venue(venue)
@@ -83,6 +84,18 @@ public class ConcertSchedule {
 			.createdAt(createdAt)
 			.status(status)
 			.concert(concert)
+			.build();
+	}
+
+	public static ConcertSchedule createBackup(String venue, LocalDate concertDate, ConcertScheduleStatus status,
+		LocalDateTime createdAt, Concert concert, LocalDateTime concertOpenDate) {
+		return ConcertSchedule.builder()
+			.venue(venue)
+			.concertDate(concertDate)
+			.createdAt(createdAt)
+			.status(status)
+			.concert(concert)
+			.concertOpenDate(concertOpenDate)
 			.build();
 	}
 

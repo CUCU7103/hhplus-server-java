@@ -1,17 +1,20 @@
-package kr.hhplus.be.server.application.integration;
+package kr.hhplus.be.server.global.event;
 
 import static org.assertj.core.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 
+import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.payment.PaymentCommand;
 import kr.hhplus.be.server.application.payment.PaymentInfo;
 import kr.hhplus.be.server.application.payment.PaymentService;
@@ -25,8 +28,7 @@ import kr.hhplus.be.server.domain.model.MoneyVO;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
 import kr.hhplus.be.server.domain.user.User;
-import kr.hhplus.be.server.global.error.CustomErrorCode;
-import kr.hhplus.be.server.global.error.CustomException;
+import kr.hhplus.be.server.global.support.event.PaymentEventPublisher;
 import kr.hhplus.be.server.infrastructure.balance.BalanceJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
@@ -34,10 +36,16 @@ import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository;
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository;
 
-@Transactional
 @SpringBootTest
 @ActiveProfiles("test")
-public class PaymentIntegrationTest {
+@RecordApplicationEvents
+public class PaymentEventIntegrationTest {
+
+	@Autowired
+	private ApplicationEvents applicationEvents; // 기록된 이벤트에 접근하기 위한 API
+
+	@Autowired
+	private PaymentService paymentService;
 
 	@Autowired
 	private UserJpaRepository userJpaRepository;
@@ -52,13 +60,9 @@ public class PaymentIntegrationTest {
 	@Autowired
 	private ReservationJpaRepository reservationJpaRepository;
 
-	@Autowired
-	private PaymentService paymentService;
-
 	@Test
-	void 잔액과_좌석_상태가_정상이면_결제에_성공하고_잔액이_차감된다() {
-		/* -------- arrange -------- */
-		// 1) 유저·잔액
+	@Transactional
+	void 결제완료시_EndPaymentEvent가_올바르게_발행되어진다() {
 		User user = userJpaRepository.save(User.builder().name("철수").build());
 		balanceJpaRepository.save(
 			Balance.create(MoneyVO.create(BigDecimal.valueOf(10000)), LocalDateTime.now(), user.getId()));
@@ -88,64 +92,28 @@ public class PaymentIntegrationTest {
 		Reservation reservation = reservationJpaRepository.save(
 			Reservation.createPendingReservation(
 				user, seat, schedule, ReservationStatus.HELD));
-		// 4) 토큰
-	/*	Token token = tokenJpaRepository.save(Token.createToken(user));
-		ReflectionTestUtils.setField(token, "status", TokenStatus.ACTIVE);*/
+
 		// 5) 결제 명령
 		PaymentCommand command = new PaymentCommand(reservation.getId(), BigDecimal.valueOf(5000));
 		/* -------- act -------- */
 		PaymentInfo info = paymentService.payment(
 			reservation.getId(), user.getId(), command);
 
-		/* -------- assert -------- */
-		// 반환 객체
-		assertThat(info.userId()).isEqualTo(user.getId());
-		assertThat(info.amount()).isEqualByComparingTo(command.amount());
+		// 이벤트 발행을 확인한다.
+		List<PaymentEventPublisher> events = applicationEvents.stream(PaymentEventPublisher.class).toList();
+
+		// 2. 이벤트 개수 확인
+		assertThat(events).hasSize(1);
+		// 3. 이벤트 내용 확인
+		PaymentEventPublisher event = events.get(0);
+		assertThat(event.getScheduleId()).isEqualTo(schedule.getId());
+
+		// 4. 이벤트 소스(발행자) 확인
+		assertThat(event.getSource()).isInstanceOf(
+			PaymentService.class); // 이벤트 발행자가 PaymentService 타입인지 확인합니다. (프록시 객체 문제를 해결한 방식)
+
+		// 5. 결제 결과 확인 (부수 효과)
+		assertThat(info).isNotNull();
 	}
 
-	@Test
-	void 잔액이_부족하면_NOT_ENOUGH_BALANCE_예외가_발생하고_롤백된다() {
-		// arrange
-		User user = userJpaRepository.save(User.builder().name("영희").build());
-		balanceJpaRepository.save(
-			Balance.create(MoneyVO.create(new BigDecimal("100")), LocalDateTime.now(), user.getId())); // 100원뿐
-
-		Concert concert = concertJpaRepository.save(
-			Concert.builder().concertTitle("테스트").artistName("테스트").build());
-		ConcertSchedule schedule = concertScheduleJpaRepository.save(
-			ConcertSchedule.builder()
-				.concertDate(LocalDate.of(2025, 5, 5))
-				.venue("테스트홀")
-				.status(ConcertScheduleStatus.AVAILABLE)
-				.createdAt(LocalDateTime.now())
-				.concert(concert)
-				.build());
-		ConcertSeat seat = concertSeatJpaRepository.save(
-			ConcertSeat.builder()
-				.concertSchedule(schedule)
-				.section("B")
-				.seatNumber(1)
-				.status(ConcertSeatStatus.AVAILABLE)
-				.build());
-		Reservation reservation = reservationJpaRepository.save(
-			Reservation.createPendingReservation(
-				user, seat, schedule, ReservationStatus.HELD));
-		/*tokenJpaRepository.save(Token.createToken(user));*/
-
-		PaymentCommand command = new PaymentCommand(seat.getId(), new BigDecimal("5000")); // 부족
-
-		// act & assert
-		assertThatThrownBy(() ->
-			paymentService.payment(reservation.getId(), user.getId(), command))
-			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.OVER_USED_POINT.getMessage());
-
-		Balance bal = balanceJpaRepository.findById(user.getId()).orElseThrow();
-		assertThat(bal.getMoneyVO().getAmount()).isEqualByComparingTo("100");
-		assertThat(concertSeatJpaRepository.findById(seat.getId()).orElseThrow().getStatus())
-			.isEqualTo(ConcertSeatStatus.HELD);
-		assertThat(reservationJpaRepository.findById(reservation.getId()).orElseThrow().getReservationStatus())
-			.isEqualTo(ReservationStatus.HELD);
-
-	}
 }

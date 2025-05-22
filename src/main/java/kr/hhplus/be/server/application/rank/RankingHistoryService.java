@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.hhplus.be.server.domain.concert.ConcertRankRepository;
 import kr.hhplus.be.server.domain.rank.RankingHistory;
 import kr.hhplus.be.server.domain.rank.RankingHistoryRepository;
+import kr.hhplus.be.server.global.support.event.SearchRankListenerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +37,7 @@ public class RankingHistoryService {
 		LocalDate today = LocalDate.now();
 
 		// 기존 top5ConcertSchedule() 메서드 활용
-		Set<String> top5Concerts = concertRankRepository.top5ConcertSchedule();
+		Set<SearchRankListenerContext> top5Concerts = concertRankRepository.top5ConcertSchedule();
 
 		if (top5Concerts == null || top5Concerts.isEmpty()) {
 			log.info("저장할 랭킹이 존재하지 않습니다");
@@ -48,10 +49,10 @@ public class RankingHistoryService {
 		List<RankingHistory> rankingEntities = new ArrayList<>();
 		int rank = 1;
 
-		for (String concertJson : top5Concerts) {
+		for (SearchRankListenerContext concertJson : top5Concerts) {
 			try {
 				// JSON 파싱
-				JsonNode jsonNode = objectMapper.readTree(concertJson);
+				JsonNode jsonNode = objectMapper.readTree(String.valueOf(concertJson));
 
 				String concertName = jsonNode.get("concertName").asText();
 				LocalDate concertDate = LocalDate.parse(jsonNode.get("concertDate").asText());

@@ -28,19 +28,22 @@ public class RankingHistory {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false)
+	@Column(name = "ranking")
 	private Integer ranking;
 
-	@Column(name = "concert_name", nullable = false)
+	@Column(name = "concert_name")
 	private String concertName;
 
-	@Column(name = "concert_date", nullable = false)
+	@Column(name = "concert_date")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
 	private LocalDate concertDate;
 
-	@Column(name = "ranking_date", nullable = false)
+	@Column(name = "ranking_date")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
 	private LocalDate rankingDate;
+
+	@Column(name = "score")
+	private long score;
 
 	@Column(name = "created_at")
 	@CreatedDate
@@ -49,11 +52,12 @@ public class RankingHistory {
 
 	@Builder
 	public RankingHistory(Integer ranking, String concertName, LocalDate concertDate,
-		LocalDate rankingDate) {
+		LocalDate rankingDate, long score) {
 		this.ranking = ranking;
 		this.concertName = concertName;
 		this.concertDate = concertDate;
 		this.rankingDate = rankingDate;
+		this.score = score;
 
 	}
 
@@ -66,5 +70,13 @@ public class RankingHistory {
 			.rankingDate(rankingDate)
 			.build();
 
+	}
+
+	public static RankingHistory createBackup(String concertName, LocalDate concertDate, long score) {
+		return RankingHistory.builder()
+			.concertName(concertName)
+			.concertDate(concertDate)
+			.score(score)
+			.build();
 	}
 }

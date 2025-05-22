@@ -120,7 +120,7 @@ class ConcertServiceUnitTest {
 
 		List<ConcertSchedule> schedules = new ArrayList<>();
 		for (int i = 0; i < concertScheduleIds.size(); i++) {
-			ConcertSchedule schedule = ConcertSchedule.of(
+			ConcertSchedule schedule = ConcertSchedule.create(
 				"성균관대", dateTimes.get(i), ConcertScheduleStatus.AVAILABLE,
 				LocalDateTime.now(), concert
 			);
