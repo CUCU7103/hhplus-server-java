@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.integration;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.application.payment.PaymentCommand;
@@ -22,6 +24,7 @@ import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeat;
 import kr.hhplus.be.server.domain.concert.seat.ConcertSeatStatus;
 import kr.hhplus.be.server.domain.model.MoneyVO;
+import kr.hhplus.be.server.domain.payment.event.PaymentEventPublisher;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
 import kr.hhplus.be.server.domain.user.User;
@@ -51,6 +54,8 @@ public class PaymentIntegrationTest {
 	private ConcertSeatJpaRepository concertSeatJpaRepository;
 	@Autowired
 	private ReservationJpaRepository reservationJpaRepository;
+	@MockitoBean
+	private PaymentEventPublisher paymentEventPublisher;
 
 	@Autowired
 	private PaymentService paymentService;
@@ -101,6 +106,7 @@ public class PaymentIntegrationTest {
 		// 반환 객체
 		assertThat(info.userId()).isEqualTo(user.getId());
 		assertThat(info.amount()).isEqualByComparingTo(command.amount());
+		verify(paymentEventPublisher, times(1)).publish(any());
 	}
 
 	@Test
