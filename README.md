@@ -25,3 +25,7 @@
 <br>
 
 ## [📋 Redis - 빠른 매진 랭킹 구하기  및 대기열 토큰 로직 개선 보고서](https://tame-board-bb2.notion.site/7-1f49bafd176180f89a91de4df776349b?pvs=4)
+
+<br>
+
+## [📋 MSA를 위한 분산 트랜잭션 적용 및 도메인 분리](https://tame-board-bb2.notion.site/8-1fb9bafd17618079894affa09a709316?pvs=4)
