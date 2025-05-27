@@ -18,11 +18,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import kr.hhplus.be.server.domain.concert.CalculateTime;
 import kr.hhplus.be.server.domain.concert.Concert;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertSchedule;
 import kr.hhplus.be.server.domain.concert.schedule.ConcertScheduleStatus;
-import kr.hhplus.be.server.domain.payment.event.CalculateTime;
 import kr.hhplus.be.server.infrastructure.payment.SpringPaymentEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 

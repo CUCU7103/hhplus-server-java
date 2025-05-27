@@ -24,30 +24,6 @@ public record PaymentCompletedEvent(long scheduleId, String concertTitle, LocalD
 		this.createAt = createAt;
 	}
 
-	// Test용 생성자
-	public static PaymentCompletedEvent createRankingRecordedEventWithTest(long scheduleId, String concertTitle,
-		LocalDate concertDate,
-		LocalDateTime concertOpenDate) {
-		return PaymentCompletedEvent.builder()
-			.scheduleId(scheduleId)
-			.concertTitle(concertTitle)
-			.concertDate(concertDate)
-			.concertOpenDate(concertOpenDate)
-			.build();
-
-	}
-
-	// Test용 생성자
-	public static PaymentCompletedEvent createMessageSentEventWithTest(long paymentId, long userId, BigDecimal money,
-		LocalDateTime createAt) {
-		return PaymentCompletedEvent.builder()
-			.paymentId(paymentId)
-			.userId(userId)
-			.money(money)
-			.createAt(createAt)
-			.build();
-	}
-
 	public static PaymentCompletedEvent create(long scheduleId, String concertTitle, LocalDate concertDate,
 		LocalDateTime concertOpenDate,
 		long paymentId, long userId, BigDecimal money, LocalDateTime createAt) {

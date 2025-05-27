@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.presentation.payment;
+package kr.hhplus.be.server.presentation.concert;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import kr.hhplus.be.server.domain.concert.CalculateTime;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistory;
 import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistoryRepository;
 import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
-import kr.hhplus.be.server.domain.payment.event.CalculateTime;
 import kr.hhplus.be.server.domain.payment.event.MessageContext;
 import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
 import kr.hhplus.be.server.domain.payment.event.RankContext;
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentListener {
+public class ConcertEventListener {
 	private final ConcertRankingRepository concertRankingRepository;
 	private final ConcertRepository concertRepository;
 	private final ConcertRankingHistoryRepository concertRankingHistoryRepository;
