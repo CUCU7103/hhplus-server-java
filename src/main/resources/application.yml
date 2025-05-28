@@ -14,13 +14,16 @@ spring:
       client-id: hhplus-producer                                          # 프로듀서 클라이언트 식별자 - 모니터링 및 로깅용
       key-serializer: org.apache.kafka.common.serialization.StringSerializer     # 키 직렬화 방식 - 문자열 타입으로 직렬화
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer   # 값 직렬화 방식 - JSON 형태로 직렬화
-      retries: 5                                                          # 전송 실패 시 재시도 횟수 - 메시지 전달 보장을 위한 설정
+      retries: 5       # 전송 실패 시 재시도 횟수 - 메시지 전달 보장을 위한 설정
+    #      properties:
+    #        allow.auto.create.topics: false
     consumer:
       group-id: hhplus-consumer-group                                     # 컨슈머 그룹 식별자 - 파티션 할당 및 오프셋 관리용
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer     # 키 역직렬화 방식 - 문자열 타입으로 역직렬화
       value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer # 값 역직렬화 방식 - 바이트 배열로 수신 후 수동 처리
       properties:
-        enable-auto-commit: false                                         # 자동 오프셋 커밋 비활성화 - 수동 커밋으로 정확한 메시지 처리 보장
+        enable-auto-commit: false
+    #        allow.auto.create.topics: false # 자동 오프셋 커밋 비활성화 - 수동 커밋으로 정확한 메시지 처리 보장
     listener:
       ack-mode: manual
 
