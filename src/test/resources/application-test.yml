@@ -20,3 +20,8 @@ spring:
     redisson:
       single-server-config:
         address: ${spring.redisson.single-server-config.address}
+    # 메시지 처리 확인 모드 - 수동 확인으로 처리 완료 후 커밋
+  kafka:
+    bootstrap-servers: ${spring.kafka.bootstrap-servers:localhost:9092}
+    listener:
+      concurrency: 2
