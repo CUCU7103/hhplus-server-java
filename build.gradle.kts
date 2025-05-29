@@ -53,6 +53,9 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
     // kafka
     implementation("org.springframework.kafka:spring-kafka")
+
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework:spring-aspects") // AOP 지원
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 
