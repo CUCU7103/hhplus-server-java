@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure;
+package kr.hhplus.be.server.global.kafka;
 
 import static org.assertj.core.api.Assertions.*;
 

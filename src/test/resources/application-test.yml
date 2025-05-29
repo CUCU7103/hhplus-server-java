@@ -25,3 +25,29 @@ spring:
     bootstrap-servers: ${spring.kafka.bootstrap-servers:localhost:9092}
     listener:
       concurrency: 2
+      # 테스트 환경에서 빠른 처리를 위한 설정
+      ack-mode: manual_immediate
+      auto-startup: true
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false  # manual ack 사용
+      group-id: test-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        # 빠른 처리를 위한 설정
+        fetch.min.bytes: 1
+        fetch.max.wait.ms: 500
+        session.timeout.ms: 10000
+        heartbeat.interval.ms: 3000
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      linger-ms: 0  # 즉시 전송
+    admin:
+      properties:
+        auto.create.topics.enable: true
