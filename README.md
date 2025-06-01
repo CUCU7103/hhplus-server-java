@@ -8,7 +8,7 @@
 
 <br>
 
-## [ERD 다이어그램](https://github.com/CUCU7103/hhplus-server-java/blob/second-assignment/docs/ERD.md)
+## [ERD 다이어그램](https://github.com/user-attachments/assets/b5a70a4b-a3ad-4212-a22b-731953b912a9)
 
 <br>
 

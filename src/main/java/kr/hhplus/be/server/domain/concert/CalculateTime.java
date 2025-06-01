@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.payment.event;
+package kr.hhplus.be.server.domain.concert;
 
 import java.time.Clock;
 import java.time.Duration;

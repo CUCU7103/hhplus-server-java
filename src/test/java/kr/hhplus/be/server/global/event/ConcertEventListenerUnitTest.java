@@ -16,18 +16,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import kr.hhplus.be.server.domain.concert.CalculateTime;
 import kr.hhplus.be.server.domain.concert.ConcertRepository;
 import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistory;
 import kr.hhplus.be.server.domain.concert.rank.ConcertRankingHistoryRepository;
 import kr.hhplus.be.server.domain.concert.rank.ConcertRankingRepository;
-import kr.hhplus.be.server.domain.payment.event.CalculateTime;
 import kr.hhplus.be.server.domain.payment.event.MessageContext;
 import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
 import kr.hhplus.be.server.domain.payment.event.RankContext;
-import kr.hhplus.be.server.presentation.payment.PaymentListener;
+import kr.hhplus.be.server.global.event.model.PaymentCompleteEventFixture;
+import kr.hhplus.be.server.presentation.concert.ConcertEventListener;
 
 @ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
-public class PaymentListenerUnitTest {
+public class ConcertEventListenerUnitTest {
 
 	@Mock
 	private ConcertRankingRepository concertRankingRepository;
@@ -42,7 +43,7 @@ public class PaymentListenerUnitTest {
 	private CalculateTime processor;
 
 	@InjectMocks
-	private PaymentListener paymentListener;
+	private ConcertEventListener concertEventListener;
 
 	@Test
 	void 좌석이_매진_상태가_아니면_랭킹_저장을_수행하지_않습니다() {
@@ -50,12 +51,12 @@ public class PaymentListenerUnitTest {
 		long scheduleId = 1L;
 		LocalDateTime concertOpenDate = LocalDateTime.of(2025, 6, 10, 10, 00);
 		LocalDate concertDate = LocalDate.of(2025, 5, 10);
-		PaymentCompletedEvent event = PaymentCompletedEvent.createRankingRecordedEventWithTest(scheduleId, "윤하 콘서트",
+		PaymentCompletedEvent event = PaymentCompleteEventFixture.createForRankingTest(scheduleId, "윤하 콘서트",
 			concertDate, concertOpenDate);
 
 		given(concertRepository.getAvailableConcertSeat(scheduleId)).willReturn(100L);
 		// act
-		paymentListener.rankingUpdateListener(event);
+		concertEventListener.rankingUpdateListener(event);
 
 		// assert
 		then(concertRankingRepository).shouldHaveNoInteractions();
@@ -72,7 +73,7 @@ public class PaymentListenerUnitTest {
 		LocalDateTime concertOpenDate = LocalDateTime.of(2025, 6, 10, 10, 00);
 		LocalDate concertDate = LocalDate.of(2025, 5, 10);
 
-		PaymentCompletedEvent event = PaymentCompletedEvent.createRankingRecordedEventWithTest(scheduleId, "윤하 콘서트",
+		PaymentCompletedEvent event = PaymentCompleteEventFixture.createForRankingTest(scheduleId, "윤하 콘서트",
 			concertDate, concertOpenDate);
 		RankContext context = RankContext.of(event.concertTitle(), event.concertDate());
 		ConcertRankingHistory expectedBackupData = ConcertRankingHistory.createBackup(
@@ -86,7 +87,7 @@ public class PaymentListenerUnitTest {
 		given(concertRankingRepository.saveSelloutTime(context, millis)).willReturn(false); // Redis 저장 실패
 
 		// when
-		paymentListener.rankingUpdateListener(event);
+		concertEventListener.rankingUpdateListener(event);
 
 		// then
 		verify(processor, times(1)).calculateMillis(concertOpenDate);
@@ -111,11 +112,11 @@ public class PaymentListenerUnitTest {
 	@Test
 	void 결제_후_메시지_전송_이벤트_로그_검증(CapturedOutput output) throws InterruptedException {
 		// arrange
-		PaymentCompletedEvent paymentCompletedEvent = PaymentCompletedEvent.createMessageSentEventWithTest(1L, 1L,
+		PaymentCompletedEvent paymentCompletedEvent = PaymentCompleteEventFixture.createForMessageTest(1L, 1L,
 			BigDecimal.valueOf(1000), LocalDateTime.now());
 		MessageContext context = MessageContext.of(paymentCompletedEvent);
 		// act
-		paymentListener.sentMessageListener(paymentCompletedEvent);
+		concertEventListener.sentMessageListener(paymentCompletedEvent);
 		// assert
 		String logs = output.getOut();
 		assertThat(logs)

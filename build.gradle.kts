@@ -51,7 +51,11 @@ dependencies {
     implementation("org.redisson:redisson-spring-boot-starter:3.46.0")
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    // kafka
+    implementation("org.springframework.kafka:spring-kafka")
 
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework:spring-aspects") // AOP 지원
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 
@@ -68,8 +72,11 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:mysql")
     testImplementation("org.testcontainers:redis:1.18.3")
+    testImplementation("org.testcontainers:kafka")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
 
 tasks.withType<Test> {
     useJUnitPlatform()

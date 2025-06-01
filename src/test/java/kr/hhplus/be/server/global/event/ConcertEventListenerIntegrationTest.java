@@ -37,17 +37,17 @@ import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository;
 import kr.hhplus.be.server.infrastructure.concert.rank.ConcertRankingHistoryJpaRepository;
-import kr.hhplus.be.server.presentation.payment.PaymentListener;
+import kr.hhplus.be.server.presentation.concert.ConcertEventListener;
 import lombok.extern.slf4j.Slf4j;
 
 @Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 @Slf4j
-public class PaymentListenerIntegrationTest {
+public class ConcertEventListenerIntegrationTest {
 
 	@Autowired
-	private PaymentListener paymentListener; // 주입 시도
+	private ConcertEventListener concertEventListener; // 주입 시도
 
 	@Autowired
 	private ConcertScheduleJpaRepository concertScheduleJpaRepository;
@@ -92,7 +92,7 @@ public class PaymentListenerIntegrationTest {
 
 	@Test
 	void 리스너_등록_확인() {
-		assertThat(paymentListener).isNotNull(); // 리스너가 등록되었는지 확인
+		assertThat(concertEventListener).isNotNull(); // 리스너가 등록되었는지 확인
 	}
 
 	// 리스너 자체를 통합 테스트
@@ -130,7 +130,7 @@ public class PaymentListenerIntegrationTest {
 
 		// act
 		// 리스너 메소드 직접 호출
-		paymentListener.rankingUpdateListener(
+		concertEventListener.rankingUpdateListener(
 			PaymentCompletedEvent.create(schedule.getId(), concert.getConcertTitle(), schedule.getConcertDate(),
 				schedule.getConcertOpenDate(), 1L, 1L, BigDecimal.valueOf(1000L), LocalDateTime.now()));
 
