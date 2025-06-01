@@ -29,3 +29,7 @@
 <br>
 
 ## [📋 MSA를 위한 분산 트랜잭션 적용 및 도메인 분리](https://tame-board-bb2.notion.site/8-1fb9bafd17618079894affa09a709316?pvs=4)
+
+<br>
+
+## [📋 Kafka 학습 정리 및 MSA 전환 예시 보고서](https://tame-board-bb2.notion.site/9-2029bafd176180c3a3e9e4daa7a3509a?pvs=4)
