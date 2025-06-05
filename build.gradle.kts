@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
     java
     id("org.springframework.boot") version "3.4.1"
@@ -69,10 +71,10 @@ dependencies {
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:mysql")
-    testImplementation("org.testcontainers:redis:1.18.3")
-    testImplementation("org.testcontainers:kafka")
+    testImplementation("com.redis:testcontainers-redis:2.2.4")
+    testImplementation("org.testcontainers:mysql:1.21.1")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.1")
+    testImplementation("org.testcontainers:kafka:1.21.1")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -81,4 +83,13 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("user.timezone", "UTC")
+}
+
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.withType<BootJar> {
+    archiveFileName.set("app.jar")
 }
