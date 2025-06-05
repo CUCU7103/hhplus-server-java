@@ -40,9 +40,7 @@ public class PaymentService {
 	 */
 	@WithLock(
 		key = "'payment:' + #userId + ':' + #reservationId",
-		type = LockType.REDIS_PUBSUB, timeoutMillis = 4000,
-		retryIntervalMillis = 200,
-		expireMillis = 5000)
+		type = LockType.REDIS_PUBSUB, timeoutMillis = 500)
 	@Transactional
 	public PaymentInfo payment(long reservationId, long userId, PaymentCommand command) {
 		// 메서드를 누가 부를지 모른다!
