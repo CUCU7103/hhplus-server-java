@@ -33,3 +33,7 @@
 <br>
 
 ## [📋 Kafka 학습 정리 및 MSA 전환 예시 보고서](https://tame-board-bb2.notion.site/9-2029bafd176180c3a3e9e4daa7a3509a?pvs=4)
+
+<br>
+
+## [📋 부하 테스트 시행 보고서](https://tame-board-bb2.notion.site/10-2069bafd176180ae94c7f2d850b8c298?source=copy_link)
