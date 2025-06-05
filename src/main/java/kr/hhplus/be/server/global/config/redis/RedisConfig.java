@@ -3,7 +3,6 @@ package kr.hhplus.be.server.global.config.redis;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -15,11 +14,6 @@ import kr.hhplus.be.server.domain.payment.event.RankContext;
 
 @Configuration
 public class RedisConfig {
-
-	@Bean
-	public RedisConnectionFactory redisConnectionFactory() {
-		return new LettuceConnectionFactory();
-	}
 
 	@Bean
 	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
@@ -36,25 +30,17 @@ public class RedisConfig {
 	public RedisTemplate<String, RankContext> searchRankRedisTemplate(
 		RedisConnectionFactory connectionFactory,
 		ObjectMapper objectMapper) {
+
 		RedisTemplate<String, RankContext> template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);
-
-		// 키는 String
 		template.setKeySerializer(new StringRedisSerializer());
 
-		// 값은 Jackson2JsonRedisSerializer 사용
-		JavaType javaType = objectMapper.getTypeFactory()
-			.constructType(RankContext.class);
-		Jackson2JsonRedisSerializer<RankContext> serializer =
-			new Jackson2JsonRedisSerializer<>(objectMapper, javaType);
+		JavaType javaType = objectMapper.getTypeFactory().constructType(RankContext.class);
+		Jackson2JsonRedisSerializer<RankContext> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, javaType);
 
 		template.setValueSerializer(serializer);
-
-		// ZSet 연산을 위한 직렬화 설정 추가
 		template.setHashValueSerializer(serializer);
 		template.setHashKeySerializer(new StringRedisSerializer());
-
-		// 중요: ZSet 스코어 값은 기본 직렬화 사용
 		template.setDefaultSerializer(serializer);
 
 		template.afterPropertiesSet();

@@ -1,32 +1,4 @@
 spring:
-  kafka:
-    bootstrap-servers: localhost:9094                                     # Kafka 클러스터 초기 연결을 위한 브로커 주소 목록 (콤마로 구분 가능)
-    properties:
-      request.timeout.ms: 20000                                           # 클라이언트 요청 타임아웃 (20초) - 요청 응답 대기 시간
-      retry.backoff.ms: 500                                               # 재시도 간격 (0.5초) - 실패 후 재시도 전 대기 시간
-      auto:
-        create.topics.enable: false                                       # 자동 토픽 생성 비활성화 - 명시적 토픽 관리를 위한 보안 설정
-        register.schemas: false                                           # Schema Registry 자동 스키마 등록 비활성화 (Confluent 환경)
-        offset.reset: latest                                              # 오프셋 초기화 전략 - 파티션 끝에서 시작하여 새 메시지만 소비
-      use.latest.version: true                                            # Schema Registry에서 최신 스키마 버전 사용 (Confluent 관련)
-      basic.auth.credentials.source: USER_INFO                            # Schema Registry 기본 인증 자격증명 소스 (Confluent Cloud 등)
-    producer:
-      client-id: hhplus-producer                                          # 프로듀서 클라이언트 식별자 - 모니터링 및 로깅용
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer     # 키 직렬화 방식 - 문자열 타입으로 직렬화
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer   # 값 직렬화 방식 - JSON 형태로 직렬화
-      retries: 5       # 전송 실패 시 재시도 횟수 - 메시지 전달 보장을 위한 설정
-    #      properties:
-    #        allow.auto.create.topics: false
-    consumer:
-      group-id: hhplus-consumer-group                                     # 컨슈머 그룹 식별자 - 파티션 할당 및 오프셋 관리용
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer     # 키 역직렬화 방식 - 문자열 타입으로 역직렬화
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer # 값 역직렬화 방식 - 바이트 배열로 수신 후 수동 처리
-      properties:
-        enable-auto-commit: false
-    #        allow.auto.create.topics: false # 자동 오프셋 커밋 비활성화 - 수동 커밋으로 정확한 메시지 처리 보장
-    listener:
-      ack-mode: manual
-
   application:
     name: hhplus
   profiles:
@@ -62,6 +34,10 @@ springdoc:
       sampling:
         probability: 1.0  # 100% 샘플링 (모든 요청을 추적하고 싶으면 1.0, 일부만 하고 싶으면 낮춰야 해
 
+# ─────────────────────────────────────────────────────────────────────────────
+# 2) Local 프로파일용 설정
+#    IDE나 터미널에서 -Dspring.profiles.active=local 로 실행할 때 적용됩니다.
+# ─────────────────────────────────────────────────────────────────────────────
 ---
 spring.config.activate.on-profile: local
 
@@ -75,11 +51,96 @@ spring:
     redis:
       # 2) Redisson 전용 설정 파일 경로
       redisson:
-        config: classpath:redisson.yml  # redisson.yaml 파일 사용 :contentReference[oaicite:8]{index=8}
+        config: classpath:redisson-local.yml  # redisson.yaml 파일 사용 :contentReference[oaicite:8]{index=8}
       host: localhost
       port: 6379
 
+  kafka:
+    bootstrap-servers: localhost:9094                                     # Kafka 클러스터 초기 연결을 위한 브로커 주소 목록 (콤마로 구분 가능)
+    properties:
+      request.timeout.ms: 20000                                           # 클라이언트 요청 타임아웃 (20초) - 요청 응답 대기 시간
+      retry.backoff.ms: 500                                               # 재시도 간격 (0.5초) - 실패 후 재시도 전 대기 시간
+      auto:
+        create.topics.enable: false                                       # 자동 토픽 생성 비활성화 - 명시적 토픽 관리를 위한 보안 설정
+        register.schemas: false                                           # Schema Registry 자동 스키마 등록 비활성화 (Confluent 환경)
+        offset.reset: latest                                              # 오프셋 초기화 전략 - 파티션 끝에서 시작하여 새 메시지만 소비
+      use.latest.version: true                                            # Schema Registry에서 최신 스키마 버전 사용 (Confluent 관련)
+      basic.auth.credentials.source: USER_INFO                            # Schema Registry 기본 인증 자격증명 소스 (Confluent Cloud 등)
+    producer:
+      client-id: hhplus-producer                                          # 프로듀서 클라이언트 식별자 - 모니터링 및 로깅용
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer     # 키 직렬화 방식 - 문자열 타입으로 직렬화
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer   # 값 직렬화 방식 - JSON 형태로 직렬화
+      retries: 5       # 전송 실패 시 재시도 횟수 - 메시지 전달 보장을 위한 설정
+    #      properties:
+    #        allow.auto.create.topics: false
+    consumer:
+      group-id: hhplus-consumer-group                                     # 컨슈머 그룹 식별자 - 파티션 할당 및 오프셋 관리용
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer     # 키 역직렬화 방식 - 문자열 타입으로 역직렬화
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer # 값 역직렬화 방식 - 바이트 배열로 수신 후 수동 처리
+      properties:
+        enable-auto-commit: false
+        spring.json.trusted.packages: "kr.hhplus.be.server.domain.payment.event"                 # JSON 역직렬화 시 신뢰할 패키지 설정 - 모든 패키지 허용
+    #        allow.auto.create.topics: false # 자동 오프셋 커밋 비활성화 - 수동 커밋으로 정확한 메시지 처리 보장
+    listener:
+      ack-mode: manual
+      concurrency: 3   # 컨슈머 스레드(동시성) 수 지정
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3) Docker 프로파일용 설정
+#    컨테이너 내부에서 SPRING_PROFILES_ACTIVE=docker 로 실행할 때 적용됩니다.
+# ────
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    # Docker Compose 네트워크의 서비스 이름(mysql)로 접근
+    url: jdbc:mysql://mysql:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    username: application
+    password: application
+
+  kafka:
+    # Docker Compose 내에서 kafka:9092 로 접근
+    bootstrap-servers: kafka:9092
+    properties:
+      request.timeout.ms: 20000                                           # 클라이언트 요청 타임아웃 (20초) - 요청 응답 대기 시간
+      retry.backoff.ms: 500                                               # 재시도 간격 (0.5초) - 실패 후 재시도 전 대기 시간
+      auto:
+        create.topics.enable: false                                       # 자동 토픽 생성 비활성화 - 명시적 토픽 관리를 위한 보안 설정
+        register.schemas: false                                           # Schema Registry 자동 스키마 등록 비활성화 (Confluent 환경)
+        offset.reset: latest                                              # 오프셋 초기화 전략 - 파티션 끝에서 시작하여 새 메시지만 소비
+      use.latest.version: true                                            # Schema Registry에서 최신 스키마 버전 사용 (Confluent 관련)
+      basic.auth.credentials.source: USER_INFO                            # Schema Registry 기본 인증 자격증명 소스 (Confluent Cloud 등)
+    producer:
+      client-id: hhplus-producer                                          # 프로듀서 클라이언트 식별자 - 모니터링 및 로깅용
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer     # 키 직렬화 방식 - 문자열 타입으로 직렬화
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer   # 값 직렬화 방식 - JSON 형태로 직렬화
+      retries: 5       # 전송 실패 시 재시도 횟수 - 메시지 전달 보장을 위한 설정
+    #      properties:
+    #        allow.auto.create.topics: false
+    consumer:
+      group-id: hhplus-consumer-group                                     # 컨슈머 그룹 식별자 - 파티션 할당 및 오프셋 관리용
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer     # 키 역직렬화 방식 - 문자열 타입으로 역직렬화
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer # 값 역직렬화 방식 - 바이트 배열로 수신 후 수동 처리
+      properties:
+        enable-auto-commit: false
+        spring.json.trusted.packages: "kr.hhplus.be.server.domain.payment.event"                 # JSON 역직렬화 시 신뢰할 패키지 설정 - 모든 패키지 허용
+    #        allow.auto.create.topics: false # 자동 오프셋 커밋 비활성화 - 수동 커밋으로 정확한 메시지 처리 보장
+    listener:
+      ack-mode: manual
+      concurrency: 3   # 컨슈머 스레드(동시성) 수 지정
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+    redisson:
+      config: classpath:redisson-docker.yml
 
 
 
