@@ -50,6 +50,8 @@ public class ConcertRankingHistory {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
 	private LocalDateTime createdAt;
 
+	protected static final String RANK_KEY = "concert:selloutTime";
+
 	@Builder
 	public ConcertRankingHistory(Integer ranking, String concertName, LocalDate concertDate,
 		LocalDate rankingDate, long score) {
@@ -78,5 +80,9 @@ public class ConcertRankingHistory {
 			.concertDate(concertDate)
 			.score(score)
 			.build();
+	}
+
+	public static String getRankKey() {
+		return RANK_KEY;
 	}
 }
