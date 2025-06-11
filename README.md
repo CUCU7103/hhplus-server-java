@@ -24,6 +24,10 @@
 
 <br>
 
+## [Redis 분산 락 적용 방식](https://tame-board-bb2.notion.site/Redis-1e39bafd1761802ebaf2c750bedfdc5f?source=copy_link)
+
+<br>
+
 ## [📋 Redis - 빠른 매진 랭킹 구하기  및 대기열 토큰 로직 개선 보고서](https://tame-board-bb2.notion.site/7-1f49bafd176180f89a91de4df776349b?pvs=4)
 
 <br>
