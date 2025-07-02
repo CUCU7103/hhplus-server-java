@@ -11,6 +11,7 @@ import kr.hhplus.be.server.domain.balance.balance.Balance;
 
 @Repository
 public interface BalanceJpaRepository extends JpaRepository<Balance, Long> {
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	Optional<Balance> findByIdAndUserId(long balanceId, long userId);
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)

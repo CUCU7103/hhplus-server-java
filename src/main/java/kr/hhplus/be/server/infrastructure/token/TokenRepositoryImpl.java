@@ -8,9 +8,11 @@ import org.springframework.stereotype.Repository;
 import kr.hhplus.be.server.domain.token.Token;
 import kr.hhplus.be.server.domain.token.TokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class TokenRepositoryImpl implements TokenRepository {
 	private final TokenRedisRepository tokenRedisRepository;
 
@@ -51,6 +53,7 @@ public class TokenRepositoryImpl implements TokenRepository {
 
 	@Override
 	public boolean hasKey(String userId) {
+		log.info(Token.getActiveQueueSpecificKey(userId));
 		return tokenRedisRepository.hasKey(Token.getActiveQueueSpecificKey(userId));
 	}
 

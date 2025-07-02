@@ -78,7 +78,7 @@ public class PaymentConcurrencyTest {
 	@Test
 	void 사용자의_결제_요청이_동시에_여러번_들어오면_먼저_들어온_요청이외에는_실패한다() throws InterruptedException {
 		// arrange
-		int payCount = 3;
+		int payCount = 10;
 
 		User user = userJpaRepository.saveAndFlush(User.builder().name("철수").build());
 
@@ -142,7 +142,7 @@ public class PaymentConcurrencyTest {
 		List<Payment> paymentList = paymentJpaRepository.findAll();
 
 		assertThat(successCount.get()).isEqualTo(1);
-		assertThat(failCount.get()).isEqualTo(2);
+		assertThat(failCount.get()).isEqualTo(9);
 
 		assertThat(balanceList.get(0).getMoneyVO().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(5000L));
 		assertThat(paymentList.size()).isEqualTo(1);

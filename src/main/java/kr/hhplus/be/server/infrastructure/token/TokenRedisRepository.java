@@ -8,9 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import kr.hhplus.be.server.domain.token.Token;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class TokenRedisRepository {
 	private final StringRedisTemplate redisTemplate;
 
@@ -48,6 +50,7 @@ public class TokenRedisRepository {
 	}
 
 	public boolean hasKey(String activeKey) {
+		log.info(activeKey);
 		return redisTemplate.hasKey(activeKey);
 	}
 

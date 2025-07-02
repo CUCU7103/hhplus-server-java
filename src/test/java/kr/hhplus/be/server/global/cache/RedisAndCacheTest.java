@@ -70,7 +70,7 @@ public class RedisAndCacheTest {
 				.build()
 		);
 		ConcertSchedule schedule1 = ConcertSchedule.builder()
-			.concertDate(LocalDate.of(2025, 6, 20))
+			.concertDate(LocalDate.of(2025, 8, 20))
 			.venue("성균관대학교")
 			.status(ConcertScheduleStatus.AVAILABLE)
 			.createdAt(LocalDateTime.now())
@@ -79,7 +79,7 @@ public class RedisAndCacheTest {
 		concertScheduleJpaRepository.save(schedule1);
 
 		ConcertDateSearchCommand command = new ConcertDateSearchCommand(
-			LocalDate.of(2025, 6, 1),
+			LocalDate.of(2025, 6, 30),
 			LocalDate.of(2025, 9, 22),
 			1,
 			30
@@ -106,7 +106,7 @@ public class RedisAndCacheTest {
 		assertThat(info)
 			.hasSize(1)
 			.extracting(ConcertScheduleInfo::concertDate)
-			.containsExactly(LocalDate.of(2025, 6, 20));
+			.containsExactly(LocalDate.of(2025, 8, 20));
 
 		// ③ Redis 캐시 저장 여부 검증
 		ConcertScheduleInfo[] cached =
@@ -115,7 +115,7 @@ public class RedisAndCacheTest {
 			.as("서비스 호출 후 Redis 캐시에 데이터가 저장되어야 합니다")
 			.isNotNull()
 			.extracting(ConcertScheduleInfo::concertDate)
-			.containsExactly(LocalDate.of(2025, 6, 20));
+			.containsExactly(LocalDate.of(2025, 8, 20));
 
 		// ④ 로컬 캐시 저장 여부 검증
 		List<ConcertScheduleInfo> localCached = localCache.getIfPresent(key);
@@ -123,6 +123,6 @@ public class RedisAndCacheTest {
 			.as("서비스 호출 후 로컬 캐시에 데이터가 저장되어야 합니다")
 			.isNotNull()
 			.extracting(ConcertScheduleInfo::concertDate)
-			.containsExactly(LocalDate.of(2025, 6, 20));
+			.containsExactly(LocalDate.of(2025, 8, 20));
 	}
 }
