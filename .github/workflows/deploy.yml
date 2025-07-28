@@ -71,7 +71,6 @@ jobs:
             export COMPOSE_HTTP_TIMEOUT=200
             # AWS CLI 없이 ECR Credential Helper 방식으로 인증되는 환경이라면
             # 로그인 명령 없이도 pull/push 가능
-            
             docker compose pull 
             docker compose up -d
             docker compose ps 
