@@ -70,8 +70,19 @@ jobs:
           script_stop: true
           script: |
             set -eux
-            cd /home/ubuntu/hhplus-server-java   # docker-compose.yml 위치
-            export COMPOSE_HTTP_TIMEOUT=200      # 대형 이미지 pull 대비 타임아웃 증가
-            docker compose pull app              # 앱 서비스 이미지만 새로 가져오기
-            docker compose up -d --no-deps app   # 앱만 재시작
-            # (옵션) 전체 스택 재시작: docker-compose up -d
+            cd /home/ubuntu/hhplus-server-java
+            
+            # AWS CLI 및 ECR 로그인
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ needs.build_and_push.outputs.registry }}
+            
+            # 환경 변수 설정 (ECR 레지스트리 경로)
+            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            export COMPOSE_HTTP_TIMEOUT=200
+            
+            # 서비스 업데이트
+            docker compose pull app
+            docker compose up -d --no-deps app
+            
+            # 배포 완료 확인
+            docker compose ps app
+          
