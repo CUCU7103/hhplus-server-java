@@ -57,7 +57,7 @@ services:
   # │ - Spring Boot 환경 변수로 각 서비스 호스트를 지정합니다.                  │
   # └────────────────────────────────────────────────────────────────────────┘
   app:
-    image: "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+    image: 116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
     depends_on:
       - kafka
       - redis

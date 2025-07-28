@@ -44,19 +44,11 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Debug ECR_REGISTRY
-        run: echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}"
-
-      - name: Export ECR_REGISTRY to next steps
-        run: |
-          echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
-          echo "ECR_REPOSITORY=hhplus-server"         >> $GITHUB_ENV
-
       - name: Tag and push Docker image
         run: |
           docker tag hhplus-server:latest \
-          $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
+          docker push  116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
 
 
   deploy:
@@ -72,7 +64,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          envs: ECR_REGISTRY,ECR_REPOSITORY
           script_stop: true
           script: |
             set -eux
