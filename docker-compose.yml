@@ -72,6 +72,4 @@ services:
       - "8082:8082"                                             # 호스트 8082 → 컨테이너 8082 :contentReference[oaicite:62]{index=62}
     networks:
       - monitoring
-    mem_limit: 1g        # Spring Boot 앱 JVM에 최대 1GB 할당
-    cpus: 0.5            # CPU 코어 절반만 사용
 
