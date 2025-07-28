@@ -76,7 +76,7 @@ jobs:
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ needs.build_and_push.outputs.registry }}
             
             # 환경 변수 설정 (ECR 레지스트리 경로)
-            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            export ECR_REGISTRY=${{ needs.build_and_push.outputs.registry }}
             export COMPOSE_HTTP_TIMEOUT=200
             
             # 서비스 업데이트
