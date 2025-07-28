@@ -1,0 +1,70 @@
+name: Deploy HHPlus to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write  # AWS OIDC 사용 시
+
+jobs:
+  build_and_push:
+    name: 🚀 Build & Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Generate Spring & Redisson config files
+        run: |
+          echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application.yml
+          echo "${{ secrets.REDISSON_DOCKER_YML }}" > src/main/resources/redisson-docker.yml
+          echo "${{ secrets.REDISSON_LOCAL_YML }}"  > src/main/resources/redisson-local.yml
+
+      - name: Build jar and Docker image (테스트 없이 진행)
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build -x test
+          docker build -t hhplus-app .
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag Docker image for ECR
+        run: |
+          docker tag hhplus-app:latest ${{ steps.login-ecr.outputs.registry }}/hhplus-app:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/hhplus-app:latest
+
+  deploy:
+    name: 🐳 Deploy via Docker Compose
+    needs: build_and_push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH to EC2 and update services
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -eux
+            cd /home/ubuntu/hhplus-server-java   # docker-compose.yml 위치
+            export COMPOSE_HTTP_TIMEOUT=200      # 대형 이미지 pull 대비 타임아웃 증가
+            docker-compose pull app              # 앱 서비스 이미지만 새로 가져오기
+            docker-compose up -d --no-deps app   # 앱만 재시작
+            # (옵션) 전체 스택 재시작: docker-compose up -d

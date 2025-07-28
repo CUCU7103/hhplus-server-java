@@ -37,3 +37,7 @@ out/
 .vscode/
 
 data
+
+application.yml
+redission-docker.yml
+redission-local.yml

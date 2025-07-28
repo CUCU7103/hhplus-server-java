@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.presentation.concert;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -31,7 +30,6 @@ public class ConcertEventListener {
 	@Async  // 비동기 처리를 위한 어노테이션 추가
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void rankingUpdateListener(PaymentCompletedEvent event) {
-		ZoneId zone = ZoneId.systemDefault();
 		long availableSeats = concertRepository.getAvailableConcertSeat(event.scheduleId());
 
 		if (availableSeats != 0) {

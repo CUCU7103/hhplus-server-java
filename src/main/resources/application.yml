@@ -16,7 +16,7 @@ spring:
     generate-ddl: false
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC                                                      # 메시지 처리 확인 모드 - 수동 확인으로 처리 완료 후 커밋
@@ -99,10 +99,10 @@ spring:
       on-profile: docker
 
   datasource:
-    # Docker Compose 네트워크의 서비스 이름(mysql)로 접근
-    url: jdbc:mysql://mysql:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
-    username: application
-    password: application
+    # RDS 사용
+    url: jdbc:mysql://hhplus-server-db.c2b2geu0c62c.us-east-1.rds.amazonaws.com:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    username: admin
+    password: hhplus-server-db
 
   kafka:
     # Docker Compose 내에서 kafka:9092 로 접근
