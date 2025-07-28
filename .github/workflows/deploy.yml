@@ -48,7 +48,7 @@ jobs:
 
       - name: Tag and push Docker image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ needs.build_and_push.outputs.ecr_registry }}
           ECR_REPOSITORY: hhplus-server
         run: |
           docker tag hhplus-server:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
