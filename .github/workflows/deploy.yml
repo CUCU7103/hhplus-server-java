@@ -49,11 +49,11 @@ jobs:
 
       - name: Tag Docker image for ECR
         run: |
-          docker tag hhplus-app:latest ${{ steps.login-ecr.outputs.registry }}/hhplus-app:latest
+          docker tag hhplus-app:latest ${{ steps.login-ecr.outputs.registry }}/hhplus-server:latest
 
       - name: Push Docker image to ECR
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/hhplus-app:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/hhplus-server:latest
 
   deploy:
     name: 🐳 Deploy via Docker Compose
