@@ -23,9 +23,9 @@ jobs:
 
       - name: Generate Spring & Redisson config
         run: |
-          #          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
-               echo "${{ secrets.REDISSON_DOCKER_YML }}" > src/main/resources/redisson-docker.yml
-               echo "${{ secrets.REDISSON_LOCAL_YML }}" > src/main/resources/redisson-local.yml
+          
+          echo "${{ secrets.REDISSON_DOCKER_YML }}" > src/main/resources/redisson-docker.yml
+          echo "${{ secrets.REDISSON_LOCAL_YML }}" > src/main/resources/redisson-local.yml
 
       - name: Build jar and Docker image
         run: |
