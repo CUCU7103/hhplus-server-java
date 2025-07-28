@@ -57,7 +57,7 @@ services:
   # │ - Spring Boot 환경 변수로 각 서비스 호스트를 지정합니다.                  │
   # └────────────────────────────────────────────────────────────────────────┘
   app:
-    image: ${ECR_REGISTRY}/hhplus-server:latest                                          # 사용자 정의 이미지 이름을 hhplus-app으로 지정 :contentReference[oaicite:48]{index=48}
+    image: 116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server                                       # 사용자 정의 이미지 이름을 hhplus-app으로 지정 :contentReference[oaicite:48]{index=48}
     depends_on:
       - kafka
       - redis

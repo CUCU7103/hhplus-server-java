@@ -2,21 +2,18 @@ name: Deploy HHPlus to EC2
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: read
-  id-token: write  # AWS OIDC 사용 시
+  id-token: write
 
 jobs:
   build_and_push:
     name: 🚀 Build & Push to ECR
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -24,36 +21,38 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Generate Spring & Redisson config files
+      - name: Generate Spring & Redisson config
         run: |
           echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application.yml
           echo "${{ secrets.REDISSON_DOCKER_YML }}" > src/main/resources/redisson-docker.yml
-          echo "${{ secrets.REDISSON_LOCAL_YML }}"  > src/main/resources/redisson-local.yml
+          echo "${{ secrets.REDISSON_LOCAL_YML }}" > src/main/resources/redisson-local.yml
 
-      - name: Build jar and Docker image (테스트 없이 진행)
+      - name: Build jar and Docker image
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -x test
-          docker build -t hhplus-app .
+          docker build -t hhplus-server .
 
-      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Log in to Amazon ECR
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false'
 
-      - name: Tag Docker image for ECR
+      - name: Tag and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hhplus-server
         run: |
-          docker tag hhplus-app:latest ${{ steps.login-ecr.outputs.registry }}/hhplus-server:latest
-
-      - name: Push Docker image to ECR
-        run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/hhplus-server:latest
+          docker tag hhplus-server:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   deploy:
     name: 🐳 Deploy via Docker Compose
@@ -61,28 +60,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: SSH to EC2 and update services
+      - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hhplus-server
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
+          envs: ECR_REGISTRY,ECR_REPOSITORY
           script_stop: true
           script: |
             set -eux
             cd /home/ubuntu/hhplus-server-java
-            
-            # AWS CLI 및 ECR 로그인
-            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ needs.build_and_push.outputs.registry }}
-            
-            # 환경 변수 설정 (ECR 레지스트리 경로)
-            export ECR_REGISTRY=${{ needs.build_and_push.outputs.registry }}
             export COMPOSE_HTTP_TIMEOUT=200
-            
-            # 서비스 업데이트
+
+            # AWS CLI 없이 ECR Credential Helper 방식으로 인증되는 환경이라면
+            # 로그인 명령 없이도 pull/push 가능
             docker compose pull app
             docker compose up -d --no-deps app
-            
-            # 배포 완료 확인
             docker compose ps app
-          
