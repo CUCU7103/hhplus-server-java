@@ -46,6 +46,9 @@ jobs:
         with:
           mask-password: 'false'
 
+      - name: Debug ECR_REGISTRY
+        run: echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}"
+
       - name: Tag and push Docker image
         env:
           ECR_REGISTRY: ${{ needs.build_and_push.outputs.ecr_registry }}
