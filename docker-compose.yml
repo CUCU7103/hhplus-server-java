@@ -57,9 +57,6 @@ services:
   # │ - Spring Boot 환경 변수로 각 서비스 호스트를 지정합니다.                  │
   # └────────────────────────────────────────────────────────────────────────┘
   app:
-    build:
-      context: .                                               # 현재 디렉터리의 Dockerfile을 사용하여 이미지 빌드 :contentReference[oaicite:47]{index=47}
-      dockerfile: Dockerfile
     image: hhplus-app                                           # 사용자 정의 이미지 이름을 hhplus-app으로 지정 :contentReference[oaicite:48]{index=48}
     depends_on:
       - kafka
