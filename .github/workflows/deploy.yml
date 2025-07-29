@@ -56,6 +56,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 0️⃣ Repository checkout (없으면 docker-compose.yml 이 workspace에 없습니다)
+      - name: Checkout repo
+        uses: actions/checkout@v4
       # 1️⃣ docker-compose.yml 파일을 EC2로 복사
       - name: Copy docker-compose.yml to EC2
         uses: appleboy/scp-action@master
