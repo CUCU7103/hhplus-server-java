@@ -28,7 +28,11 @@ services:
       # 리스너별 프로토콜 맵핑 :contentReference[oaicite:38]{index=38}
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093            # 컨트롤러 쿼럼 투표자 설정 :contentReference[oaicite:39]{index=39}
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-    restart: always  # 컨트롤러 리스너 이름 지정 :contentReference[oaicite:40]{index=40}
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512m  # 컨테이너 전체 메모리 제한
     networks:
       monitoring:
         - aliases:
