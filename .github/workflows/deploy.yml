@@ -80,7 +80,7 @@ jobs:
           script: |
             set -eux
             # 배포 디렉토리 보장
-            [ ! -d /home/ubuntu/hhplus-server-java ] && mkdir -p /home/ubuntu/hhplus-server-java
+            mkdir -p /home/ubuntu/hhplus-server-java
             cd /home/ubuntu/hhplus-server-java
 
             export COMPOSE_HTTP_TIMEOUT=200
