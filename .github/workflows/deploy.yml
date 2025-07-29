@@ -47,9 +47,8 @@ jobs:
       - name: Tag and push Docker image
         run: |
           docker tag hhplus-server:latest \
-          116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
-          docker push  116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
-
+            116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
+          docker push 116981801268.dkr.ecr.us-east-1.amazonaws.com/hhplus-server:latest
 
   deploy:
     name: 🐳 Deploy via Docker Compose
@@ -57,9 +56,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ docker-compose.yml 파일을 EC2로 복사
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "docker-compose.yml"
+          target: "/home/ubuntu/hhplus-server-java/docker-compose.yml"
+
+      # 2️⃣ SSH로 접속해 실제로 pull & up
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v1.0.3
-
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -67,14 +76,13 @@ jobs:
           script_stop: true
           script: |
             set -eux
-            # 디렉터리 없으면 생성하기
+            # 배포 디렉토리 보장
             [ ! -d /home/ubuntu/hhplus-server-java ] && mkdir -p /home/ubuntu/hhplus-server-java
-            
             cd /home/ubuntu/hhplus-server-java
+
             export COMPOSE_HTTP_TIMEOUT=200
-            
-            # AWS CLI 없이 ECR Credential Helper 방식으로 인증되는 환경이라면
-            # 로그인 명령 없이도 pull/push 가능
-            docker compose pull 
+
+            # 이미지 pull & 컨테이너 up
+            docker compose pull
             docker compose up -d
-            docker compose ps 
+            docker compose ps
