@@ -14,12 +14,12 @@ services:
   # │ - 볼륨을 통해 로그 및 데이터를 영속화하며, 다양한 리스너를 설정합니다.    │
   # └────────────────────────────────────────────────────────────────────────┘
   kafka:
-    image: public.ecr.aws/bitnami/kafka:3.5.1                    # Bitnami Kafka 3.5.1 이미지를 사용 :contentReference[oaicite:29]{index=29}
+    image: public.ecr.aws/bitnami/kafka:3.5.1                    # Bitnami Kafka 3.5.1 이미지를 사용
     ports:
-      - "9094:9094"                                            # 호스트 9094 → 컨테이너 9094 :contentReference[oaicite:31]{index=31}                            # Kafka 데이터 영속화 볼륨 :contentReference[oaicite:32]{index=32}
+      - "9094:9094"                                            # 호스트 9094 → 컨테이너 9094
     environment: # 환경 변수는 매핑(mapping) 형태로 작성 :contentReference[oaicite:33]{index=33}
-      KAFKA_CFG_NODE_ID: 0                                       # Kafka 노드 ID 설정 :contentReference[oaicite:34]{index=34}
-      KAFKA_CFG_PROCESS_ROLES: controller,broker                 # 프로세스 역할 설정 :contentReference[oaicite:35]{index=35}
+      KAFKA_CFG_NODE_ID: 0                                       # Kafka 노드 ID 설정
+      KAFKA_CFG_PROCESS_ROLES: controller,broker                 # 프로세스 역할 설정
       KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
       # 리스너(프로토콜) 설정 :contentReference[oaicite:36]{index=36}
       KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
