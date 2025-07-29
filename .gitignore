@@ -39,5 +39,7 @@ out/
 data
 
 application.yml
+application-docker.yml
+application-local.yml
 redission-docker.yml
 redission-local.yml
