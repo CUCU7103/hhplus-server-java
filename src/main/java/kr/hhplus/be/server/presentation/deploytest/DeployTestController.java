@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class DeployTestController {
 
-	@GetMapping("/")
+	@GetMapping
 	public String deployTest() {
 		return "Successful deploy";
 	}
