@@ -67,8 +67,12 @@ jobs:
           script_stop: true
           script: |
             set -eux
+            # 디렉터리 없으면 생성하기
+            [ ! -d /home/ubuntu/hhplus-server-java ] && mkdir -p /home/ubuntu/hhplus-server-java
+            
             cd /home/ubuntu/hhplus-server-java
             export COMPOSE_HTTP_TIMEOUT=200
+            
             # AWS CLI 없이 ECR Credential Helper 방식으로 인증되는 환경이라면
             # 로그인 명령 없이도 pull/push 가능
             docker compose pull 
