@@ -15,7 +15,6 @@ services:
   # └────────────────────────────────────────────────────────────────────────┘
   kafka:
     image: public.ecr.aws/bitnami/kafka:3.5.1                    # Bitnami Kafka 3.5.1 이미지를 사용 :contentReference[oaicite:29]{index=29}
-    container_name: hhplus-kafka                                 # 컨테이너 이름을 hhplus-kafka로 지정 :contentReference[oaicite:30]{index=30}
     ports:
       - "9094:9094"                                            # 호스트 9094 → 컨테이너 9094 :contentReference[oaicite:31]{index=31}                            # Kafka 데이터 영속화 볼륨 :contentReference[oaicite:32]{index=32}
     environment: # 환경 변수는 매핑(mapping) 형태로 작성 :contentReference[oaicite:33]{index=33}
@@ -31,7 +30,9 @@ services:
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
     restart: always  # 컨트롤러 리스너 이름 지정 :contentReference[oaicite:40]{index=40}
     networks:
-      - monitoring
+      monitoring:
+        - aliases:
+            - kafka
 
   # ┌────────────────────────────────────────────────────────────────────────┐
   # │ 5) Redis 서비스 정의                                                    │
@@ -61,7 +62,7 @@ services:
     depends_on:
       - kafka
       - redis
-    #      - influxdb                                                # InfluxDB가 반드시 기동된 이후에 애플리케이션이 구동되도록 설정 :contentReference[oaicite:49]{index=49}
+
     environment: # Spring Boot 환경 변수는 매핑(mapping) 형태로 작성
       SPRING_PROFILES_ACTIVE: docker                           # 활성화 할 프로파일을 docker로 지정함.
     restart: always
