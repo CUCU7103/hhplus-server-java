@@ -35,8 +35,8 @@ services:
           memory: 512MB  # 컨테이너 전체 메모리 제한
     networks:
       monitoring:
-        - aliases:
-            - kafka
+        aliases:
+          - kafka
 
   # ┌────────────────────────────────────────────────────────────────────────┐
   # │ 5) Redis 서비스 정의                                                    │
