@@ -32,7 +32,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m  # 컨테이너 전체 메모리 제한
+          memory: 256m  # 컨테이너 전체 메모리 제한
     networks:
       monitoring:
         - aliases:
